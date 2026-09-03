@@ -1,0 +1,3356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Multiplication Fluid Lab</title>
+<style>
+  :root{
+    --bg1:#edf8ff;
+    --bg2:#f6f1ff;
+    --bg3:#fff9e8;
+    --panel:rgba(255,255,255,.90);
+    --ink:#23405d;
+    --muted:#6c8098;
+    --primary:#6e78ff;
+    --primary2:#8e95ff;
+    --good:#17b47f;
+    --warn:#ef9753;
+    --soft:#f5f9ff;
+    --soft2:#eef3ff;
+    --shadow:0 14px 36px rgba(55,76,112,.14);
+    --bench:#d3a06f;
+    --bench2:#b57f4d;
+    --liquid1:#ff7b7b;
+    --liquid2:#e13d3d;
+    --liquid3:#ffb0b0;
+  }
+
+  body[data-theme="dark"]{
+    --bg1:#182230;
+    --bg2:#20283a;
+    --bg3:#2c2a24;
+    --panel:rgba(31,43,59,.94);
+    --ink:#eaf2fb;
+    --muted:#aebed0;
+    --primary:#8290ff;
+    --primary2:#a69bff;
+    --good:#2fc997;
+    --warn:#f3aa69;
+    --soft:#273447;
+    --soft2:#334158;
+    --shadow:0 16px 40px rgba(0,0,0,.28);
+    --bench:#765333;
+    --bench2:#59402b;
+  }
+  body[data-theme="dark"]{
+    background:
+      radial-gradient(circle at 10% 10%, rgba(111,91,40,.22) 0 8%, transparent 9%),
+      radial-gradient(circle at 90% 15%, rgba(100,54,84,.20) 0 7%, transparent 8%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 56%,var(--bg3));
+  }
+  body[data-theme="dark"] .card,
+  body[data-theme="dark"] .setupCard,
+  body[data-theme="dark"] .setupField,
+  body[data-theme="dark"] .labHud,
+  body[data-theme="dark"] .readingPanel,
+  body[data-theme="dark"] .bubble,
+  body[data-theme="dark"] .directionBadge,
+  body[data-theme="dark"] .hudStat,
+  body[data-theme="dark"] .switchRow{
+    background:rgba(38,51,70,.96);
+    border-color:#3b4a61;
+    color:var(--ink);
+  }
+  body[data-theme="dark"] select{
+    background:#28374b;
+    color:#eef5ff;
+    border-color:#3c4d66;
+  }
+  body[data-theme="dark"] .secondary{
+    background:#33435b;
+    color:#dfe8ff;
+  }
+  body[data-theme="dark"] .good{
+    background:#173e34;
+    color:#aaf0d5;
+  }
+  body[data-theme="dark"] .warn{
+    background:#4a3525;
+    color:#ffd2a6;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:"Noto Sans Bengali","Hind Siliguri","Nirmala UI","Segoe UI",sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, #fff5bf 0 8%, transparent 9%),
+      radial-gradient(circle at 90% 15%, #ffe5f1 0 7%, transparent 8%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 56%,var(--bg3));
+  }
+
+  .app{
+    min-height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:12px;
+    padding:12px;
+  }
+
+  .topbar,.panel,.lab{
+    border:2px solid rgba(255,255,255,.95);
+    background:var(--panel);
+    backdrop-filter:blur(10px);
+    box-shadow:var(--shadow);
+  }
+
+  .topbar{
+    width:min(1280px,100%);
+    margin:auto;
+    border-radius:24px;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .brand{flex:1 1 360px}
+  .brand h1{
+    margin:0;
+    font-size:clamp(1.3rem,2.3vw,2rem);
+    line-height:1.2;
+  }
+  .brand p{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-weight:800;
+  }
+
+  .eqCard{
+    min-width:290px;
+    border-radius:22px;
+    padding:14px 18px;
+    color:#fff;
+    background:linear-gradient(135deg,var(--primary),var(--primary2));
+    box-shadow:0 10px 25px rgba(110,120,255,.24);
+    text-align:center;
+  }
+  .eqCard .eq{
+    font-size:clamp(2rem,3.8vw,3.25rem);
+    font-weight:900;
+    letter-spacing:.4px;
+  }
+  .eqCard .sub{
+    margin-top:4px;
+    font-size:1rem;
+    font-weight:800;
+    opacity:.97;
+  }
+
+  .workspace{
+    width:min(1280px,100%);
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    align-items:stretch;
+  }
+
+  .panel{
+    border-radius:24px;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:2px solid #edf2ff;
+    border-radius:18px;
+    padding:14px;
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:1rem;
+  }
+  .small{font-size:.94rem; line-height:1.45}
+  .muted{color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .row{display:flex;align-items:center;gap:10px}
+
+  label{
+    display:block;
+    margin-bottom:6px;
+    font-size:.92rem;
+    font-weight:900;
+  }
+
+  select,button{
+    width:100%;
+    border:0;
+    border-radius:15px;
+    padding:11px 12px;
+    font:inherit;
+    font-weight:900;
+  }
+  select{
+    background:#f8fbff;
+    border:2px solid #eaf0ff;
+    color:var(--ink);
+  }
+  button{
+    cursor:pointer;
+    transition:.15s transform,.15s filter;
+    touch-action:manipulation;
+  }
+  button:hover{filter:brightness(1.03)}
+  button:active{transform:scale(.98)}
+  .primary{background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#fff}
+  .secondary{background:#eff4ff;color:#4d58bf}
+  .good{background:#ebfff7;color:#12885f}
+  .warn{background:#fff2e8;color:#b86620}
+
+  .switchRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:15px;
+    background:#f8fbff;
+    border:2px solid #ecf1ff;
+    font-weight:900;
+  }
+  .switch{
+    width:56px;
+    height:30px;
+    border-radius:999px;
+    background:#dee5ff;
+    position:relative;
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .switch::after{
+    content:"";
+    position:absolute;
+    top:3px; left:3px;
+    width:24px; height:24px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.14);
+    transition:.2s;
+  }
+  .switch.on{background:#8fe2bd}
+  .switch.on::after{left:29px}
+
+  .stat{
+    border:2px solid #edf2ff;
+    background:#f9fbff;
+    border-radius:16px;
+    padding:12px;
+    text-align:center;
+  }
+  .stat .n{
+    display:block;
+    font-size:1.42rem;
+    font-weight:900;
+  }
+  .stat .t{
+    display:block;
+    color:var(--muted);
+    font-size:.87rem;
+    font-weight:800;
+    margin-top:3px;
+  }
+
+  .progress{
+    height:14px;
+    width:100%;
+    border-radius:999px;
+    overflow:hidden;
+    background:#eaf0ff;
+  }
+  .progress > div{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#24c48a,#87e3be);
+    transition:width .35s ease;
+  }
+
+
+
+  body[data-theme="dark"] .setupOverlay{
+    background:
+      radial-gradient(circle at 15% 15%, rgba(93,75,35,.30), transparent 24%),
+      radial-gradient(circle at 85% 12%, rgba(87,47,74,.28), transparent 22%),
+      linear-gradient(135deg,rgba(23,33,46,.98),rgba(29,36,52,.98),rgba(42,39,31,.98));
+  }
+  .setupOverlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:grid;
+    place-items:center;
+    padding:18px;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(255,246,190,.92), transparent 24%),
+      radial-gradient(circle at 85% 12%, rgba(255,225,239,.86), transparent 22%),
+      linear-gradient(135deg,rgba(235,249,255,.96),rgba(244,239,255,.96),rgba(255,250,230,.96));
+    backdrop-filter:blur(12px);
+  }
+  .setupOverlay.hidden{display:none}
+  .setupCard{
+    width:min(720px,96vw);
+    max-height:92vh;
+    overflow:auto;
+    background:rgba(255,255,255,.95);
+    border:3px solid rgba(255,255,255,.95);
+    border-radius:30px;
+    padding:22px;
+    box-shadow:0 24px 70px rgba(48,67,101,.20);
+  }
+  .setupHero{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .setupHero .icon{font-size:3rem;line-height:1}
+  .setupHero h2{margin:8px 0 5px;font-size:clamp(1.45rem,3vw,2.15rem)}
+  .setupHero p{margin:0;color:var(--muted);font-weight:800;line-height:1.45}
+  .setupGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .setupField{
+    background:#f8fbff;
+    border:2px solid #edf2ff;
+    border-radius:18px;
+    padding:12px;
+  }
+  .operationCards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+  .opChoice{
+    border:3px solid #e8edff;
+    background:#fbfcff;
+    border-radius:20px;
+    padding:14px;
+    cursor:pointer;
+    text-align:center;
+    transition:.18s;
+  }
+  .opChoice.active{
+    border-color:#7d87ff;
+    background:#f0f2ff;
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(100,110,220,.13);
+  }
+  .opChoice .symbol{font-size:2rem;font-weight:900;color:#5965df}
+  .opChoice .opTitle{font-weight:900;margin-top:4px}
+  .opChoice .opDesc{font-size:.86rem;color:var(--muted);font-weight:700;margin-top:3px;line-height:1.3}
+
+  .teacherPanel{
+    display:none;
+    margin-top:12px;
+    padding:14px;
+    border-radius:20px;
+    background:#f8fbff;
+    border:2px solid #e9efff;
+  }
+  body[data-theme="dark"] .teacherPanel{
+    background:#28374b;
+    border-color:#40516a;
+  }
+  .teacherPanel.show{display:block}
+  .teacherProblemGrid{
+    display:grid;
+    grid-template-columns:1fr 110px 1fr;
+    gap:10px;
+    align-items:end;
+  }
+  .digitInput{
+    width:100%;
+    border:2px solid #e6edff;
+    border-radius:15px;
+    padding:11px 12px;
+    font:inherit;
+    font-weight:900;
+    background:#fff;
+    color:var(--ink);
+    text-align:center;
+    font-size:1.12rem;
+  }
+  body[data-theme="dark"] .digitInput{
+    background:#223044;
+    color:#eef5ff;
+    border-color:#40516a;
+  }
+  .setupError{
+    display:none;
+    margin-top:10px;
+    padding:9px 11px;
+    border-radius:13px;
+    background:#fff0e8;
+    color:#a95720;
+    border:2px solid #ffd8c2;
+    font-weight:900;
+    font-size:.86rem;
+  }
+  .setupError.show{display:block}
+
+  .teacherVisual{
+    position:absolute;
+    left:50%;
+    top:225px;
+    transform:translateX(-50%);
+    width:min(650px,82%);
+    z-index:9;
+    display:none;
+    background:rgba(255,255,255,.92);
+    border:3px solid rgba(255,255,255,.96);
+    border-radius:26px;
+    padding:18px;
+    box-shadow:0 15px 36px rgba(52,72,105,.14);
+    backdrop-filter:blur(10px);
+    text-align:center;
+  }
+  body[data-theme="dark"] .teacherVisual{
+    background:rgba(37,50,68,.95);
+    border-color:#40516a;
+  }
+  .teacherVisual.show{display:block}
+  .teacherVisualTitle{
+    font-size:clamp(1.25rem,2.5vw,1.9rem);
+    font-weight:900;
+    margin-bottom:8px;
+  }
+  .teacherVisualSub{
+    color:var(--muted);
+    font-weight:800;
+    line-height:1.4;
+    margin-bottom:14px;
+  }
+  .counterStage{
+    min-height:150px;
+    border-radius:20px;
+    background:#f7faff;
+    border:2px solid #edf2ff;
+    padding:14px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  body[data-theme="dark"] .counterStage{
+    background:#223044;
+    border-color:#40516a;
+  }
+  .counterGroup{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    padding:9px;
+    border-radius:16px;
+    border:2px dashed #ccd6ff;
+    min-width:54px;
+  }
+  .counter{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ff8b8b,#df4444);
+    box-shadow:inset -4px -5px 8px rgba(130,20,20,.16),0 4px 8px rgba(50,70,90,.10);
+    animation:counterPop .32s ease both;
+    position:relative;
+  }
+  .counter.blue{
+    background:linear-gradient(145deg,#8eb8ff,#5b7fe6);
+  }
+  .counter.crossed::after{
+    content:"×";
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    font-size:1.5rem;
+    color:white;
+    font-weight:900;
+  }
+  @keyframes counterPop{
+    from{transform:scale(.4);opacity:0}
+    to{transform:scale(1);opacity:1}
+  }
+  .mathArrow{
+    font-size:1.8rem;
+    font-weight:900;
+    color:#7180a0;
+  }
+  .teacherAnswer{
+    margin-top:14px;
+    font-size:clamp(1.35rem,2.7vw,2rem);
+    font-weight:900;
+    color:#4e62d5;
+  }
+  .teacherAnswer.reveal{
+    animation:answerPop .5s ease;
+  }
+  @keyframes answerPop{
+    0%{transform:scale(.7);opacity:0}
+    70%{transform:scale(1.08);opacity:1}
+    100%{transform:scale(1)}
+  }
+  .startBtn{
+    margin-top:16px;
+    min-height:52px;
+    font-size:1.08rem;
+    background:linear-gradient(135deg,#6674ff,#9299ff);
+    color:#fff;
+    box-shadow:0 10px 24px rgba(103,115,255,.24);
+  }
+
+  .labHud{
+    position:absolute;
+    left:16px;
+    top:16px;
+    z-index:12;
+    width:min(310px,34%);
+    background:rgba(255,255,255,.91);
+    border:2px solid rgba(255,255,255,.98);
+    border-radius:20px;
+    padding:11px 12px;
+    box-shadow:0 9px 22px rgba(54,75,105,.11);
+    backdrop-filter:blur(9px);
+  }
+  .labHudTitle{font-weight:900;font-size:.92rem;margin-bottom:5px}
+  .labHudMission{font-size:.82rem;line-height:1.35;color:#506781;font-weight:800}
+  .hudStats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+    margin-top:8px;
+  }
+  .hudStat{
+    text-align:center;
+    background:#f7faff;
+    border:1px solid #eaf0ff;
+    border-radius:12px;
+    padding:6px 4px;
+  }
+  .hudStat b{display:block;font-size:1.05rem}
+  .hudStat span{display:block;font-size:.68rem;color:var(--muted);font-weight:800}
+  .hudProgressRow{display:flex;justify-content:space-between;font-size:.72rem;font-weight:900;margin-top:8px;margin-bottom:4px}
+  .labHud .progress{height:8px}
+
+  .labControls{
+    position:absolute;
+    left:16px;
+    bottom:198px;
+    z-index:13;
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    max-width:50%;
+  }
+  .labControls button{
+    width:auto;
+    min-width:72px;
+    padding:9px 11px;
+    border-radius:13px;
+    box-shadow:0 6px 15px rgba(51,71,101,.10);
+  }
+
+
+  .divisionPots{
+    position:absolute;
+    left:50%;
+    bottom:198px;
+    transform:translateX(-50%);
+    z-index:6;
+    display:none;
+    width:min(650px,74%);
+    padding:8px 10px;
+    border-radius:18px;
+    background:rgba(255,255,255,.58);
+    border:2px solid rgba(255,255,255,.78);
+    backdrop-filter:blur(7px);
+    box-shadow:0 8px 18px rgba(60,80,100,.08);
+  }
+  body[data-theme="dark"] .divisionPots{
+    background:rgba(30,42,57,.70);
+    border-color:#3a4b63;
+  }
+  .divisionPots.show{display:block}
+  .divisionPotsTitle{
+    font-size:.82rem;
+    font-weight:900;
+    text-align:center;
+    margin-bottom:7px;
+    color:var(--muted);
+  }
+  .potsRow{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    align-items:flex-end;
+    flex-wrap:wrap;
+  }
+  .miniPot{
+    width:58px;
+    height:78px;
+    position:relative;
+    flex:0 0 auto;
+  }
+  .miniPot svg{width:100%;height:100%}
+  .miniPotLabel{
+    position:absolute;
+    left:50%;
+    bottom:-15px;
+    transform:translateX(-50%);
+    font-size:.68rem;
+    font-weight:900;
+    white-space:nowrap;
+    color:var(--ink);
+  }
+  .miniPot.filled{
+    animation:potPop .36s ease;
+  }
+  @keyframes potPop{
+    0%{transform:scale(.78);opacity:.4}
+    70%{transform:scale(1.08);opacity:1}
+    100%{transform:scale(1)}
+  }
+
+  .directionBadge{
+    position:absolute;
+    left:50%;
+    top:166px;
+    transform:translateX(-50%);
+    z-index:8;
+    background:rgba(255,255,255,.93);
+    border:2px solid #edf1ff;
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:.84rem;
+    font-weight:900;
+    color:#526780;
+    box-shadow:0 7px 17px rgba(60,80,100,.08);
+  }
+
+  @media (max-width:780px){
+    .setupGrid{grid-template-columns:1fr}
+    .labHud{
+      left:8px;
+      top:190px;
+      width:220px;
+    }
+    .labControls{
+      left:8px;
+      bottom:185px;
+      max-width:65%;
+    }
+    .directionBadge{top:184px;font-size:.75rem}
+  }
+  @media (max-width:560px){
+    .setupOverlay{padding:8px}
+    .setupCard{padding:14px;border-radius:22px}
+    .operationCards{grid-template-columns:1fr}
+    .labHud{
+      top:190px;
+      width:178px;
+      padding:8px;
+    }
+    .labHudMission{font-size:.72rem}
+    .hudStats{grid-template-columns:1fr 1fr 1fr;gap:3px}
+    .hudStat b{font-size:.88rem}
+    .hudStat span{font-size:.57rem}
+    .labControls{
+      bottom:180px;
+      max-width:72%;
+      gap:5px;
+    }
+    .labControls button{
+      min-width:54px;
+      padding:7px 8px;
+      font-size:.78rem;
+    }
+  }
+
+  .lab{
+    position:relative;
+    min-height:790px;
+    overflow:hidden;
+    border-radius:28px;
+    background:
+      linear-gradient(rgba(255,255,255,.56),rgba(255,255,255,.56)),
+      linear-gradient(#eefbff,#f4f3ff);
+  }
+
+  .gridBg{
+    position:absolute; inset:0 0 180px 0;
+    background:
+      linear-gradient(to right, rgba(146,174,202,.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(146,174,202,.10) 1px, transparent 1px);
+    background-size:34px 34px;
+    pointer-events:none;
+  }
+
+  .headerPill{
+    position:absolute;
+    left:50%;
+    top:14px;
+    transform:translateX(-50%);
+    padding:8px 16px;
+    border-radius:999px;
+    background:#ffffffdc;
+    border:2px solid #fff;
+    font-weight:900;
+    z-index:4;
+  }
+
+  .mathBoard{
+    position:absolute;
+    left:50%;
+    top:58px;
+    transform:translateX(-50%);
+    width:min(580px,88%);
+    background:#233e5d;
+    color:#fff;
+    border-radius:22px;
+    padding:15px 18px;
+    text-align:center;
+    box-shadow:0 12px 28px rgba(35,62,93,.18);
+    z-index:4;
+  }
+  .mathBoard .eq{
+    font-size:clamp(2rem,4.2vw,3.8rem);
+    font-weight:900;
+  }
+  .mathBoard .info{
+    margin-top:6px;
+    font-size:1rem;
+    font-weight:800;
+    opacity:.96;
+  }
+
+  .scientistCorner{
+    position:absolute;
+    right:14px;
+    top:10px;
+    width:205px;
+    height:248px;
+    z-index:7;
+  }
+  .scientistSvg{width:100%;height:100%}
+  .bubble{
+    position:absolute;
+    right:120px;
+    top:12px;
+    width:240px;
+    max-width:min(42vw,240px);
+    background:#fff;
+    border:2px solid #eff3ff;
+    border-radius:18px;
+    padding:11px 12px;
+    box-shadow:0 8px 18px rgba(70,88,112,.10);
+    font-weight:900;
+    font-size:.92rem;
+    line-height:1.35;
+    color:#3c5877;
+    z-index:7;
+  }
+  .bubble::after{
+    content:"";
+    position:absolute;
+    right:24px;
+    top:48px;
+    width:18px; height:18px;
+    background:#fff;
+    border-right:2px solid #eff3ff;
+    border-bottom:2px solid #eff3ff;
+    transform:rotate(-45deg);
+  }
+
+
+  .actionCount{
+    position:absolute;
+    left:50%;
+    top:245px;
+    transform:translate(-50%,-50%) scale(.7);
+    z-index:28;
+    min-width:220px;
+    padding:14px 22px;
+    border-radius:24px;
+    background:rgba(255,255,255,.95);
+    border:3px solid #eef2ff;
+    box-shadow:0 16px 35px rgba(44,65,100,.16);
+    text-align:center;
+    pointer-events:none;
+    opacity:0;
+  }
+  body[data-theme="dark"] .actionCount{
+    background:rgba(34,47,65,.96);
+    border-color:#40516a;
+  }
+  .actionCount.show{
+    animation:countPop .9s ease both;
+  }
+  .actionCount .bigNum{
+    display:block;
+    font-size:clamp(2.8rem,6vw,5.5rem);
+    line-height:.95;
+    font-weight:1000;
+    color:#d83f3f;
+    letter-spacing:-2px;
+  }
+  .actionCount .caption{
+    display:block;
+    margin-top:5px;
+    font-size:clamp(.9rem,1.7vw,1.25rem);
+    font-weight:900;
+    color:var(--ink);
+  }
+  @keyframes countPop{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}
+    18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+    70%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(.92)}
+  }
+  .toast{
+    position:absolute;
+    left:50%;
+    top:158px;
+    transform:translate(-50%,-8px) scale(.98);
+    background:#21344be8;
+    color:#fff;
+    padding:11px 18px;
+    border-radius:18px;
+    font-weight:900;
+    text-align:center;
+    max-width:80%;
+    opacity:0;
+    z-index:10;
+    transition:.22s;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0) scale(1)}
+  .toast.good{background:#0fa670ea}
+  .toast.warn{background:#ea9453ea}
+
+  .cupWrap{
+    position:absolute;
+    left:6%;
+    bottom:118px;
+    width:236px;
+    height:280px;
+    z-index:4;
+  }
+  .cylinderWrap{
+    position:absolute;
+    right:7%;
+    bottom:84px;
+    width:330px;
+    height:610px;
+    z-index:4;
+  }
+  .cupSvg,.cylinderSvg{width:100%;height:100%}
+
+  .dropperWrap{
+    position:absolute;
+    left:45%;
+    top:250px;
+    width:190px;
+    height:350px;
+    z-index:8;
+    touch-action:none;
+    cursor:grab;
+  }
+  .dropperWrap.dragging{
+    cursor:grabbing;
+    filter:drop-shadow(0 14px 18px rgba(41,52,88,.18));
+  }
+  .dropperWrap:hover #bulbShape{
+    filter:brightness(1.035);
+  }
+  .dropperWrap:active #bulbShape{
+    filter:brightness(.96);
+  }
+50%{transform:translate(87px,18px) scale(1.04);opacity:1}
+  }
+  .dropperSvg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 5px 7px rgba(55,75,100,.06))}
+
+  .readingPanel{
+    position:absolute;
+    right:0;
+    top:145px;
+    background:#fff;
+    border:3px solid #edf2ff;
+    border-radius:18px;
+    padding:10px 12px;
+    box-shadow:0 8px 18px rgba(80,70,150,.10);
+    min-width:96px;
+    text-align:center;
+    z-index:6;
+    font-weight:900;
+  }
+  .readingPanel .n{
+    display:block;
+    font-size:1.45rem;
+    color:#4f63d5;
+    margin-top:2px;
+  }
+
+  .hint{
+    position:absolute;
+    border:4px dashed rgba(110,120,255,.34);
+    border-radius:26px;
+    pointer-events:none;
+    opacity:0;
+    animation:pulse 1.15s infinite;
+    z-index:3;
+  }
+  .hint.show{opacity:1}
+  @keyframes pulse{50%{transform:scale(1.03);opacity:.58}}
+
+  .blinkStrong{
+    animation:blinkStrong 1s infinite;
+  }
+  @keyframes blinkStrong{
+    0%,100%{opacity:1; transform:scale(1)}
+    50%{opacity:.35; transform:scale(1.09)}
+  }
+
+  .liquidFill{
+    transition:height .65s cubic-bezier(.2,.85,.2,1), y .65s cubic-bezier(.2,.85,.2,1);
+  }
+  .tubeFill{
+    transition:height .3s ease, y .3s ease;
+  }
+  .bench{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:185px;
+    background:linear-gradient(var(--bench),var(--bench2));
+    border-top:8px solid #9b683d;
+  }
+  .benchFront{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:68px;
+    background:linear-gradient(#be8652,#9f6a3f);
+  }
+
+  .celebrate{
+    position:absolute; inset:0;
+    pointer-events:none; overflow:hidden;
+    z-index:9;
+  }
+  .confetti{
+    position:absolute;
+    top:-20px; width:12px; height:18px;
+    border-radius:3px;
+    animation:confettiFall 1.8s linear forwards;
+  }
+  @keyframes confettiFall{
+    to{transform:translateY(850px) rotate(720deg); opacity:.9}
+  }
+
+  footer{
+    width:min(1280px,100%);
+    margin:auto;
+    text-align:center;
+    color:var(--muted);
+    font-weight:800;
+    padding-bottom:4px;
+  }
+
+  @media (max-width:1060px){
+    .workspace{grid-template-columns:1fr}
+    .lab{min-height:840px}
+  }
+
+  @media (max-width:780px){
+    .bubble{
+      right:96px;
+      width:180px;
+      font-size:.86rem;
+    }
+    .scientistCorner{
+      width:168px;
+      height:210px;
+      right:8px;
+      top:8px;
+    }
+    .mathBoard{
+      top:74px;
+      width:min(520px,92%);
+      padding:13px 14px;
+    }
+    .toast{top:177px}
+    .cupWrap{
+      left:1%;
+      transform:scale(.88);
+      transform-origin:left bottom;
+    }
+    .cylinderWrap{
+      right:0;
+      transform:scale(.84);
+      transform-origin:right bottom;
+    }
+    .dropperWrap{
+      left:50%;
+      transform:translateX(-50%) scale(.88);
+      transform-origin:center top;
+    }
+  }
+
+  @media (max-width:560px){
+    .app{padding:8px}
+    .topbar,.panel,.lab{border-radius:20px}
+    .bubble{
+      top:7px;
+      right:76px;
+      width:150px;
+      font-size:.79rem;
+      padding:9px 10px;
+    }
+    .scientistCorner{
+      width:134px;
+      height:176px;
+    }
+    .mathBoard{
+      top:78px;
+      width:95%;
+      border-radius:18px;
+    }
+    .headerPill{font-size:.85rem}
+    .toast{
+      top:181px;
+      font-size:.9rem;
+      max-width:90%;
+    }
+    .cupWrap{
+      left:-10px;
+      transform:scale(.73);
+    }
+    .cylinderWrap{
+      right:-12px;
+      transform:scale(.68);
+    }
+    .dropperWrap{
+      width:158px;
+      height:300px;
+      top:300px;
+      transform:translateX(-50%) scale(.78);
+    }
+  }
+</style>
+</head>
+<body data-theme="light">
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1 id="brandTitle">🧪 গুণনের ফ্লুইড ল্যাব</h1>
+      <p id="brandSub">রঙিন জল, ড্রপার আর মাপজোক দিয়ে সহজে নামতা শেখা।</p>
+    </div>
+    <div class="eqCard">
+      <div class="eq" id="topEquation">2 × 1 = ?</div>
+      <div class="sub" id="topSub">প্রতি ডোজ 2 mL • 1 বার ঢালো</div>
+    </div>
+  </header>
+
+  <div class="setupOverlay" id="setupOverlay">
+  <div class="setupCard">
+    <div class="setupHero">
+      <div class="icon">🧪</div>
+      <h2 id="setupTitle">গণিত ফ্লুইড ল্যাব | Math Fluid Lab</h2>
+      <p id="setupSub">প্রথমে তোমার পরীক্ষা বেছে নাও। তারপর পুরো স্ক্রিনে ল্যাব শুরু হবে।</p>
+    </div>
+
+    <div class="setupField" style="margin-bottom:12px">
+      <label id="operationLabel">অপারেশন | Operation</label>
+      <div class="operationCards">
+        <div class="opChoice active" id="mulChoice" data-op="mul">
+          <div class="symbol">×</div>
+          <div class="opTitle" id="mulTitle">গুণ | Multiplication</div>
+          <div class="opDesc" id="mulDesc">পাত্র → ড্রপার → সিলিন্ডার</div>
+        </div>
+        <div class="opChoice" id="divChoice" data-op="div">
+          <div class="symbol">÷</div>
+          <div class="opTitle" id="divTitle">ভাগ | Division</div>
+          <div class="opDesc" id="divDesc">সিলিন্ডার → ড্রপার → পাত্র</div>
+        </div>
+        <div class="opChoice" id="teacherChoice" data-op="teacher">
+          <div class="symbol">✎</div>
+          <div class="opTitle" id="teacherTitle">Teacher Custom</div>
+          <div class="opDesc" id="teacherDesc">একটি অঙ্ক লিখে ব্যাখ্যা করান</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="setupGrid">
+      <div class="setupField" id="practiceTableField">
+        <label id="tableLabel" for="tableSelect">নামতা / ভাগের সংখ্যা</label>
+        <select id="tableSelect"></select>
+      </div>
+
+      <div class="setupField">
+        <label id="langLabel" for="langMode">লেখার ভাষা</label>
+        <select id="langMode">
+          <option value="bn">শুধু বাংলা</option>
+          <option value="en">English only</option>
+          <option value="both" selected>বাংলা + English</option>
+        </select>
+      </div>
+
+      <div class="setupField">
+        <label id="voiceLangLabel" for="voiceLang">ভয়েস ভাষা</label>
+        <select id="voiceLang">
+          <option value="bn">বাংলা</option>
+          <option value="en">English</option>
+          <option value="both" selected>বাংলা + English</option>
+        </select>
+      </div>
+
+      <div class="setupField">
+        <label id="voiceTypeLabel" for="voiceType">ভয়েস পছন্দ</label>
+        <select id="voiceType">
+          <option value="google" selected>Google voice preferred</option>
+          <option value="auto">Auto browser voice</option>
+        </select>
+      </div>
+
+      <div class="setupField">
+        <label id="themeLabel" for="themeSelect">ডিসপ্লে মোড | Display mode</label>
+        <select id="themeSelect">
+          <option value="light" selected>☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="teacherPanel" id="teacherPanel">
+      <label id="teacherProblemLabel">একটি single-digit অঙ্ক দিন | Enter one single-digit problem</label>
+      <div class="teacherProblemGrid">
+        <div>
+          <label id="digitALabel" for="teacherA">প্রথম সংখ্যা | First number</label>
+          <input class="digitInput" id="teacherA" type="number" min="0" max="9" step="1" value="7">
+        </div>
+        <div>
+          <label id="teacherOpLabel" for="teacherOp">চিহ্ন</label>
+          <select id="teacherOp">
+            <option value="add">+</option>
+            <option value="sub">−</option>
+            <option value="mul" selected>×</option>
+            <option value="div">÷</option>
+          </select>
+        </div>
+        <div>
+          <label id="digitBLabel" for="teacherB">দ্বিতীয় সংখ্যা | Second number</label>
+          <input class="digitInput" id="teacherB" type="number" min="0" max="9" step="1" value="4">
+        </div>
+      </div>
+      <div class="setupError" id="setupError"></div>
+    </div>
+
+    <div class="switchRow" style="margin-top:12px">
+      <span id="voiceToggleText">ভয়েস ফিডব্যাক | Voice feedback</span>
+      <div id="voiceSwitch" class="switch on" role="switch" aria-checked="true" tabindex="0"></div>
+    </div>
+
+    <button class="startBtn" id="startBtn">🚀 ল্যাব শুরু করো | Start Lab</button>
+  </div>
+</div>
+
+<main class="workspace">
+    <section class="lab" id="lab">
+      <div class="gridBg"></div>
+
+      <div class="labHud">
+        <div class="labHudTitle" id="missionTitle">🎯 আজকের কাজ | Mission</div>
+        <div class="labHudMission" id="missionText"></div>
+        <div class="hudProgressRow">
+          <span id="progressText">প্রগতি | Progress</span>
+          <span id="roundText">1 / 10</span>
+        </div>
+        <div class="progress"><div id="progressFill"></div></div>
+        <div class="hudStats">
+          <div class="hudStat"><b id="doseCount">0</b><span id="doseLabel">ডোজ</span></div>
+          <div class="hudStat"><b id="dropperValue">2 mL</b><span id="dropperLabel">ড্রপার</span></div>
+          <div class="hudStat"><b id="targetValue">2 mL</b><span id="targetLabel">লক্ষ্য</span></div>
+        </div>
+        <div id="guideText" style="display:none"></div>
+        <div id="guideTitle" style="display:none"></div>
+        <div id="settingsTitle" style="display:none"></div>
+      </div>
+
+      <div class="labControls">
+        <button class="secondary" id="settingsBtn">⚙️</button>
+        <button class="secondary" id="prevBtn">⬅️ Prev</button>
+        <button class="secondary" id="resetBtn">↻ Reset</button>
+        <button class="good" id="demoBtn">✨ Demo</button>
+        <button class="primary" id="nextBtn">Next ➡️</button>
+      </div>
+
+      <div class="directionBadge" id="directionBadge">পাত্র → ড্রপার → সিলিন্ডার</div>
+
+      <div class="teacherVisual" id="teacherVisual">
+        <div class="teacherVisualTitle" id="teacherVisualTitle">7 × 4 = ?</div>
+        <div class="teacherVisualSub" id="teacherVisualSub">চলো ধাপে ধাপে বুঝি।</div>
+        <div class="counterStage" id="counterStage"></div>
+        <div class="teacherAnswer" id="teacherAnswer">?</div>
+      </div>
+
+      <div class="divisionPots" id="divisionPots">
+        <div class="divisionPotsTitle" id="divisionPotsTitle">সমান ভাগের পাত্র | Equal measuring pots</div>
+        <div class="potsRow" id="potsRow"></div>
+      </div>
+
+      <div class="headerPill" id="headerPill">একই স্ক্রিনে অঙ্ক + পরীক্ষা</div>
+
+      <div class="bubble" id="scientistBubble">চলো, পরীক্ষার মাধ্যমে উত্তর বের করি!</div>
+      <div class="scientistCorner">
+        <svg class="scientistSvg" viewBox="0 0 220 250" aria-label="cartoon scientist">
+          <defs>
+            <linearGradient id="coatG" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="1" stop-color="#eef4ff"/>
+            </linearGradient>
+            <linearGradient id="hairG" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#8792a1"/>
+              <stop offset="1" stop-color="#646d7a"/>
+            </linearGradient>
+          </defs>
+
+          <ellipse cx="145" cy="231" rx="44" ry="10" fill="rgba(60,80,95,.10)"/>
+          <path d="M117 119 Q146 104 176 118 L190 208 Q164 222 131 220 L117 119 Z" fill="url(#coatG)" stroke="#dbe6fb" stroke-width="2"/>
+          <path d="M151 115 L149 218" stroke="#d8e2fa" stroke-width="2"/>
+          <circle cx="149" cy="150" r="2.8" fill="#8ea0c4"/>
+          <circle cx="149" cy="173" r="2.8" fill="#8ea0c4"/>
+          <circle cx="149" cy="196" r="2.8" fill="#8ea0c4"/>
+
+          <path d="M119 132 Q104 146 109 170" fill="none" stroke="#f5c79c" stroke-width="11" stroke-linecap="round"/>
+          <path d="M182 131 Q200 143 202 173" fill="none" stroke="#f5c79c" stroke-width="11" stroke-linecap="round"/>
+          <rect x="138" y="102" width="20" height="18" rx="9" fill="#f7c89d"/>
+
+          <g id="headGroup">
+            <circle cx="148" cy="73" r="42" fill="#f7c89d"/>
+            <circle cx="106" cy="77" r="8" fill="#efbd8d"/>
+            <circle cx="190" cy="77" r="8" fill="#efbd8d"/>
+
+            <!-- funny wild professor hair, soft tufts instead of horn-like strands -->
+            <path d="M108 72
+                     Q101 56 110 44
+                     Q98 39 107 31
+                     Q117 24 126 28
+                     Q126 18 139 20
+                     Q148 10 158 20
+                     Q171 15 177 27
+                     Q190 27 190 40
+                     Q200 49 190 61
+                     Q192 68 188 73
+                     Q180 48 164 40
+                     Q153 46 146 44
+                     Q137 46 129 40
+                     Q116 46 108 72Z"
+                  fill="url(#hairG)"/>
+            <circle cx="104" cy="44" r="10" fill="#8b95a5"/>
+            <circle cx="113" cy="31" r="11" fill="#8b95a5"/>
+            <circle cx="129" cy="23" r="10" fill="#8b95a5"/>
+            <circle cx="146" cy="19" r="11" fill="#8b95a5"/>
+            <circle cx="164" cy="22" r="10" fill="#8b95a5"/>
+            <circle cx="181" cy="32" r="11" fill="#8b95a5"/>
+            <circle cx="191" cy="46" r="10" fill="#8b95a5"/>
+
+            <path id="browL" d="M128 60 Q136 56 144 60" fill="none" stroke="#64544d" stroke-width="3" stroke-linecap="round"/>
+            <path id="browR" d="M154 60 Q162 56 170 60" fill="none" stroke="#64544d" stroke-width="3" stroke-linecap="round"/>
+
+            <g id="eyeLeft" transform="translate(137,75)">
+              <ellipse class="eyeWhite" cx="0" cy="0" rx="8.3" ry="6.7" fill="#fff"/>
+              <circle class="pupil" cx="1" cy="1" r="2.8" fill="#24415c"/>
+              <line class="blinkLine" x1="-8" y1="0" x2="8" y2="0" stroke="#24415c" stroke-width="2.3" stroke-linecap="round" style="display:none"/>
+            </g>
+            <g id="eyeRight" transform="translate(161,75)">
+              <ellipse class="eyeWhite" cx="0" cy="0" rx="8.3" ry="6.7" fill="#fff"/>
+              <circle class="pupil" cx="1" cy="1" r="2.8" fill="#24415c"/>
+              <line class="blinkLine" x1="-8" y1="0" x2="8" y2="0" stroke="#24415c" stroke-width="2.3" stroke-linecap="round" style="display:none"/>
+            </g>
+
+            <path d="M149 78 Q146 87 150 92" fill="none" stroke="#d49572" stroke-width="2.3" stroke-linecap="round"/>
+            <path d="M139 96 Q145 91 149 97 Q153 91 159 96"
+                  fill="none" stroke="#6c717b" stroke-width="3" stroke-linecap="round"/>
+            <path id="mouthSmile" d="M137 104 Q149 112 161 104" fill="none" stroke="#bf5d65" stroke-width="3.2" stroke-linecap="round"/>
+            <path id="mouthWow" d="M149 101 m -5 0 a 5 7 0 1 0 10 0 a 5 7 0 1 0 -10 0" fill="#cb6a71" style="display:none"/>
+            <path id="mouthSad" d="M138 107 Q149 98 160 107" fill="none" stroke="#bf5d65" stroke-width="3.2" stroke-linecap="round" style="display:none"/>
+
+            <circle cx="137" cy="75" r="13.5" fill="none" stroke="#6e8cac" stroke-width="2.8"/>
+            <circle cx="161" cy="75" r="13.5" fill="none" stroke="#6e8cac" stroke-width="2.8"/>
+            <line x1="148" y1="75" x2="150" y2="75" stroke="#6e8cac" stroke-width="2.6"/>
+          </g>
+
+          <g transform="translate(199,176)">
+            <path d="M-8 -18 L8 -18 L5 3 Q16 14 14 28 Q11 45 0 50 Q-11 45 -14 28 Q-16 14 -5 3 Z"
+                  fill="#ffffffd9" stroke="#bfcee1" stroke-width="2.2"/>
+            <path d="M-10 20 Q0 24 10 20 L8 33 Q0 39 -8 33 Z" fill="#ee5a5a"/>
+            <ellipse cx="0" cy="20" rx="10" ry="3" fill="#ff9898"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="mathBoard">
+        <div class="eq" id="boardEquation">2 × 1 = ?</div>
+        <div class="info" id="boardInfo">2 mL একবার ঢালো। শেষে 2 mL হবে।</div>
+      </div>
+
+      <div id="toast" class="toast"></div>
+
+      <div id="actionCount" class="actionCount">
+        <span class="bigNum" id="actionCountNumber">1</span>
+        <span class="caption" id="actionCountCaption">Picked 2 mL</span>
+      </div>
+
+      <div id="celebrate" class="celebrate"></div>
+
+      <div class="cupWrap" id="cupWrap">
+        <svg class="cupSvg" viewBox="0 0 236 280" aria-label="liquid cup">
+          <defs>
+            <linearGradient id="glassCup" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(255,255,255,.76)"/>
+              <stop offset=".5" stop-color="rgba(222,245,255,.22)"/>
+              <stop offset="1" stop-color="rgba(255,255,255,.76)"/>
+            </linearGradient>
+            <clipPath id="cupClip">
+              <path d="M58 52 L178 52 L165 220 Q156 239 118 239 Q80 239 71 220 Z" />
+            </clipPath>
+          </defs>
+          <ellipse cx="118" cy="250" rx="66" ry="10" fill="rgba(70,88,112,.12)"/>
+          <path d="M58 52 L178 52 L165 220 Q156 239 118 239 Q80 239 71 220 Z"
+                fill="url(#glassCup)" stroke="#b3c9da" stroke-width="5"/>
+          <ellipse cx="118" cy="52" rx="60" ry="8" fill="#dbeaf2"/>
+          <g clip-path="url(#cupClip)">
+            <rect id="cupLiquidRect" x="54" y="100" width="128" height="140" fill="var(--liquid2)"/>
+            <path id="cupWaveBack" d="" fill="rgba(255,110,110,.55)"></path>
+            <path id="cupWaveFront" d="" fill="rgba(225,61,61,.92)"></path>
+            <path id="cupWaveHighlight" d="" fill="rgba(255,188,188,.74)"></path>
+          </g>
+          <rect x="62" y="14" width="112" height="30" rx="15" fill="#fff"/>
+          <text x="118" y="29" text-anchor="middle" font-size="12" font-weight="900" fill="#34526f" id="cupText">রঙিন জল</text>
+          <text x="118" y="41" text-anchor="middle" font-size="10" font-weight="900" fill="#d13b3b" id="cupRemainingText">0 mL</text>
+        </svg>
+      </div>
+
+      <div class="cylinderWrap" id="cylinderWrap">
+        <div class="readingPanel">
+          <div id="readingTitle">রিডিং</div>
+          <span class="n" id="readingValue">0 mL</span>
+        </div>
+
+        <svg class="cylinderSvg" id="cylinderSvg" viewBox="0 0 330 610" aria-label="dynamic measuring cylinder">
+          <defs>
+            <linearGradient id="glassCyl" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(255,255,255,.78)"/>
+              <stop offset=".5" stop-color="rgba(222,245,255,.22)"/>
+              <stop offset="1" stop-color="rgba(255,255,255,.78)"/>
+            </linearGradient>
+            <clipPath id="cylClip">
+              <rect id="cylClipRect" x="104" y="70" width="92" height="430" rx="12"></rect>
+            </clipPath>
+          </defs>
+
+          <ellipse id="cylShadow" cx="150" cy="563" rx="92" ry="14" fill="rgba(70,88,112,.12)"/>
+          <ellipse id="cylBase" cx="150" cy="545" rx="92" ry="15" fill="#8db1c4"/>
+          <rect id="cylBody" x="104" y="64" width="92" height="440" rx="16"
+                fill="url(#glassCyl)" stroke="#b3cadb" stroke-width="6"></rect>
+
+          <g clip-path="url(#cylClip)">
+            <rect id="cylLiquidRect" class="liquidFill" x="104" y="500" width="92" height="0" fill="var(--liquid2)"></rect>
+            <path id="cylWaveBack" d="" fill="rgba(255,110,110,.52)"></path>
+            <path id="cylWaveFront" d="" fill="rgba(225,61,61,.93)"></path>
+            <path id="cylWaveHighlight" d="" fill="rgba(255,190,190,.72)"></path>
+          </g>
+
+          <g id="scaleGroup" stroke="#41617b" fill="#41617b"></g>
+
+          <rect x="96" y="18" width="115" height="28" rx="14" fill="#fff"/>
+          <text id="cylLabel" x="154" y="37" text-anchor="middle" font-size="14" font-weight="900" fill="#31506c">20 mL cylinder</text>
+
+          <g id="levelMarker" style="display:none">
+            <rect id="markerBox" x="208" y="300" width="72" height="32" rx="12" fill="#fff" stroke="#ea4c4c" stroke-width="3"></rect>
+            <text id="markerText" x="244" y="321" text-anchor="middle" font-size="17" font-weight="900" fill="#d93737">0 mL</text>
+            <line id="markerLine" x1="196" y1="316" x2="208" y2="316" stroke="#ea4c4c" stroke-width="4" stroke-linecap="round"></line>
+          </g>
+        </svg>
+      </div>
+
+      <div class="dropperWrap" id="dropperWrap" tabindex="0" aria-label="draggable dropper">
+        <svg class="dropperSvg" viewBox="0 0 175 330" aria-label="realistic rubber bulb dropper">
+          <defs>
+            <linearGradient id="dropGlass" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(255,255,255,.86)"/>
+              <stop offset=".45" stop-color="rgba(220,245,255,.28)"/>
+              <stop offset="1" stop-color="rgba(255,255,255,.82)"/>
+            </linearGradient>
+
+            <radialGradient id="rubberBulbGrad" cx="34%" cy="22%" r="82%">
+              <stop offset="0" stop-color="#ff8c9a"/>
+              <stop offset=".42" stop-color="#e95568"/>
+              <stop offset="1" stop-color="#b92f45"/>
+            </radialGradient>
+
+            <linearGradient id="rubberNeckGrad" x1="0" x2="1">
+              <stop offset="0" stop-color="#b52d42"/>
+              <stop offset=".5" stop-color="#df4b60"/>
+              <stop offset="1" stop-color="#a9263b"/>
+            </linearGradient>
+
+            <filter id="bulbShadow" x="-30%" y="-30%" width="160%" height="180%">
+              <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#772335" flood-opacity=".26"/>
+            </filter>
+
+            <filter id="glassShadow" x="-30%" y="-20%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#56738b" flood-opacity=".16"/>
+            </filter>
+          </defs>
+
+          <!-- realistic rubber bulb -->
+          <g id="bulbGroup" filter="url(#bulbShadow)" transform="translate(87,56)">
+            <path id="bulbShape"
+              d="M0 -43
+                 C24 -43 39 -25 39 -3
+                 C39 23 25 43 0 50
+                 C-25 43 -39 23 -39 -3
+                 C-39 -25 -24 -43 0 -43 Z"
+              fill="url(#rubberBulbGrad)"
+              stroke="#9f2337"
+              stroke-width="3"/>
+
+            <!-- subtle rubber ridges -->
+            <path d="M-28 -20 Q0 -29 28 -20" fill="none" stroke="rgba(255,255,255,.20)" stroke-width="3" stroke-linecap="round"/>
+            <path d="M-31 -5 Q0 -14 31 -5" fill="none" stroke="rgba(92,8,28,.18)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M-28 12 Q0 4 28 12" fill="none" stroke="rgba(92,8,28,.14)" stroke-width="2.3" stroke-linecap="round"/>
+            <path d="M-21 28 Q0 22 21 28" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="2.2" stroke-linecap="round"/>
+
+            <!-- soft highlight -->
+            <ellipse cx="-13" cy="-17" rx="9" ry="18" fill="rgba(255,255,255,.18)" transform="rotate(18 -13 -17)"/>
+
+            <!-- rubber collar -->
+            <rect x="-15" y="42" width="30" height="24" rx="9" fill="url(#rubberNeckGrad)" stroke="#9e2337" stroke-width="2.2"/>
+            <rect x="-12" y="60" width="24" height="12" rx="5" fill="#c63a4e" opacity=".92"/>
+          </g>
+
+          <!-- glass pipette -->
+          <g id="dropperGroup" transform="translate(87,118)" filter="url(#glassShadow)">
+            <rect x="-12" y="0" width="24" height="154" rx="10"
+                  fill="url(#dropGlass)" stroke="#abc6da" stroke-width="4"/>
+
+            <!-- glass shine -->
+            <rect x="-6" y="8" width="4" height="134" rx="2" fill="rgba(255,255,255,.60)"/>
+
+            <!-- dynamic liquid fill -->
+            <rect id="tubeFill" class="tubeFill" x="-8" y="166" width="16" height="0" rx="7" fill="var(--liquid2)"/>
+
+            <!-- graduated markings 1–10 mL -->
+            <g id="dropperScale" stroke="#3c5d76" fill="#3c5d76"></g>
+
+            <!-- selected target mark -->
+            <g id="dropperTargetMark">
+              <line id="dropperTargetLine" x1="-20" y1="90" x2="13" y2="90"
+                    stroke="#d92f2f" stroke-width="3.5" stroke-linecap="round"/>
+              <rect id="dropperTargetBox" x="-58" y="76" width="36" height="28" rx="9"
+                    fill="#fff" stroke="#e34e4e" stroke-width="2"/>
+              <text id="dropperTargetText" x="-40" y="95" text-anchor="middle"
+                    font-size="13" font-weight="900" fill="#d53030">2</text>
+            </g>
+
+            <!-- tapered glass tip -->
+            <path d="M-6 154 L6 154 L4 196 Q0 211 -4 196 Z"
+                  fill="rgba(205,224,237,.82)" stroke="#abc6da" stroke-width="2.2"/>
+
+            <path id="dropShape"
+                  d="M0 204 C7 214 9 220 9 225 C9 233 4 238 0 238 C-4 238 -9 233 -9 225 C-9 220 -7 214 0 204Z"
+                  fill="var(--liquid2)" opacity="0"/>
+          </g>
+        </svg>
+      </div>
+
+      <div id="cupHint" class="hint" style="left:5%;bottom:108px;width:240px;height:290px"></div>
+      <div id="cylHint" class="hint" style="right:6%;bottom:82px;width:320px;height:615px"></div>
+
+      <div class="bench"></div>
+      <div class="benchFront"></div>
+    </section>
+  </main>
+
+  <footer id="footerText">Kids-friendly fluid multiplication lab • soft theme • responsive</footer>
+</div>
+
+<script>
+(() => {
+  const state = {
+    setupMode: 'mul',
+    teacherMode: false,
+    teacherVisualOnly: false,
+    teacherA: 7,
+    teacherB: 4,
+    teacherOp: 'mul',
+    operation: 'mul',
+    table: 2,
+    round: 1,
+    maxRound: 10,
+    doses: 0,
+    dropperMl: 0,
+    cylinderMl: 0,
+    sourceMl: 0,
+    sourceCapacity: 0,
+    receivedMl: 0,
+    voiceOn: true,
+    langMode: 'both',
+    voiceLang: 'both',
+    voiceType: 'google',
+    theme: 'light',
+    soundOn: true,
+    dragging: false,
+    solved: false,
+    cylMax: 20,
+    cylBody: {x:104, y:64, w:92, h:440, baseX:150, baseY:545, baseRx:92},
+    pointerStart: {x:0,y:0,t:0}
+  };
+
+  const $ = s => document.querySelector(s);
+
+  const setupOverlay = $('#setupOverlay');
+  const startBtn = $('#startBtn');
+  const settingsBtn = $('#settingsBtn');
+  const mulChoice = $('#mulChoice');
+  const divChoice = $('#divChoice');
+  const teacherChoice = $('#teacherChoice');
+  const teacherPanel = $('#teacherPanel');
+  const practiceTableField = $('#practiceTableField');
+  const teacherAInput = $('#teacherA');
+  const teacherBInput = $('#teacherB');
+  const teacherOpSelect = $('#teacherOp');
+  const setupError = $('#setupError');
+  const teacherTitle = $('#teacherTitle');
+  const teacherDesc = $('#teacherDesc');
+  const teacherProblemLabel = $('#teacherProblemLabel');
+  const digitALabel = $('#digitALabel');
+  const digitBLabel = $('#digitBLabel');
+  const teacherOpLabel = $('#teacherOpLabel');
+  const directionBadge = $('#directionBadge');
+  const teacherVisual = $('#teacherVisual');
+  const teacherVisualTitle = $('#teacherVisualTitle');
+  const teacherVisualSub = $('#teacherVisualSub');
+  const counterStage = $('#counterStage');
+  const teacherAnswer = $('#teacherAnswer');
+
+  const divisionPots = $('#divisionPots');
+  const divisionPotsTitle = $('#divisionPotsTitle');
+  const potsRow = $('#potsRow');
+  const operationLabel = $('#operationLabel');
+  const setupTitle = $('#setupTitle');
+  const setupSub = $('#setupSub');
+  const mulTitle = $('#mulTitle');
+  const mulDesc = $('#mulDesc');
+  const divTitle = $('#divTitle');
+  const divDesc = $('#divDesc');
+
+  const tableSelect = $('#tableSelect');
+  const langMode = $('#langMode');
+  const voiceLang = $('#voiceLang');
+  const voiceType = $('#voiceType');
+  const themeSelect = $('#themeSelect');
+  const themeLabel = $('#themeLabel');
+  const voiceSwitch = $('#voiceSwitch');
+
+  const brandTitle = $('#brandTitle');
+  const brandSub = $('#brandSub');
+  const topEquation = $('#topEquation');
+  const topSub = $('#topSub');
+  const boardEquation = $('#boardEquation');
+  const boardInfo = $('#boardInfo');
+
+  const settingsTitle = $('#settingsTitle');
+  const tableLabel = $('#tableLabel');
+  const langLabel = $('#langLabel');
+  const voiceLangLabel = $('#voiceLangLabel');
+  const voiceTypeLabel = $('#voiceTypeLabel');
+  const voiceToggleText = $('#voiceToggleText');
+  const missionTitle = $('#missionTitle');
+  const missionText = $('#missionText');
+  const progressText = $('#progressText');
+  const roundText = $('#roundText');
+  const progressFill = $('#progressFill');
+  const doseCount = $('#doseCount');
+  const doseLabel = $('#doseLabel');
+  const dropperValue = $('#dropperValue');
+  const dropperLabel = $('#dropperLabel');
+  const targetValue = $('#targetValue');
+  const targetLabel = $('#targetLabel');
+  const guideTitle = $('#guideTitle');
+  const guideText = $('#guideText');
+  const readingTitle = $('#readingTitle');
+  const readingValue = $('#readingValue');
+  const headerPill = $('#headerPill');
+  const footerText = $('#footerText');
+  const scientistBubble = $('#scientistBubble');
+
+  const prevBtn = $('#prevBtn');
+  const resetBtn = $('#resetBtn');
+  const demoBtn = $('#demoBtn');
+  const nextBtn = $('#nextBtn');
+
+  const lab = $('#lab');
+  const cupWrap = $('#cupWrap');
+  const cylinderWrap = $('#cylinderWrap');
+  const dropperWrap = $('#dropperWrap');
+  const cupHint = $('#cupHint');
+  const cylHint = $('#cylHint');
+
+  const toast = $('#toast');
+  const actionCount = $('#actionCount');
+  const actionCountNumber = $('#actionCountNumber');
+  const actionCountCaption = $('#actionCountCaption');
+  const celebrate = $('#celebrate');
+
+  const tubeFill = $('#tubeFill');
+  const bulbShape = $('#bulbShape');
+  const dropShape = $('#dropShape');
+  const dropperScale = $('#dropperScale');
+  const dropperTargetLine = $('#dropperTargetLine');
+  const dropperTargetBox = $('#dropperTargetBox');
+  const dropperTargetText = $('#dropperTargetText');
+  const cylLiquidRect = $('#cylLiquidRect');
+  const cylClipRect = $('#cylClipRect');
+  const cylBody = $('#cylBody');
+  const cylBase = $('#cylBase');
+  const cylShadow = $('#cylShadow');
+  const scaleGroup = $('#scaleGroup');
+  const cylLabel = $('#cylLabel');
+  const marker = $('#levelMarker');
+  const markerBox = $('#markerBox');
+  const markerText = $('#markerText');
+  const markerLine = $('#markerLine');
+
+  const cupText = $('#cupText');
+  const cupRemainingText = $('#cupRemainingText');
+
+  const cupLiquidRect = $('#cupLiquidRect');
+  const cupWaveBack = $('#cupWaveBack');
+  const cupWaveFront = $('#cupWaveFront');
+  const cupWaveHighlight = $('#cupWaveHighlight');
+  const cylWaveBack = $('#cylWaveBack');
+  const cylWaveFront = $('#cylWaveFront');
+  const cylWaveHighlight = $('#cylWaveHighlight');
+
+  const eyeLeftWhite = document.querySelector('#eyeLeft .eyeWhite');
+  const eyeLeftPupil = document.querySelector('#eyeLeft .pupil');
+  const eyeLeftBlink = document.querySelector('#eyeLeft .blinkLine');
+  const eyeRightWhite = document.querySelector('#eyeRight .eyeWhite');
+  const eyeRightPupil = document.querySelector('#eyeRight .pupil');
+  const eyeRightBlink = document.querySelector('#eyeRight .blinkLine');
+  const mouthSmile = $('#mouthSmile');
+  const mouthWow = $('#mouthWow');
+  const mouthSad = $('#mouthSad');
+  const browL = $('#browL');
+  const browR = $('#browR');
+
+  const i18n = {
+    bn:{
+      app:'🧪 গুণনের ফ্লুইড ল্যাব',
+      sub:'রঙিন জল, ড্রপার আর মাপজোক দিয়ে গুণ ও ভাগ শেখা।',
+      setupTitle:'গণিত ফ্লুইড ল্যাব',
+      setupSub:'প্রথমে পরীক্ষা বেছে নাও। তারপর পুরো স্ক্রিনে ল্যাব শুরু হবে।',
+      operation:'অপারেশন',
+      mulTitle:'গুণ',
+      divTitle:'ভাগ',
+      mulDesc:'পাত্র → ড্রপার → সিলিন্ডার',
+      divDesc:'সিলিন্ডার → ড্রপার → পাত্র',
+      teacherTitle:'Teacher Custom',
+      teacherDesc:'একটি অঙ্ক লিখুন | Enter one problem to explain',
+      teacherProblem:'একটি single-digit অঙ্ক দিন | Enter one single-digit problem',
+      firstNumber:'প্রথম সংখ্যা | First number',
+      secondNumber:'দ্বিতীয় সংখ্যা | Second number',
+      sign:'চিহ্ন | Operator',
+      teacherTitle:'Teacher Custom',
+      teacherDesc:'নিজের একটি অঙ্ক লিখে ব্যাখ্যা করান',
+      teacherProblem:'একটি single-digit অঙ্ক দিন',
+      firstNumber:'প্রথম সংখ্যা',
+      secondNumber:'দ্বিতীয় সংখ্যা',
+      sign:'চিহ্ন',
+      settings:'⚙️ সেটিংস',
+      chooseTable:'নামতা বেছে নিন',
+      textLang:'লেখার ভাষা',
+      voiceLang:'ভয়েস ভাষা',
+      voicePref:'ভয়েস পছন্দ',
+      voiceFeed:'ভয়েস ফিডব্যাক',
+      theme:'ডিসপ্লে মোড',
+      mission:'🎯 আজকের কাজ',
+      progress:'প্রগতি',
+      doses:'ডোজ',
+      dropper:'ড্রপার',
+      target:'লক্ষ্য',
+      guide:'🧠 কীভাবে খেলবে?',
+      reading:'রিডিং',
+      header:'একই স্ক্রিনে অঙ্ক + পরীক্ষা',
+      footer:'শিশুদের জন্য সহজ, নরম ও চোখ-শীতল ডিজাইন',
+      cup:'রঙিন জল',
+      reset:'↻ রিসেট',
+      demo:'✨ ডেমো',
+      prev:'⬅️ আগের প্রশ্ন',
+      next:'পরের প্রশ্ন ➡️'
+    },
+    en:{
+      app:'🧪 Multiplication Fluid Lab',
+      sub:'Learn multiplication and division with coloured liquid, a dropper, and measurement.',
+      setupTitle:'Math Fluid Lab',
+      setupSub:'Choose your experiment first. Then the lab uses the full screen.',
+      operation:'Operation',
+      mulTitle:'Multiplication',
+      divTitle:'Division',
+      mulDesc:'Container → Dropper → Cylinder',
+      divDesc:'Cylinder → Dropper → Container',
+      teacherTitle:'Teacher Custom',
+      teacherDesc:'Enter one problem and let the app explain it',
+      teacherProblem:'Enter one single-digit problem',
+      firstNumber:'First number',
+      secondNumber:'Second number',
+      sign:'Operator',
+      settings:'⚙️ Settings',
+      chooseTable:'Choose table',
+      textLang:'Text language',
+      voiceLang:'Voice language',
+      voicePref:'Voice preference',
+      voiceFeed:'Voice feedback',
+      theme:'Display mode',
+      mission:'🎯 Mission',
+      progress:'Progress',
+      doses:'Doses',
+      dropper:'Dropper',
+      target:'Target',
+      guide:'🧠 How to play?',
+      reading:'Reading',
+      header:'Math + experiment on one screen',
+      footer:'Soft, eye-soothing and child-friendly design',
+      cup:'Colour water',
+      reset:'↻ Reset',
+      demo:'✨ Demo',
+      prev:'⬅️ Previous',
+      next:'Next ➡️'
+    },
+    both:{
+      app:'🧪 গুণনের ফ্লুইড ল্যাব | Multiplication Fluid Lab',
+      sub:'রঙিন জল, ড্রপার আর মাপজোক দিয়ে গুণ ও ভাগ শেখা | Learn multiplication and division with coloured liquid.',
+      setupTitle:'গণিত ফ্লুইড ল্যাব | Math Fluid Lab',
+      setupSub:'প্রথমে পরীক্ষা বেছে নাও | Choose the experiment first, then use the full-screen lab.',
+      operation:'অপারেশন | Operation',
+      mulTitle:'গুণ | Multiplication',
+      divTitle:'ভাগ | Division',
+      mulDesc:'পাত্র → ড্রপার → সিলিন্ডার',
+      divDesc:'সিলিন্ডার → ড্রপার → পাত্র',
+      settings:'⚙️ সেটিংস | Settings',
+      chooseTable:'নামতা বেছে নিন | Choose table',
+      textLang:'লেখার ভাষা | Text language',
+      voiceLang:'ভয়েস ভাষা | Voice language',
+      voicePref:'ভয়েস পছন্দ | Voice preference',
+      voiceFeed:'ভয়েস ফিডব্যাক | Voice feedback',
+      theme:'ডিসপ্লে মোড | Display mode',
+      mission:'🎯 আজকের কাজ | Mission',
+      progress:'প্রগতি | Progress',
+      doses:'ডোজ | Doses',
+      dropper:'ড্রপার | Dropper',
+      target:'লক্ষ্য | Target',
+      guide:'🧠 কীভাবে খেলবে? | How to play?',
+      reading:'রিডিং | Reading',
+      header:'একই স্ক্রিনে অঙ্ক + পরীক্ষা | Math + experiment on one screen',
+      footer:'Soft, eye-soothing and child-friendly design | চোখ-শীতল, শিশু-বান্ধব',
+      cup:'রঙিন জল | Colour water',
+      reset:'↻ রিসেট | Reset',
+      demo:'✨ ডেমো | Demo',
+      prev:'⬅️ আগের প্রশ্ন | Previous',
+      next:'পরের প্রশ্ন | Next ➡️'
+    }
+  };
+
+  function txt(key){ return i18n[state.langMode][key]; }
+
+  function fillTableOptions(){
+    tableSelect.innerHTML = '';
+    for(let i=1;i<=10;i++){
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = state.langMode === 'bn' ? `${i} এর নামতা`
+                    : state.langMode === 'en' ? `Table of ${i}`
+                    : `${i} এর নামতা | Table of ${i}`;
+      if(i===state.table) o.selected = true;
+      tableSelect.appendChild(o);
+    }
+  }
+
+  function applyLabels(){
+    brandTitle.textContent = state.teacherMode
+      ? (state.langMode==='bn' ? '✎ শিক্ষক কাস্টম অঙ্ক'
+         : state.langMode==='en' ? '✎ Teacher Custom Problem'
+         : '✎ শিক্ষক কাস্টম অঙ্ক | Teacher Custom Problem')
+      : state.operation==='mul'
+      ? txt('app')
+      : (state.langMode==='bn' ? '🧪 ভাগের ফ্লুইড ল্যাব'
+         : state.langMode==='en' ? '🧪 Division Fluid Lab'
+         : '🧪 ভাগের ফ্লুইড ল্যাব | Division Fluid Lab');
+    brandSub.textContent = txt('sub');
+    if(state.teacherMode){
+      prevBtn.textContent = state.langMode==='bn' ? '⬅️ অঙ্ক বদলাও'
+        : state.langMode==='en' ? '⬅️ Change problem'
+        : '⬅️ অঙ্ক বদলাও | Change';
+      nextBtn.textContent = state.langMode==='bn' ? 'নতুন অঙ্ক ➡️'
+        : state.langMode==='en' ? 'New problem ➡️'
+        : 'নতুন অঙ্ক | New ➡️';
+    }
+    setupTitle.textContent = txt('setupTitle');
+    setupSub.textContent = txt('setupSub');
+    operationLabel.textContent = txt('operation');
+    mulTitle.textContent = txt('mulTitle');
+    divTitle.textContent = txt('divTitle');
+    mulDesc.textContent = txt('mulDesc');
+    divDesc.textContent = txt('divDesc');
+    teacherTitle.textContent = txt('teacherTitle');
+    teacherDesc.textContent = txt('teacherDesc');
+    teacherProblemLabel.textContent = txt('teacherProblem');
+    digitALabel.textContent = txt('firstNumber');
+    digitBLabel.textContent = txt('secondNumber');
+    teacherOpLabel.textContent = txt('sign');
+    settingsTitle.textContent = txt('settings');
+    tableLabel.textContent = txt('chooseTable');
+    langLabel.textContent = txt('textLang');
+    voiceLangLabel.textContent = txt('voiceLang');
+    voiceTypeLabel.textContent = txt('voicePref');
+    themeLabel.textContent = txt('theme');
+    voiceToggleText.textContent = txt('voiceFeed');
+    missionTitle.textContent = txt('mission');
+    progressText.textContent = txt('progress');
+    doseLabel.textContent = txt('doses');
+    dropperLabel.textContent = txt('dropper');
+    targetLabel.textContent = txt('target');
+    guideTitle.textContent = txt('guide');
+    readingTitle.textContent = txt('reading');
+    headerPill.textContent = txt('header');
+    footerText.textContent = txt('footer');
+    cupText.textContent = txt('cup');
+    prevBtn.textContent = txt('prev');
+    resetBtn.textContent = txt('reset');
+    demoBtn.textContent = txt('demo');
+    nextBtn.textContent = txt('next');
+    fillTableOptions();
+  }
+
+  function getTarget(){ return state.table * state.round; }
+
+  function customSymbol(){
+    return state.teacherOp==='add' ? '+'
+      : state.teacherOp==='sub' ? '−'
+      : state.teacherOp==='mul' ? '×' : '÷';
+  }
+
+  function customAnswerValue(){
+    const a=state.teacherA, b=state.teacherB;
+    if(state.teacherOp==='add') return a+b;
+    if(state.teacherOp==='sub') return a-b;
+    if(state.teacherOp==='mul') return a*b;
+    if(b===0) return null;
+    return Math.floor(a/b);
+  }
+
+  function customAnswerText(){
+    const a=state.teacherA, b=state.teacherB;
+    if(state.teacherOp!=='div') return String(customAnswerValue());
+    if(b===0) return 'undefined';
+    const q=Math.floor(a/b), r=a%b;
+    return r ? `${q} R ${r}` : String(q);
+  }
+
+  function equationQuestion(){
+    if(state.teacherMode){
+      return `${state.teacherA} ${customSymbol()} ${state.teacherB} = ?`;
+    }
+    return state.operation === 'mul'
+      ? `${state.table} × ${state.round} = ?`
+      : `${getTarget()} ÷ ${state.table} = ?`;
+  }
+  function equationSolved(){
+    if(state.teacherMode){
+      return `${state.teacherA} ${customSymbol()} ${state.teacherB} = ${customAnswerText()} ✅`;
+    }
+    return state.operation === 'mul'
+      ? `${state.table} × ${state.round} = ${getTarget()} ✅`
+      : `${getTarget()} ÷ ${state.table} = ${state.round} ✅`;
+  }
+
+  function updateDropperScale(){
+    // Graduated glass tube region: y=8 (10 mL) to y=154 (0 mL).
+    // Each table value 1..10 maps to its exact visible graduation.
+    const topY = 8;
+    const bottomY = 154;
+    const usable = bottomY - topY;
+
+    let out = '';
+    for(let ml=1; ml<=10; ml++){
+      const y = bottomY - (ml/10)*usable;
+      const major = (ml % 5 === 0 || ml === state.table);
+      const x1 = major ? -19 : -15;
+      const x2 = 11;
+      const sw = ml === state.table ? 3 : (major ? 2.4 : 1.7);
+      const col = ml === state.table ? '#d92f2f' : '#3c5d76';
+
+      out += `<line x1="${x1}" y1="${y.toFixed(1)}" x2="${x2}" y2="${y.toFixed(1)}"
+                    stroke="${col}" stroke-width="${sw}" stroke-linecap="round"></line>`;
+
+      // Keep all numbers visible, with selected table value slightly bolder.
+      out += `<text x="17" y="${(y+4).toFixed(1)}" font-size="${ml===state.table?12.5:10.5}"
+                    font-weight="${ml===state.table?900:800}" fill="${col}">${ml}</text>`;
+    }
+    dropperScale.innerHTML = out;
+
+    const targetY = bottomY - (state.table/10)*usable;
+    dropperTargetLine.setAttribute('y1', targetY.toFixed(1));
+    dropperTargetLine.setAttribute('y2', targetY.toFixed(1));
+    dropperTargetBox.setAttribute('y', (targetY-14).toFixed(1));
+    dropperTargetText.setAttribute('y', (targetY+5).toFixed(1));
+    dropperTargetText.textContent = `${state.table}`;
+  }
+
+  function updateCylinderGeometry(){
+    state.cylMax = state.table * 10;
+    let w = 92, h = 440;
+    if(state.table <= 2){ w = 78; h = 476; }
+    else if(state.table === 3){ w = 98; h = 468; }
+    else if(state.table <= 5){ w = 106; h = 454; }
+    else if(state.table <= 7){ w = 116; h = 446; }
+    else{ w = 126; h = 438; }
+
+    const x = 150 - w/2;
+    const y = 64 + (476 - h)/2;
+    const clipY = y + 6;
+    const clipH = h - 10;
+    const baseRx = Math.max(86, w + 6);
+
+    state.cylBody = {x, y, w, h, clipY, clipH, baseX:150, baseY:545, baseRx};
+    cylBody.setAttribute('x', x);
+    cylBody.setAttribute('y', y);
+    cylBody.setAttribute('width', w);
+    cylBody.setAttribute('height', h);
+
+    cylClipRect.setAttribute('x', x);
+    cylClipRect.setAttribute('y', clipY);
+    cylClipRect.setAttribute('width', w);
+    cylClipRect.setAttribute('height', clipH);
+
+    cylBase.setAttribute('cx', 150);
+    cylBase.setAttribute('rx', baseRx);
+    cylShadow.setAttribute('cx', 150);
+    cylShadow.setAttribute('rx', baseRx);
+
+    cylLabel.textContent = `${state.cylMax} mL cylinder`;
+    updateScale();
+    updateLiquidVisuals();
+  }
+
+  function updateScale(){
+    const {x,y,w,h,clipY,clipH} = state.cylBody;
+    let out = '';
+    const tickRight = x + w - 4;
+    const labelX = x - 10;
+    const step = state.cylMax / 10;
+    for(let i=0;i<=10;i++){
+      const v = i*step;
+      const py = clipY + clipH - (i/10)*clipH;
+      out += `<line x1="${(tickRight - 42).toFixed(1)}" y1="${py.toFixed(1)}" x2="${tickRight.toFixed(1)}" y2="${py.toFixed(1)}" stroke-width="3"></line>`;
+      if(i < 10){
+        out += `<text x="${labelX.toFixed(1)}" y="${(py+4).toFixed(1)}" text-anchor="end" font-size="12" font-weight="900">${Math.round(v)}</text>`;
+      }
+      if(i < 10){
+        for(let j=1;j<5;j++){
+          const smallY = py - (clipH/10)*(j/5);
+          const smallLen = j===2 ? 26 : 18;
+          out += `<line x1="${(tickRight - smallLen).toFixed(1)}" y1="${smallY.toFixed(1)}" x2="${tickRight.toFixed(1)}" y2="${smallY.toFixed(1)}" stroke-width="2"></line>`;
+        }
+      }
+    }
+    scaleGroup.innerHTML = out;
+  }
+
+  function topSubtitle(){
+    if(state.teacherVisualOnly){
+      if(state.langMode==='bn') return `Teacher problem • ধাপে ধাপে ব্যাখ্যা`;
+      if(state.langMode==='en') return `Teacher problem • step-by-step explanation`;
+      return `Teacher problem • ধাপে ধাপে ব্যাখ্যা | step-by-step`;
+    }
+    if(state.operation === 'mul'){
+      if(state.langMode === 'bn') return `প্রতি ডোজ ${state.table} mL • ${state.round} বার ঢালো`;
+      if(state.langMode === 'en') return `${state.table} mL each dose • pour ${state.round} time${state.round>1?'s':''}`;
+      return `প্রতি ডোজ ${state.table} mL • ${state.round} বার | ${state.table} mL each dose`;
+    }
+    if(state.langMode === 'bn') return `${getTarget()} mL থেকে ${state.table} mL করে বের করো`;
+    if(state.langMode === 'en') return `Remove ${state.table} mL portions from ${getTarget()} mL`;
+    return `${getTarget()} mL থেকে ${state.table} mL করে বের করো | Remove equal ${state.table} mL portions`;
+  }
+
+  function boardInstruction(){
+    const target = getTarget();
+    if(state.teacherVisualOnly){
+      const ans=customAnswerText();
+      if(state.langMode==='bn') return `শিক্ষকের দেওয়া অঙ্কটি বস্তু গুনে ও দল বানিয়ে বোঝানো হবে।`;
+      if(state.langMode==='en') return `The teacher's problem will be explained with counters and groups.`;
+      return `বস্তু গুনে ও দল বানিয়ে বোঝানো হবে | Explained with counters and groups.`;
+    }
+    if(state.operation === 'mul'){
+      if(state.langMode === 'bn') return `${state.table} mL করে ${state.round} বার ঢালো। শেষে ${target} mL হবে।`;
+      if(state.langMode === 'en') return `Pour ${state.table} mL each time for ${state.round} times. Final result: ${target} mL.`;
+      return `${state.table} mL করে ${state.round} বার ঢালো। শেষে ${target} mL | Pour ${state.table} mL for ${state.round} times.`;
+    }
+    if(state.langMode === 'bn') return `${target} mL থেকে প্রতি বার ${state.table} mL করে বের করো। কতবারে খালি হয়?`;
+    if(state.langMode === 'en') return `Start with ${target} mL. Remove ${state.table} mL each time. How many equal groups empty it?`;
+    return `${target} mL থেকে ${state.table} mL করে বের করো | Remove ${state.table} mL portions from ${target} mL.`;
+  }
+
+  function missionStr(){
+    const target = getTarget();
+    if(state.teacherVisualOnly){
+      if(state.langMode==='bn') return `শিক্ষকের অঙ্ক: ${state.teacherA} ${customSymbol()} ${state.teacherB}। বিজ্ঞানী ধাপে ধাপে ব্যাখ্যা করবে।`;
+      if(state.langMode==='en') return `Teacher problem: ${state.teacherA} ${customSymbol()} ${state.teacherB}. The scientist will explain it step by step.`;
+      return `শিক্ষকের অঙ্ক: ${state.teacherA} ${customSymbol()} ${state.teacherB} | The scientist explains it step by step.`;
+    }
+    if(state.operation === 'mul'){
+      if(state.langMode === 'bn') return `পাত্রে শুরুতে ${target} mL জল আছে। প্রতি বার ${state.table} mL তুললে পাত্রের জল কমবে এবং সিলিন্ডারের জল বাড়বে।`;
+      if(state.langMode === 'en') return `The pot starts with ${target} mL. Each ${state.table} mL pickup lowers the pot while the cylinder rises.`;
+      return `পাত্রে ${target} mL আছে—প্রতি বার ${state.table} mL স্থানান্তর করো | Transfer ${state.table} mL each time from pot to cylinder.`;
+    }
+    if(state.langMode === 'bn') return `সিলিন্ডারে ${target} mL আছে। প্রতি বার ঠিক ${state.table} mL করে বের করে পাত্রে দাও। মোট কতবার লাগে দেখো।`;
+    if(state.langMode === 'en') return `The cylinder starts with ${target} mL. Remove exactly ${state.table} mL each time and transfer it to the container.`;
+    return `${target} mL থেকে ${state.table} mL করে সমান ভাগ বের করো | Remove equal ${state.table} mL groups from ${target} mL.`;
+  }
+
+  function guideStr(){
+    if(state.teacherVisualOnly){
+      if(state.langMode==='bn') return `দেখো → গুনো → উত্তর বোঝো`;
+      if(state.langMode==='en') return `Watch → Count → Understand`;
+      return `দেখো → গুনো → বোঝো | Watch → Count → Understand`;
+    }
+    if(state.operation === 'mul'){
+      if(state.langMode === 'bn') return `ড্রপার নাও → রাবার বাল্ব চাপো → পাত্র থেকে জল তোলো → সিলিন্ডারে ঢালো`;
+      if(state.langMode === 'en') return `Move dropper → press rubber bulb → collect liquid → pour into cylinder`;
+      return `রাবার বাল্ব চাপো → জল তোলো → সিলিন্ডারে ঢালো | Press bulb → collect → pour`;
+    }
+    if(state.langMode === 'bn') return `সিলিন্ডার → ড্রপার → সমান মাপের পাত্রগুলো`;
+    if(state.langMode === 'en') return `Cylinder → Dropper → Equal measuring pots`;
+    return `সিলিন্ডার → ড্রপার → সমান পাত্র | Cylinder → Dropper → Equal measuring pots`;
+  }
+
+  function scientistText(mode='normal'){
+    const target = getTarget();
+    if(state.teacherVisualOnly){
+      if(mode==='success'){
+        if(state.langMode==='bn') return `দেখলে? ${state.teacherA} ${customSymbol()} ${state.teacherB} = ${customAnswerText()}।`;
+        if(state.langMode==='en') return `See? ${state.teacherA} ${customSymbol()} ${state.teacherB} = ${customAnswerText()}.`;
+        return `দেখলে? উত্তর ${customAnswerText()} | The answer is ${customAnswerText()}.`;
+      }
+      if(state.langMode==='bn') return `চলো, শিক্ষকের অঙ্কটি ধাপে ধাপে বুঝি।`;
+      if(state.langMode==='en') return `Let's explain the teacher's problem step by step.`;
+      return `চলো ধাপে ধাপে বুঝি | Let’s explain it step by step.`;
+    }
+    if(mode === 'success'){
+      if(state.teacherMode && !state.teacherVisualOnly){
+        if(state.langMode==='bn') return `দারুণ! ${state.teacherA} ${customSymbol()} ${state.teacherB} = ${customAnswerText()}।`;
+        if(state.langMode==='en') return `Excellent! ${state.teacherA} ${customSymbol()} ${state.teacherB} = ${customAnswerText()}.`;
+        return `দারুণ! উত্তর ${customAnswerText()} | Excellent! The answer is ${customAnswerText()}.`;
+      }
+      if(state.operation === 'mul'){
+        if(state.langMode==='bn') return `দারুণ! উত্তর ${target} mL।`;
+        if(state.langMode==='en') return `Excellent! The result is ${target} mL.`;
+        return `দারুণ! ফল ${target} mL | Excellent! Result: ${target} mL.`;
+      }
+      if(state.langMode==='bn') return `দারুণ! ${target} mL-এ ${state.table} mL-এর ${state.round}টি সমান ভাগ আছে।`;
+      if(state.langMode==='en') return `Excellent! ${target} mL contains ${state.round} equal groups of ${state.table} mL.`;
+      return `দারুণ! উত্তর ${state.round} | Excellent! The answer is ${state.round}.`;
+    }
+    if(mode === 'warn'){
+      if(state.langMode==='bn') return `ড্রপারকে সঠিক পাত্রের কাছে নাও।`;
+      if(state.langMode==='en') return `Move the dropper to the correct vessel.`;
+      return `সঠিক পাত্রের কাছে নাও | Move to the correct vessel.`;
+    }
+    if(state.operation === 'mul'){
+      if(state.langMode==='bn') return `হা হা! চলো, ${state.table} × ${state.round} জল দিয়ে বের করি!`;
+      if(state.langMode==='en') return `Hehe! Let’s discover ${state.table} × ${state.round} with water!`;
+      return `চলো, গুণ করি | Let’s find ${state.table} × ${state.round}!`;
+    }
+    if(state.langMode==='bn') return `চলো, ${target} ÷ ${state.table} উল্টো পরীক্ষায় বের করি!`;
+    if(state.langMode==='en') return `Let's discover ${target} ÷ ${state.table} by reverse measurement!`;
+    return `চলো, ভাগ করি | Let’s discover ${target} ÷ ${state.table} in reverse!`;
+  }
+
+  function toastText(kind){
+    if(kind==='collect'){
+      if(state.langMode==='bn') return `${state.table} mL জল নেওয়া হয়েছে।`;
+      if(state.langMode==='en') return `${state.table} mL collected.`;
+      return `${state.table} mL জল নেওয়া হয়েছে | ${state.table} mL collected.`;
+    }
+    if(kind==='already'){
+      if(state.langMode==='bn') return `ড্রপারে ইতিমধ্যে জল আছে।`;
+      if(state.langMode==='en') return `The dropper already has liquid.`;
+      return `ড্রপারে জল আছে | The dropper already has liquid.`;
+    }
+    if(kind==='empty'){
+      if(state.langMode==='bn') return `ড্রপার খালি। আগে পাত্র থেকে জল নাও।`;
+      if(state.langMode==='en') return `The dropper is empty. Collect liquid first.`;
+      return `ড্রপার খালি | Collect liquid first.`;
+    }
+    if(kind==='poured'){
+      if(state.langMode==='bn') return `এখন সিলিন্ডারে ${state.cylinderMl} mL আছে।`;
+      if(state.langMode==='en') return `Now the cylinder shows ${state.cylinderMl} mL.`;
+      return `এখন ${state.cylinderMl} mL | Now the cylinder shows ${state.cylinderMl} mL.`;
+    }
+    if(kind==='done'){
+      const target = getTarget();
+      if(state.langMode==='bn') return `সঠিক! ${state.table} × ${state.round} = ${target}`;
+      if(state.langMode==='en') return `Correct! ${state.table} × ${state.round} = ${target}`;
+      return `সঠিক! ${state.table} × ${state.round} = ${target} | Correct!`;
+    }
+    if(kind==='reset'){
+      if(state.langMode==='bn') return `আবার শুরু করো।`;
+      if(state.langMode==='en') return `Start again.`;
+      return `আবার শুরু করো | Start again.`;
+    }
+    if(state.langMode==='bn') return `ড্রপারকে পাত্র বা সিলিন্ডারের কাছে নাও।`;
+    if(state.langMode==='en') return `Move the dropper near the container or the cylinder.`;
+    return `ড্রপারকে সঠিক জায়গায় নাও | Move the dropper to the correct place.`;
+  }
+
+  function voiceText(kind){
+    const target = getTarget();
+    if(state.teacherVisualOnly){
+      const sym=customSymbol(), ans=customAnswerText();
+      if(kind==='intro'){
+        if(state.voiceLang==='bn') return `${state.teacherA} ${sym} ${state.teacherB}. চলো ধাপে ধাপে বুঝি।`;
+        if(state.voiceLang==='en') return `${state.teacherA} ${sym} ${state.teacherB}. Let's understand it step by step.`;
+        return `${state.teacherA} ${sym} ${state.teacherB}. Let's understand it step by step.`;
+      }
+      if(kind==='success'){
+        if(state.voiceLang==='bn') return `উত্তর ${ans}.`;
+        if(state.voiceLang==='en') return `The answer is ${ans}.`;
+        return `উত্তর ${ans}. The answer is ${ans}.`;
+      }
+      return '';
+    }
+    if(kind==='intro'){
+      if(state.teacherMode && !state.teacherVisualOnly){
+        if(state.voiceLang==='bn') return `${state.teacherA} ${customSymbol()} ${state.teacherB}. চলো তরল দিয়ে পরীক্ষা করি।`;
+        if(state.voiceLang==='en') return `${state.teacherA} ${customSymbol()} ${state.teacherB}. Let's demonstrate it with the fluid experiment.`;
+        return `${state.teacherA} ${customSymbol()} ${state.teacherB}. Let's demonstrate it with the fluid experiment.`;
+      }
+      if(state.operation === 'mul'){
+        if(state.voiceLang==='bn') return `${state.table} গুণ ${state.round}। ${state.table} মিলিলিটার করে ${state.round} বার যোগ করো।`;
+        if(state.voiceLang==='en') return `${state.table} times ${state.round}. Add ${state.table} millilitres ${state.round} times.`;
+        return `${state.table} গুণ ${state.round}. Add ${state.table} millilitres ${state.round} times.`;
+      }
+      if(state.voiceLang==='bn') return `${target} ভাগ ${state.table}। ${target} মিলিলিটার থেকে ${state.table} মিলিলিটার করে সমান ভাগ বের করো।`;
+      if(state.voiceLang==='en') return `${target} divided by ${state.table}. Remove equal portions of ${state.table} millilitres.`;
+      return `${target} ভাগ ${state.table}. Remove equal ${state.table} millilitre portions.`;
+    }
+    if(kind==='collect'){
+      if(state.voiceLang==='bn') return `${state.table} মিলিলিটার নেওয়া হয়েছে।`;
+      if(state.voiceLang==='en') return `${state.table} millilitres collected.`;
+      return `${state.table} মিলিলিটার collected.`;
+    }
+    if(kind==='poured'){
+      if(state.operation === 'mul'){
+        if(state.voiceLang==='bn') return `এখন সিলিন্ডারে ${state.cylinderMl} মিলিলিটার।`;
+        if(state.voiceLang==='en') return `Now the cylinder contains ${state.cylinderMl} millilitres.`;
+        return `এখন ${state.cylinderMl} millilitres.`;
+      }
+      if(state.voiceLang==='bn') return `${state.doses}টি সমান ভাগ সরানো হয়েছে।`;
+      if(state.voiceLang==='en') return `${state.doses} equal groups have been removed.`;
+      return `${state.doses} equal groups removed.`;
+    }
+    if(kind==='success'){
+      if(state.teacherMode && !state.teacherVisualOnly){
+        if(state.voiceLang==='bn') return `সঠিক উত্তর ${customAnswerText()}.`;
+        if(state.voiceLang==='en') return `The correct answer is ${customAnswerText()}.`;
+        return `সঠিক উত্তর ${customAnswerText()}. The correct answer is ${customAnswerText()}.`;
+      }
+      if(state.operation === 'mul'){
+        if(state.voiceLang==='bn') return `দারুণ। ${state.table} গুণ ${state.round} সমান ${target}.`;
+        if(state.voiceLang==='en') return `Excellent. ${state.table} times ${state.round} equals ${target}.`;
+        return `Excellent. ${state.table} times ${state.round} equals ${target}.`;
+      }
+      if(state.voiceLang==='bn') return `দারুণ। ${target} ভাগ ${state.table} সমান ${state.round}.`;
+      if(state.voiceLang==='en') return `Excellent. ${target} divided by ${state.table} equals ${state.round}.`;
+      return `Excellent. ${target} divided by ${state.table} equals ${state.round}.`;
+    }
+    return '';
+  }
+
+
+  // ---- Realistic water sound effects using Web Audio (no external files) ----
+  let audioCtx = null;
+
+  function ensureAudio(){
+    if(!state.soundOn) return null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    if(!audioCtx) audioCtx = new AC();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function createNoiseBuffer(ctx, seconds=.45){
+    const length = Math.max(1, Math.floor(ctx.sampleRate * seconds));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<length;i++){
+      const white = Math.random()*2-1;
+      const envelope = 1 - i/length;
+      data[i] = white * envelope;
+    }
+    return buffer;
+  }
+
+  function waterPickupSound(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Soft suction: low airy noise that narrows as the bulb releases.
+    const src = ctx.createBufferSource();
+    src.buffer = createNoiseBuffer(ctx,.32);
+
+    const low = ctx.createBiquadFilter();
+    low.type = 'lowpass';
+    low.frequency.setValueAtTime(1200, now);
+    low.frequency.exponentialRampToValueAtTime(420, now+.30);
+
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.setValueAtTime(520, now);
+    band.frequency.exponentialRampToValueAtTime(260, now+.30);
+    band.Q.value = .8;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(.09, now+.025);
+    gain.gain.exponentialRampToValueAtTime(.0001, now+.32);
+
+    src.connect(low).connect(band).connect(gain).connect(ctx.destination);
+    src.start(now);
+
+    // tiny liquid "glug" at the end
+    const osc = ctx.createOscillator();
+    const og = ctx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(240, now+.22);
+    osc.frequency.exponentialRampToValueAtTime(150, now+.30);
+    og.gain.setValueAtTime(.0001, now+.21);
+    og.gain.exponentialRampToValueAtTime(.035, now+.23);
+    og.gain.exponentialRampToValueAtTime(.0001, now+.31);
+    osc.connect(og).connect(ctx.destination);
+    osc.start(now+.21);
+    osc.stop(now+.32);
+  }
+
+  function waterPourSound(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Short narrow water stream
+    const src = ctx.createBufferSource();
+    src.buffer = createNoiseBuffer(ctx,.58);
+
+    const hp = ctx.createBiquadFilter();
+    hp.type='highpass';
+    hp.frequency.value=180;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type='lowpass';
+    lp.frequency.value=2200;
+
+    const band = ctx.createBiquadFilter();
+    band.type='peaking';
+    band.frequency.value=850;
+    band.Q.value=.8;
+    band.gain.value=3;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(.085, now+.025);
+    gain.gain.setValueAtTime(.075, now+.35);
+    gain.gain.exponentialRampToValueAtTime(.0001, now+.58);
+
+    src.connect(hp).connect(lp).connect(band).connect(gain).connect(ctx.destination);
+    src.start(now);
+
+    // final splash/drop impact
+    const splash = ctx.createBufferSource();
+    splash.buffer = createNoiseBuffer(ctx,.11);
+    const sf = ctx.createBiquadFilter();
+    sf.type='bandpass';
+    sf.frequency.value=1100;
+    sf.Q.value=.55;
+    const sg = ctx.createGain();
+    sg.gain.setValueAtTime(.0001, now+.42);
+    sg.gain.exponentialRampToValueAtTime(.045, now+.44);
+    sg.gain.exponentialRampToValueAtTime(.0001, now+.54);
+    splash.connect(sf).connect(sg).connect(ctx.destination);
+    splash.start(now+.42);
+  }
+
+  function successChime(){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    [660,880,1040].forEach((f,i)=>{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type='sine';
+      o.frequency.value=f;
+      const t=now+i*.09;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.055,t+.015);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);o.stop(t+.2);
+    });
+  }
+
+
+  function showActionCount(number, caption){
+    actionCountNumber.textContent = number;
+    actionCountCaption.textContent = caption;
+    actionCount.classList.remove('show');
+    void actionCount.offsetWidth;
+    actionCount.classList.add('show');
+  }
+
+  function showToast(msg, type=''){
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    clearTimeout(showToast.t);
+    showToast.t = setTimeout(() => toast.className = 'toast', 1700);
+  }
+
+  function speak(text){
+    if(!state.voiceOn || !window.speechSynthesis || !text) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const voices = speechSynthesis.getVoices ? speechSynthesis.getVoices() : [];
+    const want = state.voiceLang==='bn' ? ['bn','bn-IN','bn-BD']
+               : state.voiceLang==='en' ? ['en','en-IN','en-US','en-GB']
+               : ['bn','bn-IN','bn-BD','en','en-IN','en-US','en-GB'];
+    let chosen = null;
+    if(voices.length){
+      const matches = voices.filter(v => want.some(w => (v.lang || '').toLowerCase().startsWith(w.toLowerCase())));
+      chosen = state.voiceType==='google'
+        ? (matches.find(v => /google/i.test(v.name)) || matches[0] || voices[0])
+        : (matches[0] || voices[0]);
+    }
+    if(chosen){
+      u.voice = chosen;
+      u.lang = chosen.lang;
+    }else{
+      u.lang = state.voiceLang==='bn' ? 'bn-IN' : 'en-US';
+    }
+    u.rate = .95;
+    u.pitch = 1.02;
+    speechSynthesis.speak(u);
+  }
+  if(window.speechSynthesis){
+    speechSynthesis.onvoiceschanged = () => {};
+  }
+
+  function setScientistExpression(mode='normal'){
+    mouthSmile.style.display = (mode==='normal' || mode==='happy') ? '' : 'none';
+    mouthWow.style.display   = mode==='wow' ? '' : 'none';
+    mouthSad.style.display   = mode==='sad' ? '' : 'none';
+
+    if(mode==='wow'){
+      browL.setAttribute('d','M128 61 Q136 53 144 58');
+      browR.setAttribute('d','M154 58 Q162 53 170 61');
+    }else if(mode==='sad'){
+      browL.setAttribute('d','M127 57 Q136 62 144 66');
+      browR.setAttribute('d','M154 66 Q162 62 170 57');
+    }else{
+      browL.setAttribute('d','M128 60 Q136 56 144 60');
+      browR.setAttribute('d','M154 60 Q162 56 170 60');
+    }
+  }
+
+  function blinkEyes(){
+    eyeLeftWhite.style.display='none';
+    eyeLeftPupil.style.display='none';
+    eyeLeftBlink.style.display='';
+    eyeRightWhite.style.display='none';
+    eyeRightPupil.style.display='none';
+    eyeRightBlink.style.display='';
+    setTimeout(() => {
+      eyeLeftWhite.style.display='';
+      eyeLeftPupil.style.display='';
+      eyeLeftBlink.style.display='none';
+      eyeRightWhite.style.display='';
+      eyeRightPupil.style.display='';
+      eyeRightBlink.style.display='none';
+    }, 180);
+  }
+  function randomBlinkLoop(){
+    blinkEyes();
+    setTimeout(randomBlinkLoop, 2500 + Math.random()*1800);
+  }
+  setTimeout(randomBlinkLoop, 1800);
+
+  function updateLevelMarker(){
+    if(state.cylinderMl <= 0 && state.operation !== 'div'){
+      marker.style.display = 'none';
+      return;
+    }
+    const {x,w,clipY,clipH} = state.cylBody;
+    const ratio = Math.max(0, Math.min(1, state.cylinderMl / state.cylMax));
+    const y = clipY + clipH - ratio*clipH;
+    marker.style.display = '';
+    const lineY = y.toFixed(1);
+    const boxY = Math.max(55, Math.min(clipY + clipH - 18, y - 16));
+    const boxX = x + w + 12;
+    markerBox.setAttribute('x', boxX);
+    markerBox.setAttribute('y', boxY);
+    markerText.setAttribute('x', boxX + 36);
+    markerText.setAttribute('y', boxY + 21);
+    markerText.textContent = `${state.cylinderMl} mL`;
+    markerLine.setAttribute('x1', x + w);
+    markerLine.setAttribute('y1', lineY);
+    markerLine.setAttribute('x2', boxX);
+    markerLine.setAttribute('y2', lineY);
+
+    if(state.solved){
+      markerText.classList.add('blinkStrong');
+      markerBox.classList.add('blinkStrong');
+    }else{
+      markerText.classList.remove('blinkStrong');
+      markerBox.classList.remove('blinkStrong');
+    }
+  }
+
+  function updateLiquidVisuals(){
+    const {x,w,clipY,clipH} = state.cylBody;
+    const ratio = Math.max(0, Math.min(1, state.cylinderMl / state.cylMax));
+    const liquidH = clipH * ratio;
+    const liquidY = clipY + clipH - liquidH;
+    cylLiquidRect.setAttribute('x', x);
+    cylLiquidRect.setAttribute('width', w);
+    cylLiquidRect.setAttribute('y', liquidY);
+    cylLiquidRect.setAttribute('height', liquidH);
+    updateLevelMarker();
+
+    // Fill the graduated dropper exactly to the selected table value.
+    // Example: table 3 -> fill to 3 mL line; table 8 -> fill to 8 mL line.
+    const dropTopY = 8;
+    const dropBottomY = 154;
+    const dropUsable = dropBottomY - dropTopY;
+    const filledMl = Math.max(0, Math.min(10, state.dropperMl));
+    const tubeHeight = dropUsable * (filledMl / 10);
+    const tubeY = dropBottomY - tubeHeight;
+    tubeFill.setAttribute('height', tubeHeight.toFixed(1));
+    tubeFill.setAttribute('y', tubeY.toFixed(1));
+
+    // Multiplication source pot now represents REAL remaining liquid.
+    // At the start it contains exactly the amount needed for the current problem.
+    // Every pickup removes one table-sized dose, so this level visibly falls.
+    let cupRatio = state.operation === 'mul'
+      ? Math.max(0, Math.min(1, state.sourceMl / Math.max(1, state.sourceCapacity)))
+      : 0;
+    const cupBottom = 239;
+    const cupTop = 100;
+    const cupH = (cupBottom - cupTop) * cupRatio;
+    cupLiquidRect.setAttribute('y', (cupBottom - cupH).toFixed(1));
+    cupLiquidRect.setAttribute('height', cupH.toFixed(1));
+  }
+
+
+
+  function setFluidObjectsVisible(visible){
+    cupWrap.style.display = visible ? '' : 'none';
+    cylinderWrap.style.display = visible ? '' : 'none';
+    dropperWrap.style.display = visible ? '' : 'none';
+    cupHint.style.display = visible ? '' : 'none';
+    cylHint.style.display = visible ? '' : 'none';
+    divisionPots.style.display = '';
+  }
+
+  function dotHTML(n, cls='', crossedFrom=99){
+    let s='';
+    for(let i=0;i<n;i++){
+      s += `<span class="counter ${cls} ${i>=crossedFrom?'crossed':''}" style="animation-delay:${i*55}ms"></span>`;
+    }
+    return s;
+  }
+
+  function buildTeacherVisual(){
+    teacherVisualTitle.textContent = equationQuestion();
+    teacherAnswer.textContent = '?';
+    teacherAnswer.classList.remove('reveal');
+    const a=state.teacherA, b=state.teacherB;
+    const op=state.teacherOp;
+
+    if(op==='add'){
+      teacherVisualSub.textContent = state.langMode==='bn'
+        ? `${a}টি লাল বস্তু ও ${b}টি নীল বস্তু একসঙ্গে করি।`
+        : state.langMode==='en'
+        ? `Put ${a} red counters and ${b} blue counters together.`
+        : `${a}টি + ${b}টি একসঙ্গে করি | Put the two groups together.`;
+      counterStage.innerHTML =
+        `<div class="counterGroup">${dotHTML(a)}</div>
+         <div class="mathArrow">+</div>
+         <div class="counterGroup">${dotHTML(b,'blue')}</div>`;
+    }else if(op==='sub'){
+      teacherVisualSub.textContent = state.langMode==='bn'
+        ? `${a}টি বস্তু থেকে ${b}টি সরিয়ে দিই।`
+        : state.langMode==='en'
+        ? `Start with ${a} counters and take away ${b}.`
+        : `${a}টি থেকে ${b}টি সরাই | Take ${b} away from ${a}.`;
+      let s='';
+      for(let i=0;i<a;i++){
+        s += `<span class="counter ${i>=Math.max(0,a-b)?'crossed':''}" style="animation-delay:${i*55}ms"></span>`;
+      }
+      counterStage.innerHTML = `<div class="counterGroup">${s}</div>`;
+    }else if(op==='mul'){
+      teacherVisualSub.textContent = state.langMode==='bn'
+        ? `${b}টি দলে প্রতিটি দলে ${a}টি করে বস্তু।`
+        : state.langMode==='en'
+        ? `${b} groups with ${a} counters in each group.`
+        : `${b}টি দল × প্রতি দলে ${a}টি | ${b} groups of ${a}.`;
+      let groups='';
+      for(let g=0;g<b;g++) groups += `<div class="counterGroup">${dotHTML(a, g%2?'blue':'')}</div>`;
+      counterStage.innerHTML = groups || `<div class="counterGroup"><b>0 groups</b></div>`;
+    }else{
+      if(b===0){
+        teacherVisualSub.textContent = state.langMode==='bn'
+          ? `শূন্য দিয়ে ভাগ করা যায় না।`
+          : state.langMode==='en'
+          ? `Division by zero is not defined.`
+          : `শূন্য দিয়ে ভাগ করা যায় না | Division by zero is undefined.`;
+        counterStage.innerHTML = `<div style="font-size:2rem;font-weight:900">⚠️ ÷ 0</div>`;
+      }else{
+        const q=Math.floor(a/b), r=a%b;
+        teacherVisualSub.textContent = state.langMode==='bn'
+          ? `${a}টি বস্তুকে ${b}টি করে সমান দলে ভাগ করি।`
+          : state.langMode==='en'
+          ? `Split ${a} counters into equal groups of ${b}.`
+          : `${a}টি বস্তুকে ${b}টি করে দল করি | Make groups of ${b}.`;
+        let groups='';
+        for(let g=0;g<q;g++) groups += `<div class="counterGroup">${dotHTML(b, g%2?'blue':'')}</div>`;
+        if(r) groups += `<div class="counterGroup" style="border-color:#f0a47b">${dotHTML(r)}<b style="width:100%;font-size:.7rem">Remainder</b></div>`;
+        counterStage.innerHTML = groups || `<div class="counterGroup">${dotHTML(a)}</div>`;
+      }
+    }
+  }
+
+  function runTeacherExplanation(){
+    if(!state.teacherVisualOnly) return;
+    state.solved=false;
+    teacherVisual.classList.add('show');
+    setFluidObjectsVisible(false);
+    buildTeacherVisual();
+    boardEquation.textContent = equationQuestion();
+    topEquation.textContent = equationQuestion();
+    scientistBubble.textContent = scientistText('normal');
+    setScientistExpression('normal');
+    speak(voiceText('intro'));
+
+    setTimeout(()=>{
+      teacherAnswer.textContent = equationSolved().replace(' ✅','');
+      teacherAnswer.classList.add('reveal');
+      boardEquation.textContent = equationSolved();
+      topEquation.textContent = equationSolved();
+      state.solved=true;
+      scientistBubble.textContent = scientistText('success');
+      setScientistExpression('happy');
+      successChime();
+      celebrateRound();
+      speak(voiceText('success'));
+      updateUI();
+    }, 1450);
+  }
+
+  function renderDivisionPots(){
+    const isDiv = state.operation === 'div' && !state.teacherVisualOnly;
+    divisionPots.classList.toggle('show', isDiv);
+
+    if(!isDiv){
+      potsRow.innerHTML='';
+      return;
+    }
+
+    const totalPots = state.round;   // quotient = number of equal groups
+    const filledPots = Math.min(state.doses, totalPots);
+
+    if(state.langMode==='bn'){
+      divisionPotsTitle.textContent = `প্রতি পাত্রে ${state.table} mL — মোট ${totalPots}টি সমান ভাগ`;
+    }else if(state.langMode==='en'){
+      divisionPotsTitle.textContent = `${state.table} mL in each pot — ${totalPots} equal groups`;
+    }else{
+      divisionPotsTitle.textContent = `প্রতি পাত্রে ${state.table} mL | ${state.table} mL in each pot — ${totalPots} groups`;
+    }
+
+    let html='';
+    for(let i=0;i<totalPots;i++){
+      const filled = i < filledPots;
+      const liquidHeight = filled ? 44 : 0;
+      const liquidY = 61 - liquidHeight;
+      html += `
+        <div class="miniPot ${filled?'filled':''}">
+          <svg viewBox="0 0 60 78" aria-label="${state.table} mL measuring pot">
+            <defs>
+              <linearGradient id="miniGlass${i}" x1="0" x2="1">
+                <stop offset="0" stop-color="rgba(255,255,255,.78)"/>
+                <stop offset=".5" stop-color="rgba(220,245,255,.18)"/>
+                <stop offset="1" stop-color="rgba(255,255,255,.78)"/>
+              </linearGradient>
+              <clipPath id="miniClip${i}">
+                <path d="M13 12 L47 12 L43 62 Q40 69 30 70 Q20 69 17 62 Z"></path>
+              </clipPath>
+            </defs>
+            <ellipse cx="30" cy="70" rx="20" ry="4" fill="rgba(40,60,80,.10)"></ellipse>
+            <path d="M13 12 L47 12 L43 62 Q40 69 30 70 Q20 69 17 62 Z"
+                  fill="url(#miniGlass${i})" stroke="#adc6d8" stroke-width="2.2"></path>
+            <g clip-path="url(#miniClip${i})">
+              <rect x="15" y="${liquidY}" width="30" height="${liquidHeight}" fill="var(--liquid2)"></rect>
+              ${filled ? `<ellipse cx="30" cy="${liquidY}" rx="15" ry="3.2" fill="var(--liquid3)"></ellipse>` : ''}
+            </g>
+            <line x1="35" y1="28" x2="45" y2="28" stroke="#49657d" stroke-width="1.6"></line>
+            <line x1="35" y1="42" x2="45" y2="42" stroke="#49657d" stroke-width="1.6"></line>
+            <line x1="35" y1="56" x2="45" y2="56" stroke="#49657d" stroke-width="1.6"></line>
+          </svg>
+          <div class="miniPotLabel">${filled ? state.table+' mL' : '?'}</div>
+        </div>`;
+    }
+    potsRow.innerHTML=html;
+  }
+
+  function updateUI(){
+    applyLabels();
+    updateDropperScale();
+    updateCylinderGeometry();
+
+    topEquation.textContent = equationQuestion();
+    topSub.textContent = topSubtitle();
+    boardEquation.textContent = state.solved ? equationSolved() : equationQuestion();
+    boardInfo.textContent = boardInstruction();
+
+    missionText.textContent = missionStr();
+    guideText.textContent = guideStr();
+    scientistBubble.textContent = scientistText(state.solved ? 'success' : 'normal');
+
+    if(state.teacherMode){
+      roundText.textContent = state.solved ? 'Done' : 'Custom';
+      progressFill.style.width = state.solved ? '100%' : '15%';
+    }else{
+      roundText.textContent = `${state.round} / 10`;
+      progressFill.style.width = `${(state.round/10)*100}%`;
+    }
+
+    doseCount.textContent = state.teacherVisualOnly ? '—' : state.doses;
+    dropperValue.textContent = state.teacherVisualOnly ? customSymbol() : `${state.table} mL`;
+    targetValue.textContent = state.teacherMode
+      ? customAnswerText()
+      : state.operation === 'mul' ? `${getTarget()} mL` : `${state.round}`;
+    targetLabel.textContent = state.teacherMode
+      ? (state.langMode==='bn' ? 'উত্তর' : state.langMode==='en' ? 'Answer' : 'উত্তর | Answer')
+      : state.operation === 'mul'
+      ? txt('target')
+      : (state.langMode==='bn' ? 'উত্তর' : state.langMode==='en' ? 'Answer' : 'উত্তর | Answer');
+    readingValue.textContent = state.teacherVisualOnly ? '—' : `${state.cylinderMl} mL`;
+    cupRemainingText.textContent = state.operation === 'mul' && !state.teacherVisualOnly
+      ? `${state.sourceMl} mL`
+      : '';
+    directionBadge.textContent = guideStr();
+
+    mulChoice.classList.toggle('active', state.setupMode === 'mul');
+    divChoice.classList.toggle('active', state.setupMode === 'div');
+    teacherChoice.classList.toggle('active', state.setupMode === 'teacher');
+
+    teacherVisual.classList.toggle('show', state.teacherVisualOnly);
+    if(!state.teacherVisualOnly) setFluidObjectsVisible(true);
+
+    renderDivisionPots();
+    updateLiquidVisuals();
+
+    if(state.teacherMode){
+      prevBtn.disabled = false;
+      nextBtn.disabled = false;
+      prevBtn.style.opacity = '1';
+      nextBtn.style.opacity = '1';
+    }else{
+      prevBtn.disabled = state.round <= 1;
+      nextBtn.disabled = state.round >= 10;
+      prevBtn.style.opacity = prevBtn.disabled ? '.45' : '1';
+      nextBtn.style.opacity = nextBtn.disabled ? '.45' : '1';
+    }
+  }
+
+  function resetRound(){
+    if(state.teacherVisualOnly){
+      runTeacherExplanation();
+      return;
+    }
+    state.doses = 0;
+    state.dropperMl = 0;
+    state.receivedMl = 0;
+    state.sourceCapacity = state.operation === 'mul' ? getTarget() : 0;
+    state.sourceMl = state.sourceCapacity;
+    state.cylinderMl = state.operation === 'div' ? getTarget() : 0;
+    state.solved = false;
+    updateUI();
+    setScientistExpression('normal');
+    scientistBubble.textContent = scientistText('normal');
+    hint(state.operation === 'mul' ? 'cup' : 'cylinder');
+    showToast(toastText('reset'), 'warn');
+    speak(voiceText('intro'));
+  }
+
+  function prepareRound(roundNumber){
+    state.round = Math.max(1, Math.min(state.maxRound, roundNumber));
+    state.doses = 0;
+    state.dropperMl = 0;
+    state.receivedMl = 0;
+    state.sourceCapacity = state.operation === 'mul' ? getTarget() : 0;
+    state.sourceMl = state.sourceCapacity;
+    state.solved = false;
+
+    if(state.teacherMode){
+      // Teacher Custom represents one teacher-entered problem.
+      updateUI();
+      if(state.teacherVisualOnly){
+        setTimeout(runTeacherExplanation, 120);
+      }else{
+        state.cylinderMl = state.operation === 'div' ? getTarget() : 0;
+        updateUI();
+        hint(state.operation === 'mul' ? 'cup' : 'cylinder');
+        speak(voiceText('intro'));
+      }
+      return;
+    }
+
+    state.cylinderMl = state.operation === 'div' ? getTarget() : 0;
+    updateUI();
+    setScientistExpression('normal');
+    scientistBubble.textContent = scientistText('normal');
+    hint(state.operation === 'mul' ? 'cup' : 'cylinder');
+    speak(voiceText('intro'));
+  }
+
+  function nextRound(){
+    if(state.teacherMode){
+      setupOverlay.classList.remove('hidden');
+      return;
+    }
+    if(state.round < state.maxRound){
+      prepareRound(state.round + 1);
+    }else{
+      showToast(
+        state.langMode==='bn' ? 'এটাই ১০ নম্বর ধাপ।'
+        : state.langMode==='en' ? 'This is step 10.'
+        : 'এটাই ১০ নম্বর ধাপ | This is step 10.',
+        'good'
+      );
+    }
+  }
+
+  function prevRound(){
+    if(state.teacherMode){
+      setupOverlay.classList.remove('hidden');
+      return;
+    }
+    if(state.round > 1){
+      prepareRound(state.round - 1);
+    }else{
+      showToast(
+        state.langMode==='bn' ? 'এটাই প্রথম ধাপ।'
+        : state.langMode==='en' ? 'This is step 1.'
+        : 'এটাই প্রথম ধাপ | This is step 1.',
+        'warn'
+      );
+    }
+  }
+
+  function hint(where){
+    cupHint.classList.toggle('show', where==='cup');
+    cylHint.classList.toggle('show', where==='cylinder');
+    clearTimeout(hint.t);
+    hint.t = setTimeout(() => {
+      cupHint.classList.remove('show');
+      cylHint.classList.remove('show');
+    }, 1700);
+  }
+
+  function squeezeBulb(){
+    // Rubber-like press: fast compression, tiny side bulge, then elastic rebound.
+    bulbShape.animate([
+      { transform:'translateY(0px) scale(1,1)', transformOrigin:'center center' },
+      { transform:'translateY(5px) scale(1.12,.66)', transformOrigin:'center center', offset:.34 },
+      { transform:'translateY(2px) scale(.98,1.08)', transformOrigin:'center center', offset:.70 },
+      { transform:'translateY(0px) scale(1,1)', transformOrigin:'center center' }
+    ], {
+      duration:420,
+      easing:'cubic-bezier(.22,.85,.34,1)'
+    });
+  }
+
+  function rect(el){ return el.getBoundingClientRect(); }
+  function tipPoint(){
+    const r = dropperWrap.getBoundingClientRect();
+    return {x:r.left + r.width/2, y:r.top + r.height*0.90};
+  }
+  function near(el,p=28){
+    const r = rect(el), t = tipPoint();
+    return t.x >= r.left-p && t.x <= r.right+p && t.y >= r.top-p && t.y <= r.bottom+p;
+  }
+
+  function collectDose(){
+    if(state.solved) return;
+    if(state.dropperMl > 0){
+      showToast(toastText('already'), 'warn');
+      setScientistExpression('sad');
+      return;
+    }
+
+    if(state.operation === 'div'){
+      // Reverse division: collect one divisor-sized portion FROM the cylinder.
+      if(state.cylinderMl < state.table){
+        showToast(state.langMode==='bn' ? 'সিলিন্ডারে আর পূর্ণ একটি ভাগ নেই।'
+                  : state.langMode==='en' ? 'There is no full portion left in the cylinder.'
+                  : 'আর পূর্ণ ভাগ নেই | No full portion remains.', 'warn');
+        return;
+      }
+      state.dropperMl = state.table;
+      state.cylinderMl -= state.table;
+    }else{
+      // Multiplication: collect one table-sized portion FROM the source pot.
+      // Conservation of liquid: whatever enters the dropper leaves the pot.
+      if(state.sourceMl < state.table){
+        showToast(
+          state.langMode==='bn' ? 'পাত্রে আর পর্যাপ্ত জল নেই।'
+          : state.langMode==='en' ? 'There is not enough liquid left in the pot.'
+          : 'পাত্রে পর্যাপ্ত জল নেই | Not enough liquid remains.',
+          'warn'
+        );
+        return;
+      }
+      state.dropperMl = state.table;
+      state.sourceMl -= state.table;
+    }
+
+    squeezeBulb();
+    waterPickupSound();
+
+    // Slight delay makes the liquid rise while the rubber bulb rebounds,
+    // which feels much closer to a real dropper being released.
+    setTimeout(() => updateUI(), 135);
+
+    const pickCaption = state.langMode==='bn'
+      ? `তোলা হয়েছে ${state.table} mL`
+      : state.langMode==='en'
+      ? `Picked ${state.table} mL`
+      : `তোলা হয়েছে ${state.table} mL | Picked ${state.table} mL`;
+    showActionCount(state.doses + 1, pickCaption);
+
+    setScientistExpression('wow');
+    scientistBubble.textContent =
+      state.langMode==='bn' ? `ড্রপার ঠিক ${state.table} mL দাগ পর্যন্ত ভরেছে।`
+      : state.langMode==='en' ? `The dropper is filled exactly to the ${state.table} mL mark.`
+      : `ড্রপার ঠিক ${state.table} mL দাগ পর্যন্ত ভরেছে | Filled exactly to ${state.table} mL.`;
+    showToast(toastText('collect'), 'good');
+    hint(state.operation === 'mul' ? 'cylinder' : 'cup');
+    speak(voiceText('collect'));
+  }
+
+  function animateDrop(){
+    dropShape.setAttribute('opacity','1');
+    dropShape.style.transition='transform .58s ease, opacity .58s ease';
+    dropShape.setAttribute('transform','translate(0,0)');
+    requestAnimationFrame(() => {
+      dropShape.setAttribute('transform','translate(0,145)');
+      dropShape.setAttribute('opacity','0');
+    });
+    setTimeout(() => {
+      dropShape.style.transition='none';
+      dropShape.setAttribute('transform','translate(0,0)');
+    }, 620);
+  }
+
+  function pourDose(){
+    if(state.solved) return;
+    if(state.dropperMl <= 0){
+      showToast(toastText('empty'), 'warn');
+      setScientistExpression('sad');
+      scientistBubble.textContent = scientistText('warn');
+      hint(state.operation === 'mul' ? 'cup' : 'cylinder');
+      return;
+    }
+
+    squeezeBulb();
+    waterPourSound();
+    animateDrop();
+
+    setTimeout(() => {
+      if(state.operation === 'mul'){
+        state.cylinderMl += state.dropperMl;
+        state.doses += 1;
+
+        const dropCaption = state.langMode==='bn'
+          ? `ঢালা হয়েছে ${state.table} mL`
+          : state.langMode==='en'
+          ? `Poured ${state.table} mL`
+          : `ঢালা হয়েছে ${state.table} mL | Poured ${state.table} mL`;
+        showActionCount(state.doses, dropCaption);
+
+        state.dropperMl = 0;
+
+        if(state.cylinderMl > state.cylMax) state.cylinderMl = state.cylMax;
+
+        if(state.cylinderMl === getTarget() && state.doses === state.round){
+          state.solved = true;
+          updateUI();
+          celebrateRound();
+          successChime();
+          setScientistExpression('happy');
+          scientistBubble.textContent = scientistText('success');
+          showToast(toastText('done'), 'good');
+          speak(voiceText('success'));
+        }else{
+          updateUI();
+          showToast(toastText('poured'), 'good');
+          speak(voiceText('poured'));
+          if(state.cylinderMl < getTarget()){
+            setScientistExpression('wow');
+            hint('cup');
+          }
+        }
+      }else{
+        // Division: release the removed equal portion INTO the receiving container.
+        state.receivedMl += state.dropperMl;
+        state.doses += 1;
+
+        const divCaption = state.langMode==='bn'
+          ? `${state.table} mL-এর ${state.doses} নম্বর ভাগ`
+          : state.langMode==='en'
+          ? `Group ${state.doses}: ${state.table} mL`
+          : `${state.doses} নম্বর ভাগ | Group ${state.doses}: ${state.table} mL`;
+        showActionCount(state.doses, divCaption);
+
+        state.dropperMl = 0;
+
+        if(state.cylinderMl === 0 && state.doses === state.round){
+          state.solved = true;
+          updateUI();
+          celebrateRound();
+          successChime();
+          setScientistExpression('happy');
+          scientistBubble.textContent = scientistText('success');
+          showToast(
+            state.langMode==='bn' ? `সঠিক! ${getTarget()} ÷ ${state.table} = ${state.round}`
+            : state.langMode==='en' ? `Correct! ${getTarget()} ÷ ${state.table} = ${state.round}`
+            : `সঠিক! ${getTarget()} ÷ ${state.table} = ${state.round} | Correct!`,
+            'good'
+          );
+          speak(voiceText('success'));
+        }else{
+          updateUI();
+          showToast(
+            state.langMode==='bn' ? `${state.doses}টি সমান ${state.table} mL ভাগ সরানো হয়েছে।`
+            : state.langMode==='en' ? `${state.doses} equal ${state.table} mL groups removed.`
+            : `${state.doses}টি সমান ভাগ | ${state.doses} equal groups removed.`,
+            'good'
+          );
+          speak(voiceText('poured'));
+          hint('cylinder');
+          setScientistExpression('wow');
+        }
+      }
+    }, 360);
+  }
+
+  function useDropper(){
+    if(state.operation === 'mul'){
+      if(near(cupWrap,26)) collectDose();
+      else if(near(cylinderWrap,36)) pourDose();
+      else{
+        showToast(toastText('move'), 'warn');
+        setScientistExpression('sad');
+        scientistBubble.textContent = scientistText('warn');
+        hint(state.dropperMl ? 'cylinder' : 'cup');
+      }
+    }else{
+      // Reverse flow for division: cylinder -> dropper -> receiving container.
+      if(near(cylinderWrap,36) && state.dropperMl===0) collectDose();
+      else if((near(divisionPots,34) || near(cupWrap,26)) && state.dropperMl>0) pourDose();
+      else{
+        showToast(toastText('move'), 'warn');
+        setScientistExpression('sad');
+        scientistBubble.textContent = scientistText('warn');
+        if(state.dropperMl){
+          divisionPots.classList.add('show');
+        }else{
+          hint('cylinder');
+        }
+      }
+    }
+  }
+
+  function celebrateRound(){
+    const colors=['#ff7b7b','#ffd45a','#79dcb8','#7aa0ff','#f7a8c7'];
+    for(let i=0;i<28;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=(Math.random()*100)+'%';
+      c.style.background=colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDelay=(Math.random()*0.4)+'s';
+      c.style.transform=`rotate(${Math.random()*180}deg)`;
+      celebrate.appendChild(c);
+      setTimeout(() => c.remove(), 2300);
+    }
+  }
+  function celebrateBig(){
+    const colors=['#ff7b7b','#ffd45a','#79dcb8','#7aa0ff','#f7a8c7'];
+    for(let i=0;i<60;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=(Math.random()*100)+'%';
+      c.style.background=colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDelay=(Math.random()*0.8)+'s';
+      c.style.transform=`rotate(${Math.random()*180}deg)`;
+      celebrate.appendChild(c);
+      setTimeout(() => c.remove(), 2800);
+    }
+  }
+
+  // Dragging
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  function pointerDown(e){
+    state.dragging = true;
+    const r = dropperWrap.getBoundingClientRect();
+    dragOffsetX = e.clientX - r.left;
+    dragOffsetY = e.clientY - r.top;
+    dropperWrap.classList.add('dragging');
+    dropperWrap.setPointerCapture?.(e.pointerId);
+  }
+  function pointerMove(e){
+    if(!state.dragging) return;
+    const lr = lab.getBoundingClientRect();
+    const w = dropperWrap.offsetWidth;
+    const h = dropperWrap.offsetHeight;
+    let x = e.clientX - lr.left - dragOffsetX;
+    let y = e.clientY - lr.top - dragOffsetY;
+    x = Math.max(-20, Math.min(lr.width - w + 20, x));
+    y = Math.max(200, Math.min(lr.height - h - 120, y));
+    dropperWrap.style.left = x+'px';
+    dropperWrap.style.top = y+'px';
+    dropperWrap.style.transform = 'none';
+    if(near(cupWrap,26)) hint('cup');
+    else if(near(cylinderWrap,36)) hint('cylinder');
+  }
+  function pointerUp(e){
+    if(!state.dragging) return;
+    state.dragging = false;
+    dropperWrap.classList.remove('dragging');
+    dropperWrap.releasePointerCapture?.(e.pointerId);
+  }
+
+  dropperWrap.addEventListener('pointerdown', e => {
+    state.pointerStart = {x:e.clientX, y:e.clientY, t:Date.now()};
+    pointerDown(e);
+  });
+  dropperWrap.addEventListener('pointermove', pointerMove);
+  dropperWrap.addEventListener('pointerup', e => {
+    const moved = Math.hypot(e.clientX-state.pointerStart.x, e.clientY-state.pointerStart.y);
+    const dt = Date.now()-state.pointerStart.t;
+    pointerUp(e);
+    if(moved < 8 && dt < 420) useDropper();
+  });
+  dropperWrap.addEventListener('pointercancel', pointerUp);
+  dropperWrap.addEventListener('keydown', e => {
+    if(e.code==='Enter' || e.code==='Space'){
+      e.preventDefault();
+      useDropper();
+    }
+  });
+
+  // Controls
+  voiceSwitch.addEventListener('click', () => {
+    state.voiceOn = !state.voiceOn;
+    voiceSwitch.classList.toggle('on', state.voiceOn);
+    voiceSwitch.setAttribute('aria-checked', String(state.voiceOn));
+  });
+  voiceSwitch.addEventListener('keydown', e => {
+    if(e.code==='Enter' || e.code==='Space'){
+      e.preventDefault();
+      voiceSwitch.click();
+    }
+  });
+
+  function chooseOperation(op){
+    state.setupMode = op;
+    if(op==='mul' || op==='div'){
+      state.operation = op;
+      state.teacherMode = false;
+      state.teacherVisualOnly = false;
+      state.maxRound = 10;
+      if(state.round > 10 || state.round < 1) state.round = 1;
+    }
+    mulChoice.classList.toggle('active', op==='mul');
+    divChoice.classList.toggle('active', op==='div');
+    teacherChoice.classList.toggle('active', op==='teacher');
+    teacherPanel.classList.toggle('show', op==='teacher');
+    practiceTableField.style.display = op==='teacher' ? 'none' : '';
+    setupError.classList.remove('show');
+    updateUI();
+  }
+
+  mulChoice.addEventListener('click', () => chooseOperation('mul'));
+  divChoice.addEventListener('click', () => chooseOperation('div'));
+  teacherChoice.addEventListener('click', () => chooseOperation('teacher'));
+
+  startBtn.addEventListener('click', () => {
+    state.langMode = langMode.value;
+    state.voiceLang = voiceLang.value;
+    state.voiceType = voiceType.value;
+    state.theme = themeSelect.value;
+    document.body.setAttribute('data-theme', state.theme);
+    ensureAudio();
+
+    state.teacherMode = state.setupMode === 'teacher';
+    state.teacherVisualOnly = false;
+
+    if(state.teacherMode){
+      const a = Math.trunc(Number(teacherAInput.value));
+      const b = Math.trunc(Number(teacherBInput.value));
+      const op = teacherOpSelect.value;
+
+      if(!Number.isFinite(a) || !Number.isFinite(b) || a<0 || a>9 || b<0 || b>9){
+        setupError.textContent = state.langMode==='bn'
+          ? '০ থেকে ৯-এর মধ্যে দুটি সংখ্যা দিন।'
+          : state.langMode==='en'
+          ? 'Please enter two digits from 0 to 9.'
+          : '০–৯ এর মধ্যে সংখ্যা দিন | Enter digits from 0 to 9.';
+        setupError.classList.add('show');
+        return;
+      }
+      if(op==='sub' && b>a){
+        setupError.textContent = state.langMode==='bn'
+          ? 'শিশুদের এই মোডে বিয়োগের জন্য প্রথম সংখ্যা দ্বিতীয় সংখ্যার সমান বা বড় রাখুন।'
+          : state.langMode==='en'
+          ? 'For this kids mode, keep the first subtraction number equal to or larger than the second.'
+          : 'বিয়োগে প্রথম সংখ্যা বড় রাখুন | Keep the first number larger for subtraction.';
+        setupError.classList.add('show');
+        return;
+      }
+
+      state.teacherA=a;
+      state.teacherB=b;
+      state.teacherOp=op;
+
+      if(op==='mul' && a>0 && b>0){
+        state.operation='mul';
+        state.table=a;
+        state.round=b;
+      }else if(op==='div' && b>0 && a%b===0 && a>0){
+        state.operation='div';
+        state.table=b;
+        state.round=a/b;
+      }else{
+        // Addition, subtraction, zero multiplication, non-exact division
+        // are explained with animated counters/groups.
+        state.operation='mul';
+        state.table=Math.max(1,a || b || 1);
+        state.round=1;
+        state.teacherVisualOnly=true;
+      }
+    }else{
+      state.operation = state.setupMode;
+      state.table = parseInt(tableSelect.value,10);
+      state.round = 1;
+      state.teacherMode = false;
+      state.teacherVisualOnly = false;
+    }
+
+    // Regular Multiplication and Division always run from step 1 to step 10.
+    state.maxRound = state.teacherMode ? 1 : 10;
+    state.doses = 0;
+    state.dropperMl = 0;
+    state.receivedMl = 0;
+    state.sourceCapacity = (!state.teacherVisualOnly && state.operation === 'mul') ? getTarget() : 0;
+    state.sourceMl = state.sourceCapacity;
+    state.cylinderMl = (!state.teacherVisualOnly && state.operation === 'div') ? getTarget() : 0;
+    state.solved = false;
+    setupError.classList.remove('show');
+    setupOverlay.classList.add('hidden');
+    updateUI();
+    setScientistExpression('normal');
+
+    if(state.teacherVisualOnly){
+      setTimeout(runTeacherExplanation, 250);
+    }else{
+      hint(state.operation === 'mul' ? 'cup' : 'cylinder');
+      setTimeout(() => speak(voiceText('intro')), 250);
+    }
+  });
+
+  settingsBtn.addEventListener('click', () => {
+    setupOverlay.classList.remove('hidden');
+  });
+
+  tableSelect.addEventListener('change', () => {
+    if(state.setupMode==='teacher') return;
+    state.table = parseInt(tableSelect.value,10);
+    state.round = 1;
+    state.doses = 0;
+    state.dropperMl = 0;
+    state.receivedMl = 0;
+    state.sourceCapacity = state.operation === 'mul' ? getTarget() : 0;
+    state.sourceMl = state.sourceCapacity;
+    state.cylinderMl = state.operation === 'div' ? getTarget() : 0;
+    state.solved = false;
+    updateUI();
+  });
+  langMode.addEventListener('change', () => {
+    state.langMode = langMode.value;
+    updateUI();
+  });
+  voiceLang.addEventListener('change', () => state.voiceLang = voiceLang.value);
+  voiceType.addEventListener('change', () => state.voiceType = voiceType.value);
+  themeSelect.addEventListener('change', () => {
+    state.theme = themeSelect.value;
+    document.body.setAttribute('data-theme', state.theme);
+  });
+
+  prevBtn.addEventListener('click', prevRound);
+  resetBtn.addEventListener('click', resetRound);
+  nextBtn.addEventListener('click', nextRound);
+  demoBtn.addEventListener('click', async () => {
+    if(state.teacherVisualOnly){
+      runTeacherExplanation();
+      return;
+    }
+    if(state.solved) return;
+    scientistBubble.textContent = state.langMode==='bn' ? 'দেখো, আমি করে দেখাচ্ছি।'
+      : state.langMode==='en' ? 'Watch, I will show you.'
+      : 'দেখো, আমি করে দেখাচ্ছি | Watch, I will show you.';
+    setScientistExpression('normal');
+    if(state.operation === 'mul'){
+      await autoMoveTo(cupWrap, 'cup');
+      collectDose();
+      await wait(800);
+      await autoMoveTo(cylinderWrap, 'cylinder');
+      pourDose();
+    }else{
+      await autoMoveTo(cylinderWrap, 'cylinder');
+      collectDose();
+      await wait(800);
+      await autoMoveTo(divisionPots, 'pots');
+      pourDose();
+    }
+  });
+
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+  function autoMoveTo(target, kind){
+    return new Promise(resolve => {
+      const lr = lab.getBoundingClientRect();
+      const tr = target.getBoundingClientRect();
+      const dr = dropperWrap.getBoundingClientRect();
+      const tx = (tr.left - lr.left) + tr.width/2 - dr.width/2;
+      const ty = kind==='cup' ? (tr.top - lr.top) - 76 : (tr.top - lr.top) - 86;
+      dropperWrap.style.transition = 'left .82s cubic-bezier(.2,.8,.2,1), top .82s cubic-bezier(.2,.8,.2,1)';
+      dropperWrap.style.left = tx+'px';
+      dropperWrap.style.top = ty+'px';
+      dropperWrap.style.transform = 'none';
+      setTimeout(() => {
+        dropperWrap.style.transition = '';
+        resolve();
+      }, 850);
+    });
+  }
+
+  // Fluid animation
+  let phase = 0;
+  function wavePath(x, y, w, amp, phase, depth){
+    let d = `M ${x} ${y}`;
+    const segments = 8;
+    const segW = w / segments;
+    for(let i=0;i<=segments;i++){
+      const px = x + i*segW;
+      const py = y + Math.sin((i*0.9) + phase) * amp;
+      d += ` L ${px.toFixed(2)} ${py.toFixed(2)}`;
+    }
+    d += ` L ${x+w} ${y+depth} L ${x} ${y+depth} Z`;
+    return d;
+  }
+
+  function animateFluids(){
+    phase += 0.055;
+
+    // Cup waves follow the true remaining source volume.
+    const cupX = 58, cupW = 120;
+    const cupRatio = state.operation === 'mul'
+      ? Math.max(0, Math.min(1, state.sourceMl / Math.max(1, state.sourceCapacity)))
+      : 0;
+    const cupBottom = 239, cupTop = 100;
+    const cupY = cupBottom - (cupBottom-cupTop)*cupRatio;
+    if(cupRatio > 0){
+      cupWaveBack.setAttribute('d', wavePath(cupX-4, cupY+5, cupW+8, 4, phase*.8, 150));
+      cupWaveFront.setAttribute('d', wavePath(cupX-2, cupY, cupW+4, 6, phase, 155));
+      cupWaveHighlight.setAttribute('d', wavePath(cupX, cupY-2, cupW, 3, phase*1.2+1.2, 18));
+      cupWaveBack.style.display='';
+      cupWaveFront.style.display='';
+      cupWaveHighlight.style.display='';
+    }else{
+      cupWaveBack.style.display='none';
+      cupWaveFront.style.display='none';
+      cupWaveHighlight.style.display='none';
+    }
+
+    // Cylinder waves based on fill level
+    const {x,w,clipY,clipH} = state.cylBody;
+    const ratio = Math.max(0, Math.min(1, state.cylinderMl / state.cylMax));
+    const y = clipY + clipH - clipH*ratio;
+    if(ratio > 0){
+      cylWaveBack.setAttribute('d', wavePath(x-2, y+4, w+4, 3, phase*.8+0.6, clipH));
+      cylWaveFront.setAttribute('d', wavePath(x, y, w, 4.6, phase, clipH));
+      cylWaveHighlight.setAttribute('d', wavePath(x+1, y-1, w-2, 2.2, phase*1.2+1.1, 14));
+      cylWaveBack.style.display = '';
+      cylWaveFront.style.display = '';
+      cylWaveHighlight.style.display = '';
+    }else{
+      cylWaveBack.style.display = 'none';
+      cylWaveFront.style.display = 'none';
+      cylWaveHighlight.style.display = 'none';
+    }
+
+    requestAnimationFrame(animateFluids);
+  }
+
+  // Initialize
+  applyLabels();
+  fillTableOptions();
+  updateUI();
+  hint('cup');
+  requestAnimationFrame(animateFluids);
+})();
+</script>
+</body>
+</html>
