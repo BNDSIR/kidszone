@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Number Explorer Kids Lab</title>
+<style>
+:root{
+  --bg:#f5f9ff;--card:#fff;--ink:#16324a;--muted:#65788a;--line:#d9e6f1;
+  --purple:#6c5ce7;--blue:#2697e8;--green:#20a66a;--red:#e65d68;--yellow:#ffbd2e;
+  --soft-purple:#f1efff;--soft-blue:#edf8ff;--soft-green:#eaf9f1;--soft-red:#fff0f1;
+  --shadow:0 12px 28px rgba(29,67,103,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Bengali","Nirmala UI",sans-serif;
+  color:var(--ink);background:linear-gradient(180deg,#eff8ff 0%,#fff9e8 100%);
+}
+button,select,input{font:inherit}
+button{cursor:pointer}
+.app{max-width:1180px;margin:auto;padding:16px}
+.hero{
+  background:linear-gradient(135deg,#6c5ce7,#2697e8);color:#fff;border-radius:28px;
+  padding:22px;box-shadow:var(--shadow);overflow:hidden;position:relative;
+}
+.hero:after{
+  content:"2  3  4  5  10  25  99";position:absolute;right:-12px;bottom:-24px;
+  font-size:48px;font-weight:900;opacity:.10;transform:rotate(-7deg)
+}
+.heroRow{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hero h1{margin:0;font-size:clamp(25px,4vw,42px)}
+.hero p{margin:8px 0 0;opacity:.94}
+.lang{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:220px}
+.lang button,.modeBtn{
+  min-height:44px;border-radius:14px;border:2px solid rgba(255,255,255,.25);font-weight:900
+}
+.lang button{background:rgba(255,255,255,.14);color:#fff}
+.lang button.active{background:#fff;color:#4e48bd}
+
+.modeTabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;
+}
+.modeBtn{
+  background:#fff;border:2px solid var(--line);color:var(--ink);padding:15px;
+  box-shadow:0 5px 14px rgba(30,65,96,.07)
+}
+.modeBtn.active{border-color:var(--purple);background:var(--soft-purple);color:#5044c7}
+.modeBtn strong{display:block;font-size:18px}
+.modeBtn span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+
+.layout{display:grid;grid-template-columns:325px minmax(0,1fr);gap:18px}
+.panel,.stage{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.panel{padding:18px;align-self:start}
+.stage{padding:18px;min-width:0}
+.title2{font-size:18px;font-weight:900;margin:0 0 12px}
+label{display:block;margin:13px 0 6px;font-weight:800}
+select,input[type=number]{
+  width:100%;min-height:46px;border:2px solid var(--line);border-radius:14px;
+  padding:9px 11px;background:#fff;color:var(--ink);outline:none
+}
+select:focus,input:focus{border-color:var(--purple)}
+.settingBlock{display:none}
+.settingBlock.active{display:block}
+.start{
+  width:100%;border:0;border-radius:16px;min-height:52px;margin-top:16px;
+  background:var(--purple);color:#fff;font-weight:900;box-shadow:0 8px 18px rgba(108,92,231,.24)
+}
+.note{
+  margin-top:13px;background:#eef8ff;border:1px solid #cae8fa;border-radius:16px;
+  padding:12px;font-size:13px;line-height:1.5;color:#526b7d
+}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{border:1px solid var(--line);background:#f8fbfe;border-radius:16px;padding:10px;text-align:center}
+.stat span{font-size:13px;color:var(--muted)}
+.stat b{display:block;font-size:24px;margin-top:2px}
+
+.question{
+  background:#fff7d8;border:2px dashed #ffd166;border-radius:20px;padding:15px;text-align:center
+}
+.question h2{margin:0;font-size:clamp(21px,3.5vw,33px)}
+.question p{margin:6px 0 0;color:#725e25;font-weight:700}
+
+.singleNumber{
+  margin:18px auto 12px;width:min(280px,90%);min-height:150px;
+  display:flex;align-items:center;justify-content:center;border-radius:28px;
+  background:linear-gradient(145deg,#eef6ff,#fff);border:3px solid #bcd8ee;
+  font-size:clamp(54px,10vw,86px);font-weight:1000;
+}
+.answerRow{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;margin:0 auto}
+.answerBtn{
+  border:0;border-radius:18px;min-height:68px;font-weight:1000;font-size:20px;
+  transition:.15s transform
+}
+.answerBtn:hover{transform:translateY(-2px)}
+.primeBtn{background:var(--soft-green);color:#13764e;border:2px solid #a9e3c7}
+.compBtn{background:#fff4df;color:#9a6510;border:2px solid #ffd789}
+.answerBtn.correct{outline:4px solid rgba(32,166,106,.25)}
+.answerBtn.wrong{outline:4px solid rgba(230,93,104,.25)}
+
+.numberCards{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:12px;margin-top:18px
+}
+.numCard{
+  min-height:112px;border:3px solid var(--line);border-radius:20px;background:#fff;
+  font-size:clamp(30px,5vw,48px);font-weight:1000;color:var(--ink)
+}
+.numCard.selected{border-color:var(--purple);background:var(--soft-purple)}
+.numCard.correct{border-color:var(--green);background:var(--soft-green)}
+.numCard.wrong{border-color:var(--red);background:var(--soft-red)}
+
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:15px}
+.action{border:0;border-radius:14px;min-height:46px;padding:11px 17px;font-weight:900}
+.hint{background:#eef3f7;color:var(--ink)}
+.check{background:var(--green);color:#fff}
+.next{background:var(--yellow);color:#493700}
+
+.feedback{
+  margin-top:14px;border-radius:17px;padding:13px;text-align:center;font-weight:900;
+  min-height:50px;display:flex;align-items:center;justify-content:center
+}
+.feedback.neutral{background:#f5f8fb;color:var(--muted)}
+.feedback.good{background:var(--soft-green);color:#14754d}
+.feedback.bad{background:var(--soft-red);color:#a8414b}
+
+.visual{margin-top:17px;border-top:1px solid var(--line);padding-top:15px}
+.visual h3{margin:0 0 5px}
+.factorWrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:10px}
+.factorCard{border:1px solid var(--line);border-radius:17px;padding:12px;background:#f9fcff;text-align:center}
+.factorDots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:36px;margin:8px 0}
+.dot{width:13px;height:13px;border-radius:50%;background:#58a9df}
+.factorText{font-size:12px;color:var(--muted);line-height:1.5}
+
+.placeVisual{margin-top:14px}
+.placeGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.placeCard{border:1px solid var(--line);border-radius:18px;padding:12px;background:#f9fcff}
+.placeCard h4{margin:0 0 8px;text-align:center;font-size:22px}
+.bars{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.place{border-radius:12px;padding:8px 5px;text-align:center}
+.place:nth-child(1){background:#efeaff}
+.place:nth-child(2){background:#eaf8ff}
+.place:nth-child(3){background:#fff5dc}
+.place b{display:block;font-size:21px}
+.place small{font-size:11px;color:#627386}
+.lesson{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.tip{border-radius:17px;padding:13px;background:#f6f3ff;border:1px solid #ddd6ff}
+.tip h3{margin:0 0 6px;font-size:16px}.tip p{margin:0;color:#586b7a;line-height:1.5;font-size:14px}
+.hidden{display:none!important}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}.panel{order:1}.stage{order:2}
+}
+@media(max-width:520px){
+  .app{padding:10px}.hero,.panel,.stage{border-radius:20px}
+  .modeTabs{grid-template-columns:1fr}
+  .lesson{grid-template-columns:1fr}
+  .answerRow{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <section class="hero">
+    <div class="heroRow">
+      <div>
+        <h1 data-i="appTitle">Number Explorer Kids Lab</h1>
+        <p data-i="appSub">Learn prime/composite numbers and largest/smallest numbers in two separate activities.</p>
+      </div>
+      <div class="lang">
+        <button type="button" id="enBtn" class="active">English</button>
+        <button type="button" id="bnBtn">বাংলা</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modeTabs">
+    <button type="button" class="modeBtn active" data-mode="prime">
+      <strong data-i="modePrimeTitle">🔍 Prime or Composite</strong>
+      <span data-i="modePrimeSub">Identify the type of a number</span>
+    </button>
+    <button type="button" class="modeBtn" data-mode="compare">
+      <strong data-i="modeCompareTitle">🏆 Largest or Smallest</strong>
+      <span data-i="modeCompareSub">Compare numbers and choose the correct one</span>
+    </button>
+  </section>
+
+  <div class="layout">
+    <aside class="panel">
+      <h2 class="title2" data-i="teacherSettings">👩‍🏫 Teacher Settings</h2>
+
+      <div id="primeSettings" class="settingBlock active">
+        <label data-i="digitType">Number type</label>
+        <select id="primeDigits">
+          <option value="1">Single digit (1–9)</option>
+          <option value="2">Two digit (10–99)</option>
+          <option value="3">Three digit (100–999)</option>
+          <option value="mix12">1 & 2 digit mixed</option>
+          <option value="mix123">1, 2 & 3 digit mixed</option>
+        </select>
+
+        <label data-i="questionCount">Number of questions</label>
+        <input id="primeRounds" type="number" min="1" max="30" value="10">
+
+        <label data-i="primeBalance">Question mix</label>
+        <select id="primeMix">
+          <option value="mixed">Prime + Composite mixed</option>
+          <option value="morePrime">More prime numbers</option>
+          <option value="moreComposite">More composite numbers</option>
+        </select>
+
+        <div class="note" data-i="primeTeacherNote">
+          Students see one number at a time and decide whether it is Prime or Composite.
+        </div>
+      </div>
+
+      <div id="compareSettings" class="settingBlock">
+        <label data-i="digitType">Number type</label>
+        <select id="compareDigits">
+          <option value="1">Single digit (1–9)</option>
+          <option value="2">Two digit (10–99)</option>
+          <option value="3">Three digit (100–999)</option>
+          <option value="mix12">1 & 2 digit mixed</option>
+          <option value="mix123">1, 2 & 3 digit mixed</option>
+        </select>
+
+        <label data-i="howManyCompare">How many numbers to compare?</label>
+        <input id="compareCount" type="number" min="2" max="8" value="4">
+
+        <label data-i="findTask">Find</label>
+        <select id="compareTask">
+          <option value="large">Largest number</option>
+          <option value="small">Smallest number</option>
+          <option value="random">Random: largest or smallest</option>
+        </select>
+
+        <label data-i="questionCount">Number of questions</label>
+        <input id="compareRounds" type="number" min="1" max="30" value="10">
+
+        <div class="note" data-i="compareTeacherNote">
+          Students compare place values and choose the largest or smallest number.
+        </div>
+      </div>
+
+      <button type="button" id="startBtn" class="start" data-i="startBtn">▶ Start / Restart</button>
+    </aside>
+
+    <main class="stage">
+      <div class="stats">
+        <div class="stat"><span data-i="score">Score</span><b id="score">0</b></div>
+        <div class="stat"><span data-i="round">Round</span><b id="round">1/10</b></div>
+        <div class="stat"><span data-i="streak">Streak</span><b id="streak">0 🔥</b></div>
+      </div>
+
+      <!-- Prime mode -->
+      <section id="primeGame">
+        <div class="question">
+          <h2 id="primeQuestion">Is this number Prime or Composite?</h2>
+          <p data-i="primeInstruction">Think about its factors before answering.</p>
+        </div>
+
+        <div class="singleNumber" id="primeNumber">17</div>
+
+        <div class="answerRow">
+          <button type="button" id="primeAnswer" class="answerBtn primeBtn" data-i="primeBtn">Prime</button>
+          <button type="button" id="compAnswer" class="answerBtn compBtn" data-i="compositeBtn">Composite</button>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="primeHint" class="action hint" data-i="showFactors">💡 Show factors</button>
+          <button type="button" id="primeNext" class="action next" data-i="nextBtn">Next ▶</button>
+        </div>
+
+        <div id="primeFeedback" class="feedback neutral" aria-live="polite"></div>
+
+        <section class="visual" id="primeVisual">
+          <h3 data-i="factorLab">🔎 Factor Lab</h3>
+          <div class="factorWrap" id="factorWrap"></div>
+        </section>
+
+        <section class="lesson">
+          <div class="tip">
+            <h3 data-i="primeRuleTitle">⭐ Prime number rule</h3>
+            <p data-i="primeRule">A prime number has exactly two factors: 1 and itself.</p>
+          </div>
+          <div class="tip">
+            <h3 data-i="compRuleTitle">🧩 Composite number rule</h3>
+            <p data-i="compRule">A composite number has more than two factors. Remember: 1 is neither prime nor composite.</p>
+          </div>
+        </section>
+      </section>
+
+      <!-- Compare mode -->
+      <section id="compareGame" class="hidden">
+        <div class="question">
+          <h2 id="compareQuestion">Tap the largest number.</h2>
+          <p data-i="compareInstruction">Look from the greatest place value first.</p>
+        </div>
+
+        <div class="numberCards" id="numberCards"></div>
+
+        <div class="actions">
+          <button type="button" id="compareHint" class="action hint" data-i="placeHint">💡 Place-value hint</button>
+          <button type="button" id="compareCheck" class="action check" data-i="checkBtn">✓ Check Answer</button>
+          <button type="button" id="compareNext" class="action next" data-i="nextBtn">Next ▶</button>
+        </div>
+
+        <div id="compareFeedback" class="feedback neutral" aria-live="polite"></div>
+
+        <section class="visual placeVisual" id="placeVisual">
+          <h3 data-i="placeLab">🧮 Place Value Lab</h3>
+          <div class="placeGrid" id="placeGrid"></div>
+        </section>
+
+        <section class="lesson">
+          <div class="tip">
+            <h3 data-i="largestRuleTitle">⬆️ Finding the largest</h3>
+            <p data-i="largestRule">Compare hundreds first, then tens, then ones.</p>
+          </div>
+          <div class="tip">
+            <h3 data-i="smallestRuleTitle">⬇️ Finding the smallest</h3>
+            <p data-i="smallestRule">Choose the smaller highest place value first.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const tr = {
+    en:{
+      appTitle:"Number Explorer Kids Lab",
+      appSub:"Learn prime/composite numbers and largest/smallest numbers in two separate activities.",
+      modePrimeTitle:"🔍 Prime or Composite",
+      modePrimeSub:"Identify the type of a number",
+      modeCompareTitle:"🏆 Largest or Smallest",
+      modeCompareSub:"Compare numbers and choose the correct one",
+      teacherSettings:"👩‍🏫 Teacher Settings",
+      digitType:"Number type",
+      questionCount:"Number of questions",
+      primeBalance:"Question mix",
+      primeTeacherNote:"Students see one number at a time and decide whether it is Prime or Composite.",
+      howManyCompare:"How many numbers to compare?",
+      findTask:"Find",
+      compareTeacherNote:"Students compare place values and choose the largest or smallest number.",
+      startBtn:"▶ Start / Restart",
+      score:"Score",round:"Round",streak:"Streak",
+      primeInstruction:"Think about its factors before answering.",
+      primeBtn:"Prime",compositeBtn:"Composite",
+      showFactors:"💡 Show factors",nextBtn:"Next ▶",
+      factorLab:"🔎 Factor Lab",
+      primeRuleTitle:"⭐ Prime number rule",
+      primeRule:"A prime number has exactly two factors: 1 and itself.",
+      compRuleTitle:"🧩 Composite number rule",
+      compRule:"A composite number has more than two factors. Remember: 1 is neither prime nor composite.",
+      compareInstruction:"Look from the greatest place value first.",
+      placeHint:"💡 Place-value hint",checkBtn:"✓ Check Answer",
+      placeLab:"🧮 Place Value Lab",
+      largestRuleTitle:"⬆️ Finding the largest",
+      largestRule:"Compare hundreds first, then tens, then ones.",
+      smallestRuleTitle:"⬇️ Finding the smallest",
+      smallestRule:"Choose the smaller highest place value first.",
+      primeQ:"Is this number Prime or Composite?",
+      largestQ:"Tap the largest number.",
+      smallestQ:"Tap the smallest number.",
+      chooseNumber:"Choose one number first.",
+      correct:"Excellent! Correct answer. 🎉",
+      wrongPrime:"Not quite. This number is ",
+      primeWord:"Prime",
+      compWord:"Composite",
+      oneSpecial:"1 is neither prime nor composite.",
+      factors:"Factors",
+      factorHint:"Look at the factors. A prime has exactly two factors.",
+      compareCorrect:"Great job! Correct answer: ",
+      compareWrong:"Try again next time. Correct answer: ",
+      compareHintMsg:"Compare the highest place value first.",
+      finished:"Activity complete! Final score: ",
+      hundreds:"Hundreds",tens:"Tens",ones:"Ones",
+      digitOptions:["Single digit (1–9)","Two digit (10–99)","Three digit (100–999)","1 & 2 digit mixed","1, 2 & 3 digit mixed"],
+      mixOptions:["Prime + Composite mixed","More prime numbers","More composite numbers"],
+      taskOptions:["Largest number","Smallest number","Random: largest or smallest"]
+    },
+    bn:{
+      appTitle:"নাম্বার এক্সপ্লোরার কিডস ল্যাব",
+      appSub:"দুটি আলাদা খেলায় মৌলিক/যৌগিক সংখ্যা এবং বৃহত্তম/ক্ষুদ্রতম সংখ্যা শেখো।",
+      modePrimeTitle:"🔍 মৌলিক না যৌগিক",
+      modePrimeSub:"সংখ্যাটি কোন ধরনের তা শনাক্ত করো",
+      modeCompareTitle:"🏆 বৃহত্তম না ক্ষুদ্রতম",
+      modeCompareSub:"সংখ্যা তুলনা করে সঠিকটি বেছে নাও",
+      teacherSettings:"👩‍🏫 শিক্ষকের সেটিংস",
+      digitType:"সংখ্যার ধরন",
+      questionCount:"প্রশ্নের সংখ্যা",
+      primeBalance:"প্রশ্নের মিশ্রণ",
+      primeTeacherNote:"একবারে একটি সংখ্যা দেখানো হবে। শিক্ষার্থী বলবে সেটি মৌলিক না যৌগিক।",
+      howManyCompare:"কতটি সংখ্যা একসঙ্গে তুলনা করবে?",
+      findTask:"কী খুঁজবে?",
+      compareTeacherNote:"স্থানীয় মান দেখে বৃহত্তম বা ক্ষুদ্রতম সংখ্যা নির্বাচন করতে হবে।",
+      startBtn:"▶ শুরু / আবার শুরু",
+      score:"স্কোর",round:"রাউন্ড",streak:"টানা সঠিক",
+      primeInstruction:"উত্তর দেওয়ার আগে সংখ্যাটির গুণনীয়ক ভেবে দেখো।",
+      primeBtn:"মৌলিক",compositeBtn:"যৌগিক",
+      showFactors:"💡 গুণনীয়ক দেখাও",nextBtn:"পরেরটি ▶",
+      factorLab:"🔎 গুণনীয়ক ল্যাব",
+      primeRuleTitle:"⭐ মৌলিক সংখ্যার নিয়ম",
+      primeRule:"মৌলিক সংখ্যার ঠিক দুটি গুণনীয়ক থাকে: ১ এবং সংখ্যাটি নিজে।",
+      compRuleTitle:"🧩 যৌগিক সংখ্যার নিয়ম",
+      compRule:"যৌগিক সংখ্যার দুইটির বেশি গুণনীয়ক থাকে। মনে রাখবে: ১ মৌলিকও নয়, যৌগিকও নয়।",
+      compareInstruction:"প্রথমে সবচেয়ে বড় স্থানীয় মানটি দেখো।",
+      placeHint:"💡 স্থানীয় মানের ইঙ্গিত",checkBtn:"✓ উত্তর যাচাই",
+      placeLab:"🧮 স্থানীয় মান ল্যাব",
+      largestRuleTitle:"⬆️ বৃহত্তম সংখ্যা খোঁজা",
+      largestRule:"প্রথমে শতক, তারপর দশক, তারপর একক তুলনা করো।",
+      smallestRuleTitle:"⬇️ ক্ষুদ্রতম সংখ্যা খোঁজা",
+      smallestRule:"সবচেয়ে বড় স্থানীয় মানে যেটি ছোট, সেটিকে আগে বিবেচনা করো।",
+      primeQ:"সংখ্যাটি মৌলিক না যৌগিক?",
+      largestQ:"সবচেয়ে বড় সংখ্যাটি ছুঁয়ে দাও।",
+      smallestQ:"সবচেয়ে ছোট সংখ্যাটি ছুঁয়ে দাও।",
+      chooseNumber:"আগে একটি সংখ্যা বেছে নাও।",
+      correct:"দারুণ! সঠিক উত্তর। 🎉",
+      wrongPrime:"আরেকটু ভাবো। সংখ্যাটি হলো ",
+      primeWord:"মৌলিক",
+      compWord:"যৌগিক",
+      oneSpecial:"১ মৌলিকও নয়, যৌগিকও নয়।",
+      factors:"গুণনীয়ক",
+      factorHint:"গুণনীয়কগুলি দেখো। মৌলিক সংখ্যার ঠিক দুটি গুণনীয়ক থাকে।",
+      compareCorrect:"খুব ভালো! সঠিক উত্তর: ",
+      compareWrong:"পরের বার আবার চেষ্টা করো। সঠিক উত্তর: ",
+      compareHintMsg:"প্রথমে সবচেয়ে বড় স্থানীয় মান তুলনা করো।",
+      finished:"অ্যাক্টিভিটি শেষ! মোট স্কোর: ",
+      hundreds:"শতক",tens:"দশক",ones:"একক",
+      digitOptions:["এক অঙ্ক (১–৯)","দুই অঙ্ক (১০–৯৯)","তিন অঙ্ক (১০০–৯৯৯)","১ ও ২ অঙ্ক মিশ্র","১, ২ ও ৩ অঙ্ক মিশ্র"],
+      mixOptions:["মৌলিক + যৌগিক মিশ্র","মৌলিক সংখ্যা বেশি","যৌগিক সংখ্যা বেশি"],
+      taskOptions:["বৃহত্তম সংখ্যা","ক্ষুদ্রতম সংখ্যা","এলোমেলো: বৃহত্তম বা ক্ষুদ্রতম"]
+    }
+  };
+
+  let lang="en", mode="prime";
+  let score=0, streak=0, round=1, total=10;
+  let primeN=17, primeAnswered=false;
+  let compareNums=[], compareSelected=null, compareAnswer=null, compareChecked=false, compareTask="large";
+
+  function bnDigits(v){
+    if(lang!=="bn") return String(v);
+    return String(v).replace(/\d/g,d=>"০১২৩৪৫৬৭৮৯"[d]);
+  }
+  function isPrime(n){
+    if(n<2)return false;
+    if(n===2)return true;
+    if(n%2===0)return false;
+    for(let i=3;i*i<=n;i+=2)if(n%i===0)return false;
+    return true;
+  }
+  function factors(n){
+    let a=[];
+    for(let i=1;i<=Math.sqrt(n);i++){
+      if(n%i===0){a.push(i);if(i!==n/i)a.push(n/i)}
+    }
+    return a.sort((a,b)=>a-b);
+  }
+  function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+  function bounds(value){
+    if(value==="1")return [1,9];
+    if(value==="2")return [10,99];
+    if(value==="3")return [100,999];
+    if(value==="mix12")return [1,99];
+    return [1,999];
+  }
+  function randPrime(min,max){
+    for(let i=0;i<700;i++){let n=rand(min,max);if(isPrime(n))return n}
+    for(let n=min;n<=max;n++)if(isPrime(n))return n;
+    return 2;
+  }
+  function randComposite(min,max){
+    for(let i=0;i<700;i++){let n=rand(min,max);if(n>1&&!isPrime(n))return n}
+    for(let n=min;n<=max;n++)if(n>1&&!isPrime(n))return n;
+    return Math.max(4,min);
+  }
+
+  function updateStats(){
+    $("score").textContent=bnDigits(score);
+    $("round").textContent=bnDigits(round)+"/"+bnDigits(total);
+    $("streak").textContent=bnDigits(streak)+" 🔥";
+  }
+
+  function makePrimeRound(){
+    primeAnswered=false;
+    $("primeAnswer").classList.remove("correct","wrong");
+    $("compAnswer").classList.remove("correct","wrong");
+    $("primeNext").disabled=true;
+    $("factorWrap").innerHTML="";
+    $("primeFeedback").className="feedback neutral";
+    $("primeFeedback").textContent=tr[lang].primeInstruction;
+
+    const [min,max]=bounds($("primeDigits").value);
+    const mix=$("primeMix").value;
+    let primeChance=.5;
+    if(mix==="morePrime")primeChance=.7;
+    if(mix==="moreComposite")primeChance=.3;
+
+    // avoid 1 during ordinary classify rounds because it is neither category
+    if(Math.random()<primeChance) primeN=randPrime(Math.max(2,min),max);
+    else primeN=randComposite(Math.max(2,min),max);
+
+    $("primeNumber").textContent=bnDigits(primeN);
+    $("primeQuestion").textContent=tr[lang].primeQ;
+    updateStats();
+  }
+
+  function answerPrime(choice){
+    if(primeAnswered)return;
+    primeAnswered=true;
+    const correctType=isPrime(primeN)?"prime":"comp";
+    const good=choice===correctType;
+    if(good){score+=10;streak++}else streak=0;
+
+    const btn=choice==="prime"?$("primeAnswer"):$("compAnswer");
+    btn.classList.add(good?"correct":"wrong");
+
+    $("primeFeedback").className="feedback "+(good?"good":"bad");
+    if(good){
+      $("primeFeedback").textContent=tr[lang].correct;
+    }else{
+      $("primeFeedback").textContent=tr[lang].wrongPrime+
+        (correctType==="prime"?tr[lang].primeWord:tr[lang].compWord)+".";
+    }
+    showFactors();
+    $("primeNext").disabled=false;
+    updateStats();
+  }
+
+  function showFactors(){
+    const f=factors(primeN);
+    const box=document.createElement("div");
+    box.className="factorCard";
+    box.innerHTML=`
+      <strong>${bnDigits(primeN)} — ${isPrime(primeN)?tr[lang].primeWord:tr[lang].compWord}</strong>
+      <div class="factorDots">${f.map(()=>'<span class="dot"></span>').join("")}</div>
+      <div class="factorText">${tr[lang].factors}: ${f.map(bnDigits).join(", ")}</div>
+    `;
+    $("factorWrap").innerHTML="";
+    $("factorWrap").appendChild(box);
+    if(!primeAnswered){
+      $("primeFeedback").className="feedback neutral";
+      $("primeFeedback").textContent=tr[lang].factorHint;
+    }
+  }
+
+  function nextPrime(){
+    if(round>=total){
+      $("primeFeedback").className="feedback good";
+      $("primeFeedback").textContent=tr[lang].finished+bnDigits(score)+" ⭐";
+      $("primeNext").disabled=true;
+      return;
+    }
+    round++;makePrimeRound();
+  }
+
+  function uniqueRandoms(min,max,count){
+    const set=new Set();
+    let guard=0;
+    while(set.size<count && guard++<3000)set.add(rand(min,max));
+    if(set.size<count){
+      for(let n=min;n<=max && set.size<count;n++)set.add(n);
+    }
+    return [...set];
+  }
+
+  function makeCompareRound(){
+    compareSelected=null;compareChecked=false;
+    $("compareNext").disabled=true;$("compareCheck").disabled=false;
+    $("compareFeedback").className="feedback neutral";
+    $("compareFeedback").textContent=tr[lang].chooseNumber;
+
+    const count=Math.max(2,Math.min(8,parseInt($("compareCount").value)||4));
+    $("compareCount").value=count;
+    const [min,max]=bounds($("compareDigits").value);
+    compareNums=uniqueRandoms(min,max,count).sort(()=>Math.random()-.5);
+
+    const taskMode=$("compareTask").value;
+    compareTask=taskMode==="random"?(Math.random()<.5?"large":"small"):taskMode;
+    compareAnswer=compareTask==="large"?Math.max(...compareNums):Math.min(...compareNums);
+
+    $("compareQuestion").textContent=compareTask==="large"?tr[lang].largestQ:tr[lang].smallestQ;
+    renderCompareCards();
+    renderPlaceValues(false);
+    updateStats();
+  }
+
+  function renderCompareCards(){
+    const wrap=$("numberCards");wrap.innerHTML="";
+    compareNums.forEach(n=>{
+      const b=document.createElement("button");
+      b.type="button";b.className="numCard";b.dataset.n=n;b.textContent=bnDigits(n);
+      b.addEventListener("click",()=>{
+        if(compareChecked)return;
+        compareSelected=n;
+        [...wrap.children].forEach(c=>c.classList.toggle("selected",Number(c.dataset.n)===n));
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  function renderPlaceValues(showAll=true){
+    const wrap=$("placeGrid");wrap.innerHTML="";
+    if(!showAll)return;
+    compareNums.forEach(n=>{
+      const h=Math.floor(n/100)%10,tens=Math.floor(n/10)%10,o=n%10;
+      const card=document.createElement("div");card.className="placeCard";
+      card.innerHTML=`
+        <h4>${bnDigits(n)}</h4>
+        <div class="bars">
+          <div class="place"><b>${bnDigits(h)}</b><small>${tr[lang].hundreds}</small></div>
+          <div class="place"><b>${bnDigits(tens)}</b><small>${tr[lang].tens}</small></div>
+          <div class="place"><b>${bnDigits(o)}</b><small>${tr[lang].ones}</small></div>
+        </div>`;
+      wrap.appendChild(card);
+    });
+  }
+
+  function compareHint(){
+    renderPlaceValues(true);
+    $("compareFeedback").className="feedback neutral";
+    $("compareFeedback").textContent=tr[lang].compareHintMsg;
+  }
+
+  function checkCompare(){
+    if(compareSelected===null){
+      $("compareFeedback").className="feedback bad";
+      $("compareFeedback").textContent=tr[lang].chooseNumber;
+      return;
+    }
+    compareChecked=true;$("compareCheck").disabled=true;$("compareNext").disabled=false;
+    const good=compareSelected===compareAnswer;
+    if(good){score+=10;streak++}else streak=0;
+
+    [...$("numberCards").children].forEach(c=>{
+      const n=Number(c.dataset.n);
+      if(n===compareAnswer)c.classList.add("correct");
+      if(n===compareSelected && !good)c.classList.add("wrong");
+    });
+    $("compareFeedback").className="feedback "+(good?"good":"bad");
+    $("compareFeedback").textContent=
+      (good?tr[lang].compareCorrect:tr[lang].compareWrong)+bnDigits(compareAnswer)+(good?" 🎉":"");
+    renderPlaceValues(true);
+    updateStats();
+  }
+
+  function nextCompare(){
+    if(round>=total){
+      $("compareFeedback").className="feedback good";
+      $("compareFeedback").textContent=tr[lang].finished+bnDigits(score)+" ⭐";
+      $("compareNext").disabled=true;
+      return;
+    }
+    round++;makeCompareRound();
+  }
+
+  function start(){
+    score=0;streak=0;round=1;
+    if(mode==="prime"){
+      total=Math.max(1,Math.min(30,parseInt($("primeRounds").value)||10));
+      $("primeRounds").value=total;
+      makePrimeRound();
+    }else{
+      total=Math.max(1,Math.min(30,parseInt($("compareRounds").value)||10));
+      $("compareRounds").value=total;
+      makeCompareRound();
+    }
+  }
+
+  function setMode(m){
+    mode=m;
+    document.querySelectorAll(".modeBtn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));
+    $("primeSettings").classList.toggle("active",m==="prime");
+    $("compareSettings").classList.toggle("active",m==="compare");
+    $("primeGame").classList.toggle("hidden",m!=="prime");
+    $("compareGame").classList.toggle("hidden",m!=="compare");
+    start();
+  }
+
+  function applyLanguage(l){
+    lang=l;document.documentElement.lang=l==="bn"?"bn":"en";
+    $("enBtn").classList.toggle("active",l==="en");$("bnBtn").classList.toggle("active",l==="bn");
+    document.querySelectorAll("[data-i]").forEach(el=>{
+      const k=el.dataset.i;if(tr[lang][k])el.textContent=tr[lang][k];
+    });
+
+    [$("primeDigits"),$("compareDigits")].forEach(sel=>{
+      [...sel.options].forEach((o,i)=>o.textContent=tr[lang].digitOptions[i]);
+    });
+    [...$("primeMix").options].forEach((o,i)=>o.textContent=tr[lang].mixOptions[i]);
+    [...$("compareTask").options].forEach((o,i)=>o.textContent=tr[lang].taskOptions[i]);
+
+    if(mode==="prime"){
+      $("primeQuestion").textContent=tr[lang].primeQ;
+      $("primeNumber").textContent=bnDigits(primeN);
+      $("primeFeedback").textContent=tr[lang].primeInstruction;
+      $("factorWrap").innerHTML="";
+    }else{
+      $("compareQuestion").textContent=compareTask==="large"?tr[lang].largestQ:tr[lang].smallestQ;
+      renderCompareCards();
+      renderPlaceValues(false);
+      $("compareFeedback").textContent=tr[lang].chooseNumber;
+    }
+    updateStats();
+  }
+
+  document.querySelectorAll(".modeBtn").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+  $("enBtn").addEventListener("click",()=>applyLanguage("en"));
+  $("bnBtn").addEventListener("click",()=>applyLanguage("bn"));
+  $("startBtn").addEventListener("click",start);
+
+  $("primeAnswer").addEventListener("click",()=>answerPrime("prime"));
+  $("compAnswer").addEventListener("click",()=>answerPrime("comp"));
+  $("primeHint").addEventListener("click",showFactors);
+  $("primeNext").addEventListener("click",nextPrime);
+
+  $("compareHint").addEventListener("click",compareHint);
+  $("compareCheck").addEventListener("click",checkCompare);
+  $("compareNext").addEventListener("click",nextCompare);
+
+  start();
+})();
+</script>
+</body>
+</html>
