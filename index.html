@@ -20,7 +20,7 @@
 <div class="app"><div class="shell">
 <header class="topbar">
   <div class="logo"><div class="logoIcon">🌈</div><div><h1>KidsZone</h1><p>Play • Explore • Learn</p></div></div>
-  <nav class="nav"><button onclick="go('projects')">🎮 Projects</button><button onclick="go('subjects')">📚 Subjects</button><button onclick="about()">⭐ About</button></nav>
+  <nav class="nav"><button onclick="go('projects')">🎮 Projects</button><button onclick="go('subjects')">📚 Subjects</button><button onclick="showLanguage()">📖 Language</button><button onclick="about()">⭐ About</button></nav>
 </header>
 <section class="hero">
   <div class="heroText"><span class="eyebrow">✨ LEARNING CAN FEEL LIKE PLAY</span><h2>Welcome to your<br>Kids Learning Zone!</h2><p>Explore interactive maths, science, language, puzzles and creative activities. Every project is designed for simple hands-on learning.</p><div class="heroBtns"><button class="start" onclick="openProject('dropwatr.html','Drop Water Math Lab')">🧪 Start Math Lab</button><button class="explore" onclick="go('projects')">🚀 Explore Projects</button></div></div>
@@ -31,7 +31,7 @@
   <div class="chips"><button class="chip active" onclick="setFilter('all',this)">All</button><button class="chip" onclick="setFilter('math',this)">🔢 Maths</button><button class="chip" onclick="setFilter('science',this)">🔬 Science</button><button class="chip" onclick="setFilter('language',this)">📚 Language</button><button class="chip" onclick="setFilter('brain',this)">🧠 Brain Games</button></div>
 </section>
 <section class="section" id="projects">
-  <div class="sectionHead"><div><h3>🎮 Interactive Projects</h3><p>Tap a card and start learning.</p></div><span class="count" id="count">6 activities</span></div>
+  <div class="sectionHead"><div><h3>🎮 Interactive Projects</h3><p>Tap a card and start learning.</p></div><span class="count" id="count">9 activities</span></div>
   <div class="grid">
     <article class="card" data-cat="math" data-search="math multiplication division liquid dropper water measuring cylinder"><div class="art math"><span class="badge">Interactive Lab</span>🧪</div><h4>Drop Water Math Lab</h4><p>Learn multiplication and division with a dropper, red liquid, measuring cylinders and equal-volume pots.</p><div class="foot"><span class="age">Math • Hands-on</span><button class="play" onclick="openProject('dropwatr.html','Drop Water Math Lab')">▶ Open</button></div></article>
 
@@ -39,6 +39,35 @@
     
     <article class="card coming" data-cat="science" data-search="plant biology photosynthesis science"><div class="art science"><span class="badge">Coming Soon</span>🌱</div><h4>Plant Science Lab</h4><p>Explore roots, leaves, water transport and photosynthesis through animations.</p><div class="foot"><span class="age">Biology • Visual</span><button class="play" disabled>Soon</button></div></article>
     
+
+    <article class="card"
+      data-cat="language"
+      data-search="english vocabulary phonics word family prefix suffix bengali meaning pronunciation flipbook quiz crossword drag drop">
+      <div class="art language">
+        <span class="badge">847 Words + Games</span>🔤
+      </div>
+      <h4>Dynamic Word Flipbook</h4>
+      <p>Build English words with animated prefix/suffix flips. Learn Bengali meanings, pronunciation and sentences, then practise with quizzes and drag-and-drop crossword games.</p>
+      <div class="foot">
+        <span class="age">English • Vocabulary</span>
+        <button class="play" onclick="openProject('dynamic_word_flipbook_dragdrop_crossword.html','Dynamic Word Flipbook')">▶ Open</button>
+      </div>
+    </article>
+
+    <article class="card"
+      data-cat="language"
+      data-search="bengali bangla sahaj path dwitiyo bhag সহজ পাঠ দ্বিতীয় ভাগ reading rabindranath vocabulary questions activities quiz">
+      <div class="art language">
+        <span class="badge">13 পাঠ + Activities</span>📖
+      </div>
+      <h4>সহজ পাঠ — দ্বিতীয় ভাগ</h4>
+      <p>বড় অক্ষরে পাঠ পড়ো, শুনে অনুশীলন করো, শব্দার্থ শেখো এবং বোঝার প্রশ্ন, সত্য-মিথ্যা, ফাঁকা পূরণ, বাক্য সাজানোসহ নানা activity খেলো।</p>
+      <div class="foot">
+        <span class="age">বাংলা • Reading</span>
+        <button class="play" onclick="openProject('sohoj_path_dwitiyo_bhag_large_text_max_activity_FIXED.html','সহজ পাঠ — দ্বিতীয় ভাগ')">▶ Open</button>
+      </div>
+    </article>
+
     <article class="card coming" data-cat="language" data-search="english phonics reading letters words"><div class="art language"><span class="badge">Coming Soon</span>🔤</div><h4>Phonics Playground</h4><p>Listen, match and build simple words through playful phonics activities.</p><div class="foot"><span class="age">English • Reading</span><button class="play" disabled>Soon</button></div></article>
 
 
@@ -86,8 +115,16 @@ function openProject(file,title){current=file;document.getElementById('viewerTit
 function closeProject(){document.getElementById('viewer').classList.remove('open');document.getElementById('frame').src='';document.body.style.overflow=''}
 async function fullScreen(){try{if(!document.fullscreenElement)await document.getElementById('viewer').requestFullscreen();else await document.exitFullscreen()}catch(e){}}
 function newTab(){if(current)window.open(current,'_blank','noopener')}
+function showLanguage(){
+  filter='language';
+  document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x.textContent.includes('Language')));
+  document.getElementById('search').value='';
+  filterCards();
+  go('projects');
+}
 function about(){alert('KidsZone Learning Portal\n\nA GitHub Pages home for interactive educational HTML projects.\n\nAdd each activity as another .html file and connect it to a project card.')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('viewer').classList.contains('open'))closeProject()});
+filterCards();
 </script>
 </body>
 </html>
