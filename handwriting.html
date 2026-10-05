@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kids Cursive Practice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdfa; /* Light teal background */
+            background-image: radial-gradient(#ccfbf1 1px, transparent 1px);
+            background-size: 20px 20px;
+            overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+        }
+        
+        .canvas-container {
+            /* Mimic a notebook paper stack shadow */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1), 0 20px 0 -10px #fff, 0 20px 20px -10px rgba(0,0,0,0.1);
+        }
+
+        /* Essential for touch drawing */
+        #draw-canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        /* Funny bouncing animation for success text */
+        @keyframes superBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+        .animate-super-bounce {
+            animation: superBounce 0.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl flex flex-col items-center">
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-teal-600 drop-shadow-sm flex items-center justify-center gap-2">
+                <span>✍️</span> Beautiful Handwriting <span>✨</span>
+            </h1>
+            <p class="text-gray-500 font-semibold mt-1">Trace the letters carefully inside the lines!</p>
+        </header>
+
+        <!-- Canvas Area -->
+        <div class="relative w-full aspect-[4/3] max-h-[60vh] bg-white rounded-2xl canvas-container overflow-hidden border-2 border-teal-100" id="canvas-wrapper">
+            <!-- Background for guide lines and target letter -->
+            <canvas id="bg-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+            <!-- Foreground for user drawing -->
+            <canvas id="draw-canvas" class="absolute inset-0 w-full h-full"></canvas>
+            
+            <!-- Dynamic Overlay for Feedback (Emojis, Text) -->
+            <div id="overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-10"></div>
+            
+            <!-- Loading Guard -->
+            <div id="loading-guard" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-20">
+                <div class="animate-spin text-4xl mb-2">✏️</div>
+                <div class="text-lg text-teal-600 font-bold">Getting pencil ready...</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="w-full mt-8 flex flex-wrap justify-center gap-4">
+            <button id="btn-clear" class="px-6 py-3 bg-rose-100 text-rose-600 font-bold rounded-full shadow-sm border-2 border-rose-200 hover:bg-rose-200 active:scale-95 transition-all text-lg flex items-center gap-2">
+                <span>🧹</span> Clear
+            </button>
+            <button id="btn-check" class="px-8 py-3 bg-teal-500 text-white font-extrabold rounded-full shadow-lg hover:bg-teal-400 hover:shadow-xl active:scale-95 transition-all text-xl flex items-center gap-2 border-b-4 border-teal-700">
+                <span>✅</span> Check
+            </button>
+            <button id="btn-next" class="px-6 py-3 bg-amber-100 text-amber-700 font-bold rounded-full shadow-sm border-2 border-amber-200 hover:bg-amber-200 active:scale-95 transition-all text-lg flex items-center gap-2">
+                <span>➡️</span> Next Letter
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Core variables
+        const alphabet = "abcdefghijklmnopqrstuvwxyz";
+        let currentLetter = 'a';
+        
+        // Canvas Elements
+        const wrapper = document.getElementById('canvas-wrapper');
+        const bgCanvas = document.getElementById('bg-canvas');
+        const drawCanvas = document.getElementById('draw-canvas');
+        const overlay = document.getElementById('overlay');
+        const loadingGuard = document.getElementById('loading-guard');
+        
+        // Offscreen canvases for precision pixel-overlap logic
+        const hitCanvas = document.createElement('canvas'); // Fat target area (forgiveness zone)
+        const idealCanvas = document.createElement('canvas'); // Thin target area (to calculate total expected ink)
+        
+        let idealInkPixels = 0;
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        let checkTimeout = null;
+        
+        // Brush Configuration
+        const brushSize = 14; 
+        
+        // Web Audio API Setup
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(freq, type, duration, startTime) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+            
+            // Nice smooth envelope
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        function playSuccessSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            // Magical Arpeggio
+            [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+                playTone(freq, 'sine', 0.8, now + i * 0.08);
+            });
+            // Little sparkly top note
+            playTone(2093.00, 'triangle', 1.0, now + 0.4);
+        }
+
+        function playRetrySound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            
+            // Boing down
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(120, now + 0.4); 
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        function initApp() {
+            window.addEventListener('resize', handleResize);
+            handleResize(); // Initial sizing
+            
+            setupInteraction();
+            setupButtons();
+            
+            pickRandomLetter();
+            loadingGuard.style.opacity = '0';
+            setTimeout(() => loadingGuard.style.display = 'none', 300);
+        }
+
+        function handleResize() {
+            const rect = wrapper.getBoundingClientRect();
+            // Handle High-DPI (Retina) displays
+            const dpr = window.devicePixelRatio || 1;
+
+            [bgCanvas, drawCanvas, hitCanvas, idealCanvas].forEach(canvas => {
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                // Only style the visible ones
+                if (canvas.id) {
+                    canvas.style.width = `${rect.width}px`;
+                    canvas.style.height = `${rect.height}px`;
+                }
+            });
+
+            drawScene();
+        }
+
+        function pickRandomLetter() {
+            currentLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            clearInk();
+            drawScene();
+        }
+
+        function drawScene() {
+            const ctx = bgCanvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Draw notebook guide lines
+            const topY = h * 0.3;
+            const midY = h * 0.55;
+            const baselineY = h * 0.8;
+
+            ctx.lineWidth = 2 * dpr;
+            
+            // Top and Bottom lines (solid pink/blue)
+            ctx.strokeStyle = '#fca5a5'; // Top line pinkish
+            ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(w, topY); ctx.stroke();
+            
+            ctx.strokeStyle = '#93c5fd'; // Bottom line blue
+            ctx.beginPath(); ctx.moveTo(0, baselineY); ctx.lineTo(w, baselineY); ctx.stroke();
+
+            // Middle dashed line
+            ctx.strokeStyle = '#cbd5e1'; 
+            ctx.setLineDash([10 * dpr, 10 * dpr]);
+            ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(w, midY); ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // 2. Setup Font settings for the letter
+            const fontSize = h * 0.65;
+            const fontString = `${fontSize}px "Dancing Script"`;
+            const textX = w / 2;
+            const textY = baselineY; // Align cursive font to the bottom baseline
+
+            // 3. Draw dashed letter for the kid to trace (Visible)
+            ctx.font = fontString;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            ctx.strokeStyle = '#94a3b8'; // Grey outline
+            ctx.lineWidth = 4 * dpr;
+            ctx.setLineDash([8 * dpr, 12 * dpr]); // Dashed effect
+            ctx.lineCap = 'round';
+            ctx.strokeText(currentLetter, textX, textY);
+            ctx.setLineDash([]); // Reset
+
+            // 4. Draw to Offscreen Hit Canvas (Fat tolerance zone for accuracy logic)
+            const hitCtx = hitCanvas.getContext('2d');
+            hitCtx.clearRect(0, 0, w, h);
+            hitCtx.font = fontString;
+            hitCtx.textAlign = 'center';
+            hitCtx.textBaseline = 'alphabetic';
+            hitCtx.lineJoin = 'round';
+            hitCtx.lineCap = 'round';
+            hitCtx.lineWidth = 45 * dpr; // FAT stroke for a generous hit area
+            hitCtx.strokeStyle = '#000';
+            hitCtx.fillStyle = '#000';
+            hitCtx.strokeText(currentLetter, textX, textY);
+            hitCtx.fillText(currentLetter, textX, textY); // Fill to ensure solid center
+
+            // 5. Draw to Offscreen Ideal Canvas (To count exactly how much ink is expected)
+            const idealCtx = idealCanvas.getContext('2d');
+            idealCtx.clearRect(0, 0, w, h);
+            idealCtx.font = fontString;
+            idealCtx.textAlign = 'center';
+            idealCtx.textBaseline = 'alphabetic';
+            idealCtx.lineJoin = 'round';
+            idealCtx.lineCap = 'round';
+            idealCtx.lineWidth = brushSize * dpr; // Match user's brush size
+            idealCtx.strokeStyle = '#000';
+            idealCtx.strokeText(currentLetter, textX, textY);
+            idealCtx.fillText(currentLetter, textX, textY);
+
+            // Pre-calculate target ink amount
+            calculateIdealInk();
+        }
+
+        function setupInteraction() {
+            drawCanvas.addEventListener('pointerdown', startDrawing);
+            drawCanvas.addEventListener('pointermove', draw);
+            drawCanvas.addEventListener('pointerup', stopDrawing);
+            drawCanvas.addEventListener('pointercancel', stopDrawing);
+            drawCanvas.addEventListener('pointerout', stopDrawing);
+        }
+
+        function getPointerPos(e) {
+            const rect = drawCanvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            return {
+                x: (e.clientX - rect.left) * dpr,
+                y: (e.clientY - rect.top) * dpr
+            };
+        }
+
+        function startDrawing(e) {
+            if(e.pointerType === 'mouse' && e.button !== 0) return; // Only left click
+            initAudio(); // Initialize audio context on first user interaction
+            isDrawing = true;
+            drawCanvas.setPointerCapture(e.pointerId); // Keep tracking if finger slides off slightly
+            
+            const pos = getPointerPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            clearTimeout(checkTimeout); // Cancel auto-check
+            
+            // Draw a dot on tap
+            renderInk(lastX, lastY, lastX + 0.1, lastY + 0.1); 
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPointerPos(e);
+            renderInk(lastX, lastY, pos.x, pos.y);
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            drawCanvas.releasePointerCapture(e.pointerId);
+            
+            // Auto check after they stop drawing for a short moment
+            clearTimeout(checkTimeout);
+            checkTimeout = setTimeout(checkAccuracy, 1500);
+        }
+
+        function renderInk(x1, y1, x2, y2) {
+            const ctx = drawCanvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            ctx.strokeStyle = '#ec4899'; // Bright pink marker
+            ctx.lineWidth = brushSize * dpr;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Use shadow for a "glowing marker" effect
+            ctx.shadowColor = 'rgba(236, 72, 153, 0.4)';
+            ctx.shadowBlur = 8 * dpr;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            
+            // Reset shadow to prevent weird overlapping buildup
+            ctx.shadowColor = 'transparent';
+        }
+
+        function clearInk() {
+            const ctx = drawCanvas.getContext('2d');
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        }
+
+        function calculateIdealInk() {
+            const w = idealCanvas.width;
+            const h = idealCanvas.height;
+            const data = idealCanvas.getContext('2d').getImageData(0, 0, w, h).data;
+            
+            idealInkPixels = 0;
+            // Iterate checking Alpha channel
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] > 10) idealInkPixels++;
+            }
+        }
+
+        function checkAccuracy() {
+            const w = drawCanvas.width;
+            const h = drawCanvas.height;
+            
+            const drawCtx = drawCanvas.getContext('2d', { willReadFrequently: true });
+            const hitCtx = hitCanvas.getContext('2d', { willReadFrequently: true });
+            
+            const drawData = drawCtx.getImageData(0, 0, w, h).data;
+            const hitData = hitCtx.getImageData(0, 0, w, h).data;
+            
+            let validDrawnPixels = 0;     // Pixels drawn INSIDE the hit area
+            let outOfBoundsPixels = 0;    // Pixels drawn OUTSIDE the hit area
+            let totalDrawnPixels = 0;
+
+            // Analyze every pixel overlapping
+            for (let i = 3; i < drawData.length; i += 4) {
+                const drawAlpha = drawData[i];
+                if (drawAlpha > 10) { 
+                    totalDrawnPixels++;
+                    const hitAlpha = hitData[i];
+                    if (hitAlpha > 10) {
+                        validDrawnPixels++;
+                    } else {
+                        outOfBoundsPixels++;
+                    }
+                }
+            }
+
+            if (totalDrawnPixels === 0) return; // Nothing drawn yet
+
+            // Logic:
+            // 1. Did they draw enough? (Coverage)
+            const coverage = validDrawnPixels / idealInkPixels;
+            
+            // 2. Did they scribble outside? (Penalty)
+            const penalty = outOfBoundsPixels / totalDrawnPixels;
+
+            // Debug info (Invisible to users, great for developers)
+            console.log(`Letter: ${currentLetter} | Coverage: ${(coverage*100).toFixed(1)}% | Penalty: ${(penalty*100).toFixed(1)}%`);
+
+            // Evaluation Thresholds for Kids
+            // 45% coverage is fair since kid's strokes might not perfectly fill the ideal shape
+            // Max 30% penalty ensures they aren't just scribbling the whole screen
+            if (coverage > 0.45 && penalty < 0.3) {
+                triggerSuccess();
+            } else {
+                triggerRetry();
+            }
+        }
+
+        function triggerSuccess() {
+            clearTimeout(checkTimeout);
+            playSuccessSound();
+            
+            // Display Bouncing Message
+            overlay.innerHTML = `
+                <div class="bg-white/95 px-8 py-6 rounded-3xl shadow-2xl border-4 border-green-400 animate-super-bounce transform transition-all flex flex-col items-center">
+                    <span class="text-6xl mb-2">🏆</span>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-green-500 font-['Dancing_Script'] tracking-wide">
+                        Beautiful!
+                    </h2>
+                </div>
+            `;
+            
+            spawnConfetti();
+
+            setTimeout(() => {
+                overlay.innerHTML = '';
+                pickRandomLetter();
+            }, 3500);
+        }
+
+        function triggerRetry() {
+            clearTimeout(checkTimeout);
+            playRetrySound();
+            
+            overlay.innerHTML = `
+                <div class="bg-white/95 px-8 py-6 rounded-3xl shadow-xl border-4 border-amber-400 animate-pulse flex flex-col items-center">
+                    <span class="text-5xl mb-2">👀</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-amber-500 font-['Dancing_Script'] text-center">
+                        Oops! Try to follow<br>the dots closer!
+                    </h2>
+                </div>
+            `;
+
+            setTimeout(() => {
+                overlay.innerHTML = '';
+                // Gently fade out the bad ink
+                clearInk();
+            }, 2000);
+        }
+
+        function spawnConfetti() {
+            const emojis = ['⭐️', '🎉', '🌟', '✨', '🎈', '💖'];
+            for(let i=0; i<40; i++) {
+                const el = document.createElement('div');
+                el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                el.className = 'absolute text-4xl pointer-events-none drop-shadow-md';
+                // Start center
+                el.style.left = `50%`;
+                el.style.top = `50%`;
+                overlay.appendChild(el);
+                
+                // Explode outwards using Web Animations API
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 300;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 100; // slight upward bias
+                
+                const anim = el.animate([
+                    { transform: `translate(-50%, -50%) scale(0.2) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { 
+                    duration: 1000 + Math.random() * 1000, 
+                    easing: 'cubic-bezier(0.25, 1, 0.5, 1)' // easeOutQuart
+                });
+                
+                anim.onfinish = () => el.remove();
+            }
+        }
+
+        function setupButtons() {
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                clearInk();
+                clearTimeout(checkTimeout);
+            });
+            document.getElementById('btn-check').addEventListener('click', () => {
+                clearTimeout(checkTimeout);
+                checkAccuracy();
+            });
+            document.getElementById('btn-next').addEventListener('click', () => {
+                clearTimeout(checkTimeout);
+                pickRandomLetter();
+            });
+        }
+
+        // Wait for the specific cursive font to load before calculating canvas metrics
+        // If it falls back to a standard sans-serif font, the hit testing will be completely wrong!
+        document.fonts.load('10pt "Dancing Script"').then(() => {
+            initApp();
+        }).catch(err => {
+            console.warn("Font loading issue, initializing anyway", err);
+            initApp();
+        });
+
+    </script>
+</body>
+</html>
