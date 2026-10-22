@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>মজার অঙ্ক ও ছবি গড়ার খেলা | Math Picture Builder</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Hind Siliguri & Fredoka for cute Bengali & English typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Hind+Siliguri:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Hind Siliguri"', '"Fredoka"', 'sans-serif'],
+            display: ['"Fredoka"', '"Hind Siliguri"', 'sans-serif'],
+          },
+          colors: {
+            night: {
+              900: '#0B101E',
+              800: '#131B2E',
+              700: '#1E2942',
+              600: '#2A395A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Hind Siliguri', 'Fredoka', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Blueprint Ghost vs Built SVG Part Transitions */
+    .puzzle-part {
+      transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .part-unbuilt {
+      opacity: 0.14;
+      filter: grayscale(100%) brightness(1.4);
+      stroke-dasharray: 4 4;
+      transform: scale(0.92);
+    }
+    .part-built {
+      opacity: 1;
+      filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.35));
+      stroke-dasharray: none;
+      transform: scale(1);
+    }
+    .part-just-added {
+      animation: popInPart 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .part-just-lost {
+      animation: shakeOutPart 0.55s ease-in-out forwards;
+    }
+
+    @keyframes popInPart {
+      0% { transform: scale(0.2) rotate(-8deg); opacity: 0; filter: brightness(2.2); }
+      60% { transform: scale(1.14) rotate(3deg); opacity: 1; filter: brightness(1.4); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+    }
+
+    @keyframes shakeOutPart {
+      0% { transform: scale(1) translateX(0); opacity: 1; }
+      25% { transform: scale(1.05) translateX(-10px) rotate(-6deg); filter: sepia(1) hue-rotate(-50deg) saturate(3); }
+      50% { transform: scale(0.9) translateX(10px) rotate(6deg); }
+      100% { transform: scale(0.92) translateX(0); opacity: 0.14; filter: grayscale(100%); }
+    }
+
+    /* Teacher Animations */
+    @keyframes floatIdle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes teacherJump {
+      0%, 100% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-18px) scale(1.06, 0.95); }
+      60% { transform: translateY(-6px) scale(0.97, 1.04); }
+    }
+    @keyframes teacherWobble {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-8px) rotate(-5deg); }
+      40% { transform: translateX(8px) rotate(5deg); }
+      60% { transform: translateX(-6px) rotate(-3deg); }
+      80% { transform: translateX(6px) rotate(3deg); }
+    }
+    @keyframes talkMouth {
+      0%, 100% { transform: scaleY(0.35); }
+      50% { transform: scaleY(1.25); }
+    }
+    @keyframes pointerWave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-16deg); }
+    }
+
+    .teacher-idle { animation: floatIdle 3s ease-in-out infinite; }
+    .teacher-happy { animation: teacherJump 0.65s ease-in-out infinite; }
+    .teacher-wrong { animation: teacherWobble 0.55s ease-in-out 2; }
+    .mouth-talking {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: talkMouth 0.22s ease-in-out infinite;
+    }
+    .stick-waving {
+      transform-box: fill-box;
+      transform-origin: bottom left;
+      animation: pointerWave 1.4s ease-in-out infinite;
+    }
+
+    /* Button 3D Press Effect */
+    .btn-3d {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+    }
+    .btn-3d:active {
+      transform: translateY(4px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
+    ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-night-900 text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300 selection:bg-indigo-500 selection:text-white">
+
+  <!-- Confetti Canvas Overlay -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- ================= HEADER / TOP BAR ================= -->
+  <header class="w-full max-w-6xl mx-auto px-3 pt-3 pb-1 flex flex-wrap items-center justify-between gap-2 z-20">
+    <!-- Brand & Title -->
+    <div class="flex items-center gap-2.5 bg-night-800/90 border border-slate-700/80 px-3.5 py-2 rounded-2xl shadow-lg">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-night-900 font-bold text-2xl shadow-inner">
+        🎨
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg md:text-xl font-bold tracking-wide bg-gradient-to-r from-amber-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent leading-tight">
+          মজার অঙ্ক ও ছবি গড়ার খেলা
+        </h1>
+        <p class="text-xs text-slate-400 font-medium" id="subtitle-status">
+          ২ থেকে ১০ ঘরের নামতা • ধাপে ধাপে ছবি আঁকা
+        </p>
+      </div>
+    </div>
+
+    <!-- Top Quick Controls -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- Language Digit Toggle (বাংলা / 123) -->
+      <button id="btn-digit-mode" onclick="toggleDigitMode()" title="সংখ্যা পরিবর্তন (বাংলা / English)"
+        class="btn-3d bg-night-800 hover:bg-night-700 border border-slate-700 text-amber-300 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md">
+        <span>🔢</span>
+        <span id="digit-mode-label">বাংলা + 123</span>
+      </button>
+
+      <!-- Sound / Voice Toggle -->
+      <button id="btn-sound" onclick="toggleSound()" title="শব্দ ও কণ্ঠস্বর (Sound On/Off)"
+        class="btn-3d bg-night-800 hover:bg-night-700 border border-slate-700 text-emerald-300 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md">
+        <span id="sound-icon">🔊</span>
+        <span id="sound-label" class="hidden sm:inline">কণ্ঠ চালু</span>
+      </button>
+
+      <!-- Eye Comfort Theme Toggle -->
+      <button id="btn-theme" onclick="toggleEyeTheme()" title="চোখের আরাম মোড (Eye Comfort Mode)"
+        class="btn-3d bg-night-800 hover:bg-night-700 border border-slate-700 text-cyan-300 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md">
+        <span id="theme-icon">🌙</span>
+        <span class="hidden md:inline" id="theme-label">ডার্ক মোড</span>
+      </button>
+
+      <!-- Settings Modal Button -->
+      <button onclick="openSettingsModal()"
+        class="btn-3d bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 border border-indigo-400/40 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-950/60">
+        <span>⚙️</span>
+        <span>সেটিংস (Settings)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <main class="w-full max-w-6xl mx-auto px-3 py-2 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch z-10">
+
+    <!-- LEFT / TOP PANEL: 10-PART SVG DRAWING CANVAS (7 cols on desktop) -->
+    <section class="lg:col-span-7 bg-night-800/90 border-2 border-slate-700/80 rounded-3xl p-3 sm:p-4 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+      
+      <!-- Canvas Header Bar -->
+      <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-700/70 z-10">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-bold" id="drawing-badge">
+            🚀 ছবি ১/১০: মহাকাশ রকেট (Space Rocket)
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs sm:text-sm font-bold text-emerald-300 bg-emerald-950/70 border border-emerald-600/40 px-2.5 py-1 rounded-lg" id="parts-counter-badge">
+            অংশ: ০ / ১০
+          </span>
+        </div>
+      </div>
+
+      <!-- SVG Stage Container -->
+      <div id="canvas-stage-wrapper" class="relative w-full h-56 sm:h-72 md:h-80 my-2 rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#13203B] to-[#1a2c4e] border border-slate-700/70 flex items-center justify-center overflow-hidden shadow-inner">
+        <!-- Subtle Starry/Grid Backdrop -->
+        <div class="absolute inset-0 opacity-20 pointer-events-none"
+             style="background-image: radial-gradient(#94a3b8 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <!-- Dynamic SVG Injection Target -->
+        <div id="svg-drawing-container" class="w-full h-full flex items-center justify-center p-2">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Floating Part Popup Badge -->
+        <div id="part-popup-toast" class="pointer-events-none opacity-0 transition-all duration-300 transform translate-y-4 absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm shadow-lg">
+          +১ অংশ যুক্ত হয়েছে!
+        </div>
+      </div>
+
+      <!-- 10-Step Visual Progress Bar & Part Name -->
+      <div class="space-y-1.5 z-10">
+        <div class="flex items-center justify-between text-xs text-slate-300 font-medium px-1">
+          <span id="current-part-hint">পরবর্তী অংশ: লঞ্চপ্যাড (Launchpad)</span>
+          <span id="table-progress-label" class="text-cyan-300 font-bold">২-এর ঘরের নামতা (১/১০)</span>
+        </div>
+        <!-- 10 Segmented Blocks -->
+        <div id="step-segments-bar" class="grid grid-cols-10 gap-1.5 pt-0.5">
+          <!-- 10 segments injected by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT / BOTTOM PANEL: MATH MCQ ENGINE + CUTE TEACHER (5 cols on desktop) -->
+    <section class="lg:col-span-5 flex flex-col justify-between gap-3">
+
+      <!-- MATH QUESTION & 4 MCQ CARD -->
+      <div class="bg-night-800/90 border-2 border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col justify-between gap-4 relative">
+        
+        <!-- Table Header & Replay Voice Button -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 text-xs sm:text-sm font-bold" id="active-table-pill">
+              নামতা: ২-এর ঘর (Table of 2)
+            </span>
+            <span class="text-xs text-slate-400 font-semibold" id="streak-counter">🔥 স্ট্রিক: ০</span>
+          </div>
+
+          <button onclick="speakCurrentProblem()" title="প্রশ্নটি আবার শোনো (Replay Voice)"
+            class="btn-3d bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow">
+            <span>🗣️</span>
+            <span>আবার শোনো</span>
+          </button>
+        </div>
+
+        <!-- Giant Math Equation Display -->
+        <div id="question-box" class="bg-night-900/90 border-2 border-slate-700 rounded-2xl py-4 px-3 text-center shadow-inner relative overflow-hidden">
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1" id="question-Bengali-phonetic">
+            দুই গুণ এক সমান কত?
+          </div>
+          <div id="equation-text" class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-amber-300 tracking-wider font-display">
+            ২ × ১ = <span class="text-cyan-400 animate-pulse">?</span>
+          </div>
+          <div id="equation-subtext" class="text-xs text-slate-400 mt-1 font-sans">
+            (2 × 1 = ?)
+          </div>
+        </div>
+
+        <!-- 4 Bouncy MCQ Buttons Grid -->
+        <div id="mcq-buttons-grid" class="grid grid-cols-2 gap-3">
+          <!-- 4 buttons injected by JS -->
+        </div>
+      </div>
+
+      <!-- CUTE ANIMATED TEACHER CORNER CARD -->
+      <div class="bg-night-800/95 border-2 border-slate-700/80 rounded-3xl p-3 sm:p-4 shadow-2xl flex items-center gap-3 relative overflow-hidden">
+        
+        <!-- Teacher Speech Bubble (Left Side) -->
+        <div class="flex-1 bg-night-900/95 border-2 border-indigo-500/40 rounded-2xl p-3 relative shadow-inner min-h-[92px] flex flex-col justify-center">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1">
+              <span>👩‍🏫</span> মিস মিষ্টি (Miss Mishti)
+            </span>
+            <button onclick="speakCurrentProblem()" class="text-[11px] text-cyan-300 hover:underline font-semibold">
+              🔊 বলো
+            </button>
+          </div>
+          <p id="teacher-speech-text" class="text-sm sm:text-base font-bold text-slate-100 leading-snug">
+            চলো সোনামণিরা! ২ গুণ ১ সমান কত হয় বলো তো? সঠিক উত্তর দিলে রকেটের ১টি অংশ তৈরি হবে!
+          </p>
+          <!-- Speech Bubble Pointer Arrow pointing right to Teacher -->
+          <div class="hidden sm:block absolute top-1/2 -right-2.5 -translate-y-1/2 w-4 h-4 bg-night-900 border-t-2 border-r-2 border-indigo-500/40 transform rotate-45"></div>
+        </div>
+
+        <!-- Animated SVG Teacher Character (Right Corner) -->
+        <div id="teacher-avatar-wrapper" class="w-28 h-28 sm:w-32 sm:h-32 flex-shrink-0 flex items-center justify-center relative cursor-pointer" onclick="teacherTapped()" title="মিস মিষ্টিকে ট্যাপ করো!">
+          <svg id="teacher-svg" viewBox="0 0 140 140" class="w-full h-full teacher-idle overflow-visible">
+            <!-- Soft Aura Circle -->
+            <circle cx="70" cy="76" r="52" fill="#312e81" opacity="0.45" />
+            
+            <!-- Back Hair Bun & Hair -->
+            <circle cx="70" cy="24" r="16" fill="#271c19" />
+            <path d="M 38 65 C 34 35, 106 35, 102 65 C 106 85, 98 98, 92 100 L 48 100 C 42 98, 34 85, 38 65 Z" fill="#3b2824" />
+            
+            <!-- Cute Hair Flower Clip -->
+            <circle cx="94" cy="36" r="6" fill="#f472b6" />
+            <circle cx="94" cy="36" r="2.5" fill="#fde047" />
+
+            <!-- Teacher Body / Sari & Blouse -->
+            <path d="M 42 135 L 50 98 L 90 98 L 98 135 Z" fill="#ec4899" />
+            <path d="M 48 98 L 70 135 L 92 98 Z" fill="#f43f5e" />
+            <!-- Sari Pallu Drape -->
+            <path d="M 46 100 L 85 135 L 98 135 L 90 98 Z" fill="#38bdf8" opacity="0.9" />
+            <path d="M 46 100 L 85 135" stroke="#fde047" stroke-width="3" />
+
+            <!-- Neck -->
+            <rect x="63" y="86" width="14" height="15" rx="6" fill="#FDBA74" />
+
+            <!-- Face Head -->
+            <ellipse cx="70" cy="64" rx="26" ry="25" fill="#FED7AA" />
+
+            <!-- Front Hair Bangs -->
+            <path d="M 44 58 C 48 38, 68 38, 70 48 C 75 36, 92 40, 96 58 C 90 46, 78 44, 70 50 C 60 44, 50 48, 44 58 Z" fill="#271c19" />
+
+            <!-- Rosy Cheeks -->
+            <ellipse cx="52" cy="70" rx="5" ry="3" fill="#fb7185" opacity="0.55" />
+            <ellipse cx="88" cy="70" rx="5" ry="3" fill="#fb7185" opacity="0.55" />
+
+            <!-- Red Bindi -->
+            <circle cx="70" cy="52" r="2.3" fill="#e11d48" />
+
+            <!-- DYNAMIC EYES GROUP -->
+            <g id="teacher-eyes-normal">
+              <ellipse cx="58" cy="62" rx="4" ry="5" fill="#1e293b" />
+              <ellipse cx="82" cy="62" rx="4" ry="5" fill="#1e293b" />
+              <circle cx="56.5" cy="60" r="1.5" fill="#ffffff" />
+              <circle cx="80.5" cy="60" r="1.5" fill="#ffffff" />
+              <!-- Eyebrows -->
+              <path d="M 52 53 Q 58 50 64 53" stroke="#271c19" stroke-width="2" fill="none" stroke-linecap="round" />
+              <path d="M 76 53 Q 82 50 88 53" stroke="#271c19" stroke-width="2" fill="none" stroke-linecap="round" />
+            </g>
+
+            <!-- Happy Star Eyes (Hidden by default) -->
+            <g id="teacher-eyes-happy" class="hidden">
+              <path d="M 52 62 Q 58 54 64 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round" />
+              <path d="M 76 62 Q 82 54 88 62" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round" />
+              <!-- Sparkle Stars -->
+              <polygon points="44,48 46,53 51,55 46,57 44,62 42,57 37,55 42,53" fill="#fde047" />
+              <polygon points="98,48 100,53 105,55 100,57 98,62 96,57 91,55 96,53" fill="#fde047" />
+            </g>
+
+            <!-- Shocked / Wrong Dizzy Eyes & Sweat Drop (Hidden by default) -->
+            <g id="teacher-eyes-wrong" class="hidden">
+              <line x1="53" y1="57" x2="63" y2="67" stroke="#e11d48" stroke-width="2.8" stroke-linecap="round" />
+              <line x1="63" y1="57" x2="53" y2="67" stroke="#e11d48" stroke-width="2.8" stroke-linecap="round" />
+              <line x1="77" y1="57" x2="87" y2="67" stroke="#e11d48" stroke-width="2.8" stroke-linecap="round" />
+              <line x1="87" y1="57" x2="77" y2="67" stroke="#e11d48" stroke-width="2.8" stroke-linecap="round" />
+              <!-- Big Sweat Drop -->
+              <path d="M 99 46 C 99 46, 105 56, 105 60 C 105 64, 102 66, 99 66 C 96 66, 93 64, 93 60 C 93 56, 99 46, 99 46 Z" fill="#38bdf8" />
+            </g>
+
+            <!-- Cute Round Eyeglasses -->
+            <g id="teacher-glasses">
+              <circle cx="58" cy="62" r="9.5" stroke="#f59e0b" stroke-width="2.2" fill="rgba(255,255,255,0.12)" />
+              <circle cx="82" cy="62" r="9.5" stroke="#f59e0b" stroke-width="2.2" fill="rgba(255,255,255,0.12)" />
+              <line x1="67.5" y1="62" x2="72.5" y2="62" stroke="#f59e0b" stroke-width="2.2" />
+            </g>
+
+            <!-- Cool Victory Sunglasses (Hidden by default) -->
+            <g id="teacher-sunglasses" class="hidden">
+              <rect x="46" y="55" width="22" height="14" rx="3" fill="#0f172a" stroke="#fde047" stroke-width="2" />
+              <rect x="72" y="55" width="22" height="14" rx="3" fill="#0f172a" stroke="#fde047" stroke-width="2" />
+              <line x1="68" y1="60" x2="72" y2="60" stroke="#fde047" stroke-width="2.5" />
+              <line x1="49" y1="58" x2="55" y2="66" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+              <line x1="75" y1="58" x2="81" y2="66" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+            </g>
+
+            <!-- DYNAMIC MOUTH GROUP -->
+            <g id="teacher-mouth-group">
+              <!-- Default Smile / Talking Mouth -->
+              <path id="teacher-mouth-smile" d="M 62 76 Q 70 84 78 76 Z" fill="#e11d48" />
+              <!-- Surprised O Mouth for wrong answer -->
+              <circle id="teacher-mouth-oh" cx="70" cy="78" r="5" fill="#9f1239" class="hidden" />
+            </g>
+
+            <!-- Teacher Hand & Pointer Stick -->
+            <g id="teacher-pointer" class="stick-waving">
+              <line x1="96" y1="110" x2="128" y2="68" stroke="#fde047" stroke-width="3.5" stroke-linecap="round" />
+              <circle cx="128" cy="68" r="3.5" fill="#f43f5e" />
+              <circle cx="96" cy="110" r="6" fill="#FED7AA" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ================= BOTTOM QUICK TABLE & DRAWING BAR ================= -->
+  <footer class="w-full max-w-6xl mx-auto px-3 pb-3 pt-1 z-10">
+    <div class="bg-night-800/80 border border-slate-700/70 rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- Quick Table Buttons 2 to 10 -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-xs font-bold text-slate-400 mr-1">নামতা (Table):</span>
+        <div id="quick-table-pills" class="flex items-center gap-1 flex-wrap">
+          <!-- Buttons 2 to 10 injected by JS -->
+        </div>
+      </div>
+
+      <!-- Quick Reset / Skip Controls -->
+      <div class="flex items-center gap-2">
+        <button onclick="resetCurrentDrawing()" class="text-xs bg-slate-700/70 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-xl font-semibold transition">
+          🔄 প্রথম থেকে (Reset)
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= SETTINGS MODAL ================= -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 hidden items-center justify-center p-4">
+    <div class="bg-night-800 border-2 border-indigo-500/50 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 animate-fadeIn">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h2 class="text-xl font-bold text-amber-300 flex items-center gap-2">
+          <span>⚙️</span> খেলার সেটিংস (Game Settings)
+        </h2>
+        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-slate-700 hover:bg-rose-600 text-white font-bold flex items-center justify-center">
+          ✕
+        </button>
+      </div>
+
+      <!-- 1. Select Multiplication Table (2 to 10) -->
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-cyan-300">
+          ১. কোন ঘরের নামতা শিখতে চাও? (Select Multiplication Table 2–10):
+        </label>
+        <div id="modal-table-grid" class="grid grid-cols-5 gap-2">
+          <!-- Injected by JS -->
+        </div>
+        <label class="flex items-center gap-2 text-xs text-slate-300 pt-1 cursor-pointer">
+          <input type="checkbox" id="chk-auto-next-table" checked onchange="toggleAutoAdvanceTable(this.checked)" class="rounded text-indigo-500 focus:ring-0 w-4 h-4" />
+          <span>১০টি ধাপ শেষ হলে স্বয়ংক্রিয়ভাবে পরের ঘরের নামতায় যাবে (Auto-progress 2 → 10)</span>
+        </label>
+      </div>
+
+      <!-- 2. Select Drawing Puzzle (1 to 10) -->
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-pink-300">
+          ২. কোন ছবিটি আঁকতে চাও? (Choose 10-Part Drawing):
+        </label>
+        <div id="modal-drawing-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700">
+        <button onclick="closeSettingsModal()"
+          class="btn-3d bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg">
+          ✅ খেলা শুরু করো (Save & Play)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VICTORY CELEBRATION MODAL ================= -->
+  <div id="victory-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden items-center justify-center p-4">
+    <div class="bg-night-800 border-2 border-amber-400 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl space-y-4">
+      <div class="text-5xl animate-bounce">🏆🎉</div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-amber-300" id="victory-title">
+        অভিনন্দন! ছবি সম্পূর্ণ হয়েছে!
+      </h2>
+      <p class="text-sm sm:text-base text-slate-200 font-medium" id="victory-subtitle">
+        তুমি ২-এর ঘরের নামতা সম্পূর্ণ করে মহাকাশ রকেট তৈরি করে ফেলেছ!
+      </p>
+      <!-- Mini Preview Box -->
+      <div id="victory-svg-preview" class="w-48 h-40 mx-auto rounded-2xl bg-night-900 border border-slate-700 p-2 flex items-center justify-center"></div>
+      
+      <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+        <button onclick="replaySameTable()"
+          class="btn-3d bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm">
+          🔁 আবার এই নামতা খেলো
+        </button>
+        <button onclick="proceedToNextTable()"
+          class="btn-3d bg-gradient-to-r from-amber-400 to-orange-500 text-night-900 font-extrabold px-5 py-2.5 rounded-xl text-sm shadow-lg">
+          🚀 পরের নামতা ও নতুন ছবি ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
+  <script>
+    /**************************************************************
+     * 1. BENGALI LANGUAGE, DIGITS & VOICE DATA
+     **************************************************************/
+    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+
+    function toBengaliNumber(n) {
+      return String(n).split('').map(ch => (ch >= '0' && ch <= '9') ? bnDigits[Number(ch)] : ch).join('');
+    }
+
+    function formatDisplayNumber(n) {
+      if (state.digitMode === 'bn') return toBengaliNumber(n);
+      if (state.digitMode === 'en') return String(n);
+      return `${toBengaliNumber(n)} (${n})`;
+    }
+
+    // Natural Bengali Number Words (1 to 100) for clear speech & phonetic display
+    const bnNumberWords = {
+      0: 'শূন্য', 1: 'এক', 2: 'দুই', 3: 'তিন', 4: 'চার', 5: 'পাঁচ',
+      6: 'ছয়', 7: 'সাত', 8: 'আট', 9: 'নয়', 10: 'দশ',
+      11: 'এগারো', 12: 'বারো', 13: 'তেরো', 14: 'চৌদ্দ', 15: 'পনেরো',
+      16: 'ষোলো', 17: 'সতেরো', 18: 'আঠারো', 19: 'উনিশ', 20: 'বিশ',
+      21: 'একুশ', 22: 'বাইশ', 23: 'তেইশ', 24: 'চব্বিশ', 25: 'পঁচিশ',
+      26: 'ছাব্বিশ', 27: 'সাতাশ', 28: 'আটাশ', 29: 'ঊনত্রিশ', 30: 'ত্রিশ',
+      32: 'বত্রিশ', 35: 'পঁয়ত্রিশ', 36: 'ছত্রিশ', 40: 'চল্লিশ',
+      42: 'বিয়াল্লিশ', 45: 'পঁয়তাল্লিশ', 48: 'আটচল্লিশ', 49: 'ঊনপঞ্চাশ', 50: 'পঞ্চাশ',
+      54: 'চুয়ান্ন', 56: 'ছাপ্পান্ন', 60: 'ষাট', 63: 'তেষট্টি', 64: 'চৌষট্টি',
+      70: 'সত্তর', 72: 'বাহাত্তর', 80: 'আশি', 81: 'একাশি', 90: 'নব্বই', 100: 'একশো'
+    };
+
+    function getBnWord(n) {
+      return bnNumberWords[n] || toBengaliNumber(n);
+    }
+
+    const praisePhrasesBn = [
+      "শাবাশ! একদম সঠিক উত্তর! ছবির একটা নতুন অংশ যুক্ত হলো!",
+      "দারুণ করেছ! তুমি তো অঙ্কের জাদুকর! ছবিটা আরও সুন্দর হচ্ছে!",
+      "ফাটাফাটি! একদম ঠিক বলেছ! চলো পরের ধাপে যাই!",
+      "বাহ! চমৎকার বুদ্ধি! ছবির আরেকটি অংশ তৈরি হয়ে গেল!",
+      "অসাধারণ! সঠিক উত্তর দিয়েছ সোনামণি!"
+    ];
+
+    const wrongPhrasesBn = [
+      "হায় হায়! একটু ভুল হলো, ছবির একটা অংশ খুলে গেল! আবার চেষ্টা করো!",
+      "ওহো! উত্তরটা ঠিক হয়নি! মন দিয়ে ভাবো, তুমি নিশ্চয়ই পারবে!",
+      "ইশ! একটা অংশ কমে গেল! কিছু মনে কোরো না, আবার চেষ্টা করো!",
+      "উঁহু! ভুল উত্তর! নামতাটা মনে করো তো সোনামণি!"
+    ];
+
+    /**************************************************************
+     * 2. TEN DETAILED 10-PART SVG DRAWINGS CATALOG
+     **************************************************************/
+    const drawingsCatalog = [
+      {
+        id: 0,
+        icon: "🚀",
+        nameBn: "মহাকাশ রকেট",
+        nameEn: "Space Rocket",
+        partsBn: [
+          "১. লঞ্চপ্যাড বেস", "২. রকেটের মূল বডি", "৩. লাল নোজ কোন", "৪. বাম ডানা (Fin)",
+          "৫. ডান ডানা (Fin)", "৬. কাঁচের জানালা", "৭. খুদে নভোচারী", "৮. বুস্টার ইঞ্জিন",
+          "৯. আগুনের শিখা", "১০. তারা ও শনি গ্রহ"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Launchpad Base -->
+            <g id="part-1" class="puzzle-part">
+              <rect x="70" y="192" width="180" height="14" rx="5" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+              <line x1="90" y1="192" x2="105" y2="175" stroke="#64748b" stroke-width="4"/>
+              <line x1="230" y1="192" x2="215" y2="175" stroke="#64748b" stroke-width="4"/>
+            </g>
+            <!-- Part 2: Main Fuselage -->
+            <g id="part-2" class="puzzle-part">
+              <rect x="130" y="65" width="60" height="95" rx="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+              <line x1="160" y1="65" x2="160" y2="160" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="4 4"/>
+            </g>
+            <!-- Part 3: Red Nose Cone -->
+            <g id="part-3" class="puzzle-part">
+              <path d="M 132 72 Q 160 15 188 72 Z" fill="#ef4444" stroke="#fca5a5" stroke-width="2"/>
+              <line x1="160" y1="26" x2="160" y2="12" stroke="#fde047" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="160" cy="10" r="3.5" fill="#f43f5e"/>
+            </g>
+            <!-- Part 4: Left Fin -->
+            <g id="part-4" class="puzzle-part">
+              <path d="M 130 120 L 98 158 L 130 156 Z" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+            </g>
+            <!-- Part 5: Right Fin -->
+            <g id="part-5" class="puzzle-part">
+              <path d="M 190 120 L 222 158 L 190 156 Z" fill="#3b82f6" stroke="#93c5fd" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Porthole Frame & Glass -->
+            <g id="part-6" class="puzzle-part">
+              <circle cx="160" cy="102" r="20" fill="#0ea5e9" stroke="#f59e0b" stroke-width="5"/>
+              <circle cx="160" cy="102" r="15" fill="#38bdf8"/>
+            </g>
+            <!-- Part 7: Cute Astronaut Inside -->
+            <g id="part-7" class="puzzle-part">
+              <circle cx="160" cy="104" r="9" fill="#fed7aa"/>
+              <circle cx="157" cy="102" r="1.5" fill="#0f172a"/>
+              <circle cx="163" cy="102" r="1.5" fill="#0f172a"/>
+              <path d="M 156 106 Q 160 110 164 106" stroke="#0f172a" stroke-width="1.5" fill="none"/>
+            </g>
+            <!-- Part 8: Booster Nozzle -->
+            <g id="part-8" class="puzzle-part">
+              <polygon points="142,160 178,160 185,174 135,174" fill="#334155" stroke="#94a3b8" stroke-width="2"/>
+            </g>
+            <!-- Part 9: Roaring Thruster Flame -->
+            <g id="part-9" class="puzzle-part">
+              <path d="M 140 174 Q 160 215 180 174 Z" fill="#f97316"/>
+              <path d="M 147 174 Q 160 202 173 174 Z" fill="#fde047"/>
+            </g>
+            <!-- Part 10: Space Stars & Ringed Planet -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="52" cy="52" r="16" fill="#a855f7"/>
+              <ellipse cx="52" cy="52" rx="28" ry="6" fill="none" stroke="#fde047" stroke-width="3" transform="rotate(-18 52 52)"/>
+              <circle cx="265" cy="45" r="12" fill="#fde047"/>
+              <circle cx="245" cy="95" r="3" fill="#ffffff"/>
+              <circle cx="65" cy="115" r="3.5" fill="#38bdf8"/>
+              <circle cx="275" cy="135" r="2.5" fill="#f472b6"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 1,
+        icon: "🏡",
+        nameBn: "সুন্দর বাড়ি",
+        nameEn: "Cozy House",
+        partsBn: [
+          "১. সবুজ মাঠ", "২. বাড়ির দেয়াল", "৩. লাল টালির ছাদ", "৪. কাঠের দরজা",
+          "৫. বাম জানালা", "৬. ডান জানালা", "৭. ইটের চিমনি", "৮. চিমনির ধোঁয়া",
+          "৯. বাগানের বেড়া", "১০. হাসিমুখের সূর্য ও মেঘ"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Green Meadow Hill -->
+            <g id="part-1" class="puzzle-part">
+              <path d="M 10 195 Q 160 170 310 195 L 310 215 L 10 215 Z" fill="#22c55e" stroke="#4ade80" stroke-width="2"/>
+            </g>
+            <!-- Part 2: Main House Walls -->
+            <g id="part-2" class="puzzle-part">
+              <rect x="95" y="95" width="130" height="92" rx="4" fill="#fef08a" stroke="#f59e0b" stroke-width="3"/>
+            </g>
+            <!-- Part 3: Shingled Roof -->
+            <g id="part-3" class="puzzle-part">
+              <polygon points="80,98 160,38 240,98" fill="#ef4444" stroke="#b91c1c" stroke-width="3"/>
+            </g>
+            <!-- Part 4: Wooden Door & Knob -->
+            <g id="part-4" class="puzzle-part">
+              <rect x="145" y="135" width="30" height="52" rx="4" fill="#92400e" stroke="#fde047" stroke-width="2"/>
+              <circle cx="168" cy="162" r="3" fill="#fde047"/>
+            </g>
+            <!-- Part 5: Left Window -->
+            <g id="part-5" class="puzzle-part">
+              <rect x="108" y="112" width="26" height="26" rx="3" fill="#38bdf8" stroke="#0284c7" stroke-width="2.5"/>
+              <line x1="121" y1="112" x2="121" y2="138" stroke="#ffffff" stroke-width="2"/>
+              <line x1="108" y1="125" x2="134" y2="125" stroke="#ffffff" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Right Window -->
+            <g id="part-6" class="puzzle-part">
+              <rect x="186" y="112" width="26" height="26" rx="3" fill="#38bdf8" stroke="#0284c7" stroke-width="2.5"/>
+              <line x1="199" y1="112" x2="199" y2="138" stroke="#ffffff" stroke-width="2"/>
+              <line x1="186" y1="125" x2="212" y2="125" stroke="#ffffff" stroke-width="2"/>
+            </g>
+            <!-- Part 7: Brick Chimney -->
+            <g id="part-7" class="puzzle-part">
+              <rect x="195" y="46" width="20" height="36" fill="#b91c1c" stroke="#fca5a5" stroke-width="2"/>
+            </g>
+            <!-- Part 8: Smoke Puffs -->
+            <g id="part-8" class="puzzle-part">
+              <circle cx="205" cy="34" r="7" fill="#e2e8f0" opacity="0.85"/>
+              <circle cx="216" cy="23" r="9" fill="#f1f5f9" opacity="0.9"/>
+              <circle cx="230" cy="14" r="6" fill="#f8fafc" opacity="0.7"/>
+            </g>
+            <!-- Part 9: Picket Fence & Flowers -->
+            <g id="part-9" class="puzzle-part">
+              <rect x="35" y="162" width="52" height="25" fill="none" stroke="#f8fafc" stroke-width="4" stroke-dasharray="8 6"/>
+              <rect x="233" y="162" width="52" height="25" fill="none" stroke="#f8fafc" stroke-width="4" stroke-dasharray="8 6"/>
+              <circle cx="55" cy="182" r="5" fill="#f43f5e"/>
+              <circle cx="260" cy="182" r="5" fill="#a855f7"/>
+            </g>
+            <!-- Part 10: Smiling Sun & Cloud -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="52" cy="44" r="18" fill="#fde047" stroke="#f59e0b" stroke-width="3"/>
+              <circle cx="46" cy="41" r="2" fill="#92400e"/>
+              <circle cx="58" cy="41" r="2" fill="#92400e"/>
+              <path d="M 46 47 Q 52 53 58 47" stroke="#92400e" stroke-width="2" fill="none"/>
+              <ellipse cx="270" cy="48" rx="22" ry="11" fill="#f8fafc"/>
+              <circle cx="260" cy="42" r="10" fill="#f8fafc"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 2,
+        icon: "🤖",
+        nameBn: "বুদ্ধিমান রোবট",
+        nameEn: "Friendly Robot",
+        partsBn: [
+          "১. রোবটের বডি", "২. মাথার ডোম", "৩. উজ্জ্বল চোখ", "৪. হাসিমুখ ডিসপ্লে",
+          "৫. এন্টেনা রাডার", "৬. বুকের কন্ট্রোল প্যানেল", "৭. বাম যান্ত্রিক হাত", "৮. ডান যান্ত্রিক হাত",
+          "৯. বাম পা", "১০. ডান পা ও এনার্জি"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Metal Torso -->
+            <g id="part-1" class="puzzle-part">
+              <rect x="110" y="85" width="100" height="75" rx="14" fill="#3b82f6" stroke="#93c5fd" stroke-width="3"/>
+            </g>
+            <!-- Part 2: Head Box -->
+            <g id="part-2" class="puzzle-part">
+              <rect x="122" y="36" width="76" height="44" rx="12" fill="#64748b" stroke="#e2e8f0" stroke-width="3"/>
+            </g>
+            <!-- Part 3: Glowing Cyan Eyes -->
+            <g id="part-3" class="puzzle-part">
+              <circle cx="144" cy="54" r="8" fill="#fde047" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="176" cy="54" r="8" fill="#fde047" stroke="#0f172a" stroke-width="2"/>
+              <circle cx="144" cy="54" r="3" fill="#0f172a"/>
+              <circle cx="176" cy="54" r="3" fill="#0f172a"/>
+            </g>
+            <!-- Part 4: LED Smile Mouth -->
+            <g id="part-4" class="puzzle-part">
+              <rect x="138" y="67" width="44" height="8" rx="4" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"/>
+            </g>
+            <!-- Part 5: Radar Antenna -->
+            <g id="part-5" class="puzzle-part">
+              <line x1="160" y1="36" x2="160" y2="16" stroke="#cbd5e1" stroke-width="4"/>
+              <circle cx="160" cy="14" r="7" fill="#ef4444" stroke="#fca5a5" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Chest Control Panel -->
+            <g id="part-6" class="puzzle-part">
+              <rect x="126" y="100" width="68" height="42" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+              <circle cx="140" cy="114" r="5" fill="#ef4444"/>
+              <circle cx="158" cy="114" r="5" fill="#fde047"/>
+              <circle cx="176" cy="114" r="5" fill="#22c55e"/>
+              <polyline points="134,132 146,125 156,135 170,124 184,132" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+            </g>
+            <!-- Part 7: Left Claw Arm -->
+            <g id="part-7" class="puzzle-part">
+              <rect x="72" y="96" width="38" height="14" rx="6" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+              <path d="M 72 93 C 58 93, 58 113, 72 113" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <!-- Part 8: Right Claw Arm -->
+            <g id="part-8" class="puzzle-part">
+              <rect x="210" y="96" width="38" height="14" rx="6" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+              <path d="M 248 93 C 262 93, 262 113, 248 113" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <!-- Part 9: Left Leg Tread -->
+            <g id="part-9" class="puzzle-part">
+              <rect x="124" y="160" width="22" height="32" rx="4" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+              <rect x="116" y="188" width="34" height="12" rx="5" fill="#f59e0b"/>
+            </g>
+            <!-- Part 10: Right Leg Tread & Sparks -->
+            <g id="part-10" class="puzzle-part">
+              <rect x="174" y="160" width="22" height="32" rx="4" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+              <rect x="170" y="188" width="34" height="12" rx="5" fill="#f59e0b"/>
+              <polygon points="48,50 58,50 52,64 62,64 46,82 50,66 42,66" fill="#fde047"/>
+              <polygon points="272,50 282,50 276,64 286,64 270,82 274,66 266,66" fill="#fde047"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 3,
+        icon: "🏎️",
+        nameBn: "রেসিং কার",
+        nameEn: "Super Race Car",
+        partsBn: [
+          "১. পিচের রাস্তা", "২. গাড়ির মূল বডি", "৩. ছাদ ও কেবিন", "৪. সামনের কাঁচ",
+          "৫. পেছনের কাঁচ", "৬. পেছনের চাকা", "৭. সামনের চাকা", "৮. গোল্ডেন রিম",
+          "৯. স্পয়লার ও হেডলাইট", "১০. গতির আগুন ও স্ট্রাইপ"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Road & Dashed Line -->
+            <g id="part-1" class="puzzle-part">
+              <rect x="10" y="168" width="300" height="32" rx="6" fill="#334155"/>
+              <line x1="25" y1="184" x2="295" y2="184" stroke="#fde047" stroke-width="4" stroke-dasharray="18 14"/>
+            </g>
+            <!-- Part 2: Lower Chassis -->
+            <g id="part-2" class="puzzle-part">
+              <path d="M 55 125 L 265 125 Q 282 135 278 155 L 48 155 Q 42 140 55 125 Z" fill="#ef4444" stroke="#fca5a5" stroke-width="2.5"/>
+            </g>
+            <!-- Part 3: Sleek Cabin Roof -->
+            <g id="part-3" class="puzzle-part">
+              <path d="M 95 125 L 125 86 L 205 86 L 238 125 Z" fill="#dc2626" stroke="#fca5a5" stroke-width="2"/>
+            </g>
+            <!-- Part 4: Front Windshield -->
+            <g id="part-4" class="puzzle-part">
+              <polygon points="168,92 200,92 228,122 168,122" fill="#38bdf8" stroke="#bae6fd" stroke-width="2"/>
+            </g>
+            <!-- Part 5: Rear Window -->
+            <g id="part-5" class="puzzle-part">
+              <polygon points="128,92 160,92 160,122 105,122" fill="#0284c7" stroke="#bae6fd" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Rear Tire -->
+            <g id="part-6" class="puzzle-part">
+              <circle cx="102" cy="156" r="24" fill="#0f172a" stroke="#475569" stroke-width="4"/>
+            </g>
+            <!-- Part 7: Front Tire -->
+            <g id="part-7" class="puzzle-part">
+              <circle cx="226" cy="156" r="24" fill="#0f172a" stroke="#475569" stroke-width="4"/>
+            </g>
+            <!-- Part 8: Golden Alloy Rims -->
+            <g id="part-8" class="puzzle-part">
+              <circle cx="102" cy="156" r="11" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+              <circle cx="226" cy="156" r="11" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+            </g>
+            <!-- Part 9: Rear Spoiler & Headlight Beam -->
+            <g id="part-9" class="puzzle-part">
+              <polygon points="55,125 40,102 56,102 68,125" fill="#f59e0b" stroke="#fef08a" stroke-width="2"/>
+              <ellipse cx="272" cy="138" rx="6" ry="5" fill="#fef08a"/>
+              <polygon points="278,133 315,122 315,152 278,143" fill="#fef08a" opacity="0.45"/>
+            </g>
+            <!-- Part 10: Racing Stripe & Exhaust Nitro Flame -->
+            <g id="part-10" class="puzzle-part">
+              <rect x="135" y="134" width="65" height="8" rx="4" fill="#fde047"/>
+              <path d="M 46 146 Q 15 138 12 148 Q 22 158 46 152 Z" fill="#f97316"/>
+              <path d="M 46 148 Q 26 144 24 149 Q 30 154 46 151 Z" fill="#fde047"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 4,
+        icon: "🌳",
+        nameBn: "আপেল গাছ",
+        nameEn: "Apple Tree",
+        partsBn: [
+          "১. সবুজ ঘাস", "২. গাছের গুঁড়ি", "৩. বাম ডাল", "৪. ডান ডাল",
+          "৫. নিচের পাতার ঝোপ", "৬. উপরের পাতার ঝোপ", "৭. লাল পাকা আপেল", "৮. পাখির বাসা",
+          "৯. নীল গানের পাখি", "১০. রোদ ও প্রজাপতি"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Grassy Base -->
+            <g id="part-1" class="puzzle-part">
+              <ellipse cx="160" cy="196" rx="130" ry="16" fill="#16a34a" stroke="#4ade80" stroke-width="2"/>
+            </g>
+            <!-- Part 2: Tree Trunk -->
+            <g id="part-2" class="puzzle-part">
+              <path d="M 142 192 L 146 105 L 174 105 L 178 192 Z" fill="#78350f" stroke="#a16207" stroke-width="2.5"/>
+            </g>
+            <!-- Part 3: Left Branch -->
+            <g id="part-3" class="puzzle-part">
+              <path d="M 150 135 L 112 102 L 120 96 L 154 124 Z" fill="#78350f"/>
+            </g>
+            <!-- Part 4: Right Branch -->
+            <g id="part-4" class="puzzle-part">
+              <path d="M 170 135 L 208 102 L 200 96 L 166 124 Z" fill="#78350f"/>
+            </g>
+            <!-- Part 5: Lower Leaf Canopy -->
+            <g id="part-5" class="puzzle-part">
+              <circle cx="115" cy="92" r="36" fill="#15803d"/>
+              <circle cx="205" cy="92" r="36" fill="#15803d"/>
+            </g>
+            <!-- Part 6: Upper Leaf Canopy -->
+            <g id="part-6" class="puzzle-part">
+              <circle cx="160" cy="64" r="46" fill="#22c55e" stroke="#4ade80" stroke-width="2"/>
+            </g>
+            <!-- Part 7: 5 Shiny Red Apples -->
+            <g id="part-7" class="puzzle-part">
+              <circle cx="135" cy="65" r="7.5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+              <circle cx="182" cy="60" r="7.5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+              <circle cx="160" cy="88" r="7.5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+              <circle cx="106" cy="96" r="7.5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+              <circle cx="212" cy="95" r="7.5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+            </g>
+            <!-- Part 8: Cute Bird Nest -->
+            <g id="part-8" class="puzzle-part">
+              <path d="M 188 106 Q 204 122 220 106 Z" fill="#a16207" stroke="#fde047" stroke-width="1.5"/>
+            </g>
+            <!-- Part 9: Singing Bluebird -->
+            <g id="part-9" class="puzzle-part">
+              <circle cx="204" cy="100" r="8" fill="#38bdf8"/>
+              <polygon points="212,98 220,100 212,103" fill="#fde047"/>
+              <circle cx="206" cy="98" r="1.5" fill="#0f172a"/>
+            </g>
+            <!-- Part 10: Bright Sun & Flowers -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="48" cy="42" r="16" fill="#fde047" stroke="#f59e0b" stroke-width="3"/>
+              <circle cx="95" cy="192" r="5" fill="#f472b6"/>
+              <circle cx="228" cy="192" r="5" fill="#fde047"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 5,
+        icon: "🚂",
+        nameBn: "ঝিকঝিক ট্রেন",
+        nameEn: "Steam Train",
+        partsBn: [
+          "১. রেললাইন ট্র্যাক", "২. ইঞ্জিন বয়লার", "৩. চালকের কেবিন", "৪. কেবিনের ছাদ",
+          "৫. ধোঁয়ার চিমনি", "৬. সামনের কাউক্যাচার", "৭. বড় পেছনের চাকা", "৮. মাঝের চাকা",
+          "৯. সামনের চাকা", "১০. সাদা বাষ্পের মেঘ"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Railroad Tracks -->
+            <g id="part-1" class="puzzle-part">
+              <line x1="20" y1="184" x2="300" y2="184" stroke="#94a3b8" stroke-width="5"/>
+              <line x1="25" y1="190" x2="295" y2="190" stroke="#78350f" stroke-width="6" stroke-dasharray="10 12"/>
+            </g>
+            <!-- Part 2: Locomotive Boiler -->
+            <g id="part-2" class="puzzle-part">
+              <rect x="125" y="96" width="110" height="56" rx="10" fill="#2563eb" stroke="#93c5fd" stroke-width="2.5"/>
+            </g>
+            <!-- Part 3: Engineer Cab -->
+            <g id="part-3" class="puzzle-part">
+              <rect x="68" y="68" width="62" height="84" rx="4" fill="#ef4444" stroke="#fca5a5" stroke-width="2.5"/>
+              <rect x="80" y="80" width="36" height="28" rx="4" fill="#38bdf8"/>
+            </g>
+            <!-- Part 4: Cab Roof -->
+            <g id="part-4" class="puzzle-part">
+              <rect x="60" y="60" width="78" height="10" rx="4" fill="#fde047"/>
+            </g>
+            <!-- Part 5: Smokestack -->
+            <g id="part-5" class="puzzle-part">
+              <polygon points="200,96 222,96 228,58 194,58" fill="#a855f7" stroke="#e9d5ff" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Front Cowcatcher -->
+            <g id="part-6" class="puzzle-part">
+              <polygon points="235,122 235,155 268,155" fill="#f59e0b" stroke="#fef08a" stroke-width="2"/>
+            </g>
+            <!-- Part 7: Big Rear Wheel -->
+            <g id="part-7" class="puzzle-part">
+              <circle cx="98" cy="162" r="22" fill="#dc2626" stroke="#fde047" stroke-width="5"/>
+              <circle cx="98" cy="162" r="6" fill="#fde047"/>
+            </g>
+            <!-- Part 8: Middle Wheel -->
+            <g id="part-8" class="puzzle-part">
+              <circle cx="158" cy="166" r="16" fill="#f59e0b" stroke="#fef08a" stroke-width="4"/>
+            </g>
+            <!-- Part 9: Front Wheel & Connecting Rod -->
+            <g id="part-9" class="puzzle-part">
+              <circle cx="208" cy="166" r="16" fill="#f59e0b" stroke="#fef08a" stroke-width="4"/>
+              <line x1="98" y1="164" x2="208" y2="164" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <!-- Part 10: Chugging Steam Clouds -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="210" cy="44" r="10" fill="#f8fafc" opacity="0.9"/>
+              <circle cx="190" cy="32" r="14" fill="#f8fafc" opacity="0.85"/>
+              <circle cx="164" cy="24" r="17" fill="#f8fafc" opacity="0.75"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 6,
+        icon: "⛵",
+        nameBn: "পালের নৌকা",
+        nameEn: "Sail Boat",
+        partsBn: [
+          "১. নীল সমুদ্রের ঢেউ", "২. কাঠের নৌকার বডি", "৩. লম্বা মাস্তুল", "৪. বড় মূল পাল",
+          "৫. সামনের রঙিন পাল", "৬. উড়ন্ত পতাকা", "৭. গোল জানালা ১", "৮. গোল জানালা ২ ও ৩",
+          "৯. লোহার নোঙর", "১০. লাফানো ডলফিন ও সূর্য"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Ocean Waves -->
+            <g id="part-1" class="puzzle-part">
+              <path d="M 10 175 Q 50 162 90 175 T 170 175 T 250 175 T 310 175 L 310 212 L 10 212 Z" fill="#0284c7" stroke="#38bdf8" stroke-width="3"/>
+            </g>
+            <!-- Part 2: Wooden Hull -->
+            <g id="part-2" class="puzzle-part">
+              <polygon points="75,135 245,135 215,178 105,178" fill="#92400e" stroke="#f59e0b" stroke-width="3"/>
+            </g>
+            <!-- Part 3: Center Mast -->
+            <g id="part-3" class="puzzle-part">
+              <rect x="156" y="25" width="7" height="110" rx="3" fill="#fde047"/>
+            </g>
+            <!-- Part 4: Main White/Cyan Sail -->
+            <g id="part-4" class="puzzle-part">
+              <path d="M 166 32 Q 238 80 222 126 L 166 126 Z" fill="#f8fafc" stroke="#38bdf8" stroke-width="3"/>
+            </g>
+            <!-- Part 5: Front Jib Sail -->
+            <g id="part-5" class="puzzle-part">
+              <path d="M 152 38 Q 92 82 96 126 L 152 126 Z" fill="#fde047" stroke="#f97316" stroke-width="3"/>
+            </g>
+            <!-- Part 6: Top Pennant Flag -->
+            <g id="part-6" class="puzzle-part">
+              <polygon points="156,25 156,40 124,32" fill="#ef4444"/>
+            </g>
+            <!-- Part 7: Porthole 1 -->
+            <g id="part-7" class="puzzle-part">
+              <circle cx="128" cy="155" r="7" fill="#38bdf8" stroke="#fde047" stroke-width="2.5"/>
+            </g>
+            <!-- Part 8: Portholes 2 & 3 -->
+            <g id="part-8" class="puzzle-part">
+              <circle cx="160" cy="155" r="7" fill="#38bdf8" stroke="#fde047" stroke-width="2.5"/>
+              <circle cx="192" cy="155" r="7" fill="#38bdf8" stroke="#fde047" stroke-width="2.5"/>
+            </g>
+            <!-- Part 9: Anchor Emblem -->
+            <g id="part-9" class="puzzle-part">
+              <line x1="96" y1="142" x2="96" y2="165" stroke="#e2e8f0" stroke-width="3"/>
+              <path d="M 88 158 Q 96 170 104 158" fill="none" stroke="#e2e8f0" stroke-width="3"/>
+            </g>
+            <!-- Part 10: Bright Sun & Jumping Dolphin -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="268" cy="44" r="16" fill="#fde047" stroke="#f97316" stroke-width="3"/>
+              <path d="M 32 155 Q 52 125 72 150 Q 55 145 32 155 Z" fill="#38bdf8" stroke="#bae6fd" stroke-width="1.5"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 7,
+        icon: "🏰",
+        nameBn: "রাজার দুর্গ",
+        nameEn: "Royal Castle",
+        partsBn: [
+          "১. পরিখা ও সেতু", "২. দুর্গের মূল দেয়াল", "৩. বাম টাওয়ার", "৪. ডান টাওয়ার",
+          "৫. বাম চূড়ার ছাদ", "৬. ডান চূড়ার ছাদ", "৭. রাজকীয় ফটক", "৮. প্রাচীরের খাঁজ",
+          "৯. রঙিন কাঁচের জানালা", "১০. রাজকীয় পতাকা"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Blue Moat Base -->
+            <g id="part-1" class="puzzle-part">
+              <rect x="25" y="185" width="270" height="20" rx="8" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+            </g>
+            <!-- Part 2: Main Keep Wall -->
+            <g id="part-2" class="puzzle-part">
+              <rect x="95" y="92" width="130" height="94" fill="#cbd5e1" stroke="#94a3b8" stroke-width="3"/>
+            </g>
+            <!-- Part 3: Left Tower -->
+            <g id="part-3" class="puzzle-part">
+              <rect x="55" y="68" width="42" height="118" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>
+            </g>
+            <!-- Part 4: Right Tower -->
+            <g id="part-4" class="puzzle-part">
+              <rect x="223" y="68" width="42" height="118" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>
+            </g>
+            <!-- Part 5: Left Spire Roof -->
+            <g id="part-5" class="puzzle-part">
+              <polygon points="48,68 76,26 104,68" fill="#a855f7" stroke="#e9d5ff" stroke-width="2"/>
+            </g>
+            <!-- Part 6: Right Spire Roof -->
+            <g id="part-6" class="puzzle-part">
+              <polygon points="216,68 244,26 272,68" fill="#a855f7" stroke="#e9d5ff" stroke-width="2"/>
+            </g>
+            <!-- Part 7: Arched Wooden Gate -->
+            <g id="part-7" class="puzzle-part">
+              <path d="M 136 186 L 136 142 Q 160 120 184 142 L 184 186 Z" fill="#78350f" stroke="#fde047" stroke-width="3"/>
+            </g>
+            <!-- Part 8: Wall Battlements -->
+            <g id="part-8" class="puzzle-part">
+              <rect x="100" y="78" width="18" height="14" fill="#cbd5e1"/>
+              <rect x="128" y="78" width="18" height="14" fill="#cbd5e1"/>
+              <rect x="156" y="78" width="18" height="14" fill="#cbd5e1"/>
+              <rect x="184" y="78" width="18" height="14" fill="#cbd5e1"/>
+            </g>
+            <!-- Part 9: Tower Windows -->
+            <g id="part-9" class="puzzle-part">
+              <rect x="68" y="96" width="16" height="28" rx="8" fill="#38bdf8" stroke="#fde047" stroke-width="2"/>
+              <rect x="236" y="96" width="16" height="28" rx="8" fill="#38bdf8" stroke="#fde047" stroke-width="2"/>
+            </g>
+            <!-- Part 10: Royal Pennant Flags -->
+            <g id="part-10" class="puzzle-part">
+              <line x1="76" y1="26" x2="76" y2="8" stroke="#fde047" stroke-width="2.5"/>
+              <polygon points="76,8 104,15 76,22" fill="#ef4444"/>
+              <line x1="244" y1="26" x2="244" y2="8" stroke="#fde047" stroke-width="2.5"/>
+              <polygon points="244,8 272,15 244,22" fill="#ef4444"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 8,
+        icon: "🦋",
+        nameBn: "রঙিন প্রজাপতি",
+        nameEn: "Magical Butterfly",
+        partsBn: [
+          "১. ফুলের ডাল", "২. নিচের দেহ", "৩. উপরের দেহ", "৪. হাসিমুখের মাথা",
+          "৫. বাঁকানো শুঁড়", "৬. উপরের বাম ডানা", "৭. নিচের বাম ডানা", "৮. উপরের ডান ডানা",
+          "৯. নিচের ডান ডানা", "১০. ডানার রঙিন নকশা"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Green Leaf Branch -->
+            <g id="part-1" class="puzzle-part">
+              <path d="M 40 198 Q 160 178 280 198" fill="none" stroke="#22c55e" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <!-- Part 6: Top-Left Wing -->
+            <g id="part-6" class="puzzle-part">
+              <path d="M 152 95 C 75 25, 45 95, 148 118 Z" fill="#ec4899" stroke="#fbcfe8" stroke-width="3"/>
+            </g>
+            <!-- Part 7: Bottom-Left Wing -->
+            <g id="part-7" class="puzzle-part">
+              <path d="M 150 118 C 68 125, 85 188, 152 148 Z" fill="#06b6d4" stroke="#a5f3fc" stroke-width="3"/>
+            </g>
+            <!-- Part 8: Top-Right Wing -->
+            <g id="part-8" class="puzzle-part">
+              <path d="M 168 95 C 245 25, 275 95, 172 118 Z" fill="#ec4899" stroke="#fbcfe8" stroke-width="3"/>
+            </g>
+            <!-- Part 9: Bottom-Right Wing -->
+            <g id="part-9" class="puzzle-part">
+              <path d="M 170 118 C 252 125, 235 188, 168 148 Z" fill="#06b6d4" stroke="#a5f3fc" stroke-width="3"/>
+            </g>
+            <!-- Part 2: Lower Abdomen -->
+            <g id="part-2" class="puzzle-part">
+              <ellipse cx="160" cy="142" rx="9" ry="28" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+            </g>
+            <!-- Part 3: Upper Thorax -->
+            <g id="part-3" class="puzzle-part">
+              <ellipse cx="160" cy="102" rx="11" ry="18" fill="#f97316" stroke="#fed7aa" stroke-width="2"/>
+            </g>
+            <!-- Part 4: Smiling Head -->
+            <g id="part-4" class="puzzle-part">
+              <circle cx="160" cy="74" r="13" fill="#ef4444" stroke="#fca5a5" stroke-width="2"/>
+              <circle cx="155" cy="72" r="2" fill="#ffffff"/>
+              <circle cx="165" cy="72" r="2" fill="#ffffff"/>
+            </g>
+            <!-- Part 5: Curled Antennae -->
+            <g id="part-5" class="puzzle-part">
+              <path d="M 155 62 Q 138 35 125 46" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round"/>
+              <path d="M 165 62 Q 182 35 195 46" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <!-- Part 10: Glowing Wing Patterns -->
+            <g id="part-10" class="puzzle-part">
+              <circle cx="105" cy="86" r="14" fill="#fde047" opacity="0.9"/>
+              <circle cx="215" cy="86" r="14" fill="#fde047" opacity="0.9"/>
+              <circle cx="112" cy="144" r="9" fill="#f43f5e"/>
+              <circle cx="208" cy="144" r="9" fill="#f43f5e"/>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 9,
+        icon: "⛄",
+        nameBn: "তুষার মানব",
+        nameEn: "Happy Snowman",
+        partsBn: [
+          "১. বরফের পাহাড়", "২. নিচের বড় তুষার বল", "৩. মাঝের তুষার বল", "৪. মাথার তুষার বল",
+          "৫. কয়লার কালো চোখ", "৬. গাজরের নাক", "৭. সুন্দর হাসিমুখ", "৮. লাল মাফলার ও বোতাম",
+          "৯. গাছের ডালের হাত", "১০. জাদুকরী টুপি ও তুষারপাত"
+        ],
+        renderSVG: () => `
+          <svg viewBox="0 0 320 220" class="w-full h-full max-h-72">
+            <!-- Part 1: Snowy Ground -->
+            <g id="part-1" class="puzzle-part">
+              <ellipse cx="160" cy="198" rx="140" ry="18" fill="#f8fafc" stroke="#bae6fd" stroke-width="3"/>
+            </g>
+            <!-- Part 2: Giant Base Snowball -->
+            <g id="part-2" class="puzzle-part">
+              <circle cx="160" cy="158" r="38" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+            </g>
+            <!-- Part 3: Middle Snowball -->
+            <g id="part-3" class="puzzle-part">
+              <circle cx="160" cy="106" r="28" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+            </g>
+            <!-- Part 4: Head Snowball -->
+            <g id="part-4" class="puzzle-part">
+              <circle cx="160" cy="62" r="21" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+            </g>
+            <!-- Part 5: Coal Eyes -->
+            <g id="part-5" class="puzzle-part">
+              <circle cx="153" cy="56" r="3" fill="#0f172a"/>
+              <circle cx="167" cy="56" r="3" fill="#0f172a"/>
+            </g>
+            <!-- Part 6: Carrot Nose -->
+            <g id="part-6" class="puzzle-part">
+              <polygon points="160,60 185,64 160,67" fill="#f97316"/>
+            </g>
+            <!-- Part 7: Happy Dotted Smile -->
+            <g id="part-7" class="puzzle-part">
+              <path d="M 151 71 Q 160 78 169 71" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <!-- Part 8: Cozy Red Scarf & Buttons -->
+            <g id="part-8" class="puzzle-part">
+              <rect x="138" y="77" width="44" height="10" rx="5" fill="#ef4444"/>
+              <rect x="168" y="82" width="10" height="22" rx="4" fill="#dc2626"/>
+              <circle cx="160" cy="104" r="4" fill="#3b82f6"/>
+              <circle cx="160" cy="120" r="4" fill="#22c55e"/>
+              <circle cx="160" cy="148" r="4" fill="#a855f7"/>
+            </g>
+            <!-- Part 9: Stick Arms -->
+            <g id="part-9" class="puzzle-part">
+              <line x1="132" y1="100" x2="90" y2="75" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+              <line x1="188" y1="100" x2="230" y2="75" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+            </g>
+            <!-- Part 10: Top Hat & Falling Snowflakes -->
+            <g id="part-10" class="puzzle-part">
+              <rect x="136" y="38" width="48" height="6" rx="3" fill="#1e293b"/>
+              <rect x="145" y="14" width="30" height="25" rx="3" fill="#1e293b" stroke="#f43f5e" stroke-width="2"/>
+              <circle cx="65" cy="42" r="3.5" fill="#ffffff"/>
+              <circle cx="255" cy="48" r="4" fill="#ffffff"/>
+              <circle cx="80" cy="128" r="3" fill="#ffffff"/>
+              <circle cx="245" cy="135" r="3.5" fill="#ffffff"/>
+            </g>
+          </svg>
+        `
+      }
+    ];
+
+    /**************************************************************
+     * 3. GAME STATE & CONFIGURATION
+     **************************************************************/
+    const state = {
+      currentTable: 2,         // Tables 2 through 10
+      currentMultiplier: 1,    // Sequential 1 through 10
+      currentDrawingIndex: 0,  // 0 to 9 (defaults to matching table-2)
+      drawingStep: 0,          // 0 to 10 parts built
+      correctAnswer: 2,
+      options: [],
+      streak: 0,
+      soundEnabled: true,
+      digitMode: 'both',       // 'both', 'bn', 'en'
+      autoAdvanceTable: true,
+      darkMode: true,
+      isAnimatingAnswer: false
+    };
+
+    /**************************************************************
+     * 4. WEB AUDIO SYNTHESIZER & BENGALI SPEECH ENGINE
+     **************************************************************/
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSoundEffect(type) {
+      if (!state.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      if (type === 'correct') {
+        // Bouncy ascending chime
+        const freqs = [523.25, 659.25, 783.99, 1046.5];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.26);
+        });
+      } else if (type === 'wrong') {
+        // Cartoon descending slide boing
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(310, now);
+        osc.frequency.exponentialRampToValueAtTime(115, now + 0.42);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.46);
+      } else if (type === 'victory') {
+        // Fanfare melody
+        const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+        const times = [0, 0.12, 0.24, 0.36, 0.52, 0.66];
+        notes.forEach((f, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + times[i]);
+          gain.gain.setValueAtTime(0.22, now + times[i]);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + times[i] + 0.32);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + times[i]);
+          osc.stop(now + times[i] + 0.34);
+        });
+      }
+    }
+
+    // Bengali Web Speech API Voice Synthesis
+    let cachedVoices = [];
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => { cachedVoices = window.speechSynthesis.getVoices(); };
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function speakBengali(text) {
+      if (!state.soundEnabled || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'bn-IN';
+        utter.rate = 0.92;
+        utter.pitch = 1.12;
+
+        if (!cachedVoices.length) cachedVoices = window.speechSynthesis.getVoices();
+        const bnVoice = cachedVoices.find(v => v.lang.toLowerCase().includes('bn') || v.name.toLowerCase().includes('bengali') || v.name.toLowerCase().includes('bangla'));
+        if (bnVoice) utter.voice = bnVoice;
+
+        // Animate teacher mouth while speaking
+        const mouthEl = document.getElementById('teacher-mouth-smile');
+        utter.onstart = () => { if (mouthEl) mouthEl.classList.add('mouth-talking'); };
+        utter.onend = () => { if (mouthEl) mouthEl.classList.remove('mouth-talking'); };
+        utter.onerror = () => { if (mouthEl) mouthEl.classList.remove('mouth-talking'); };
+
+        window.speechSynthesis.speak(utter);
+      } catch (err) {
+        console.warn("Speech synthesis unavailable:", err);
+      }
+    }
+
+    function speakCurrentProblem() {
+      const aWord = getBnWord(state.currentTable);
+      const bWord = getBnWord(state.currentMultiplier);
+      const questionSpeech = `${aWord} গুণ ${bWord} সমান কত?`;
+      speakBengali(questionSpeech);
+    }
+
+    /**************************************************************
+     * 5. TEACHER EXPRESSIONS & SPEECH CONTROLLER
+     **************************************************************/
+    function setTeacherState(mode, speechText) {
+      const svg = document.getElementById('teacher-svg');
+      const eyesNormal = document.getElementById('teacher-eyes-normal');
+      const eyesHappy = document.getElementById('teacher-eyes-happy');
+      const eyesWrong = document.getElementById('teacher-eyes-wrong');
+      const glasses = document.getElementById('teacher-glasses');
+      const sunglasses = document.getElementById('teacher-sunglasses');
+      const mouthSmile = document.getElementById('teacher-mouth-smile');
+      const mouthOh = document.getElementById('teacher-mouth-oh');
+      const speechBox = document.getElementById('teacher-speech-text');
+
+      if (speechText) speechBox.textContent = speechText;
+
+      // Reset classes
+      svg.classList.remove('teacher-idle', 'teacher-happy', 'teacher-wrong');
+      eyesNormal.classList.add('hidden');
+      eyesHappy.classList.add('hidden');
+      eyesWrong.classList.add('hidden');
+      glasses.classList.remove('hidden');
+      sunglasses.classList.add('hidden');
+      mouthSmile.classList.remove('hidden');
+      mouthOh.classList.add('hidden');
+
+      if (mode === 'happy') {
+        svg.classList.add('teacher-happy');
+        eyesHappy.classList.remove('hidden');
+      } else if (mode === 'wrong') {
+        svg.classList.add('teacher-wrong');
+        eyesWrong.classList.remove('hidden');
+        mouthSmile.classList.add('hidden');
+        mouthOh.classList.remove('hidden');
+      } else if (mode === 'victory') {
+        svg.classList.add('teacher-happy');
+        eyesHappy.classList.remove('hidden');
+        glasses.classList.add('hidden');
+        sunglasses.classList.remove('hidden');
+      } else {
+        svg.classList.add('teacher-idle');
+        eyesNormal.classList.remove('hidden');
+      }
+    }
+
+    function teacherTapped() {
+      const aWord = getBnWord(state.currentTable);
+      const bWord = getBnWord(state.currentMultiplier);
+      const msg = `সোনামণি! ${aWord} গুণ ${bWord} সমান কত হয়? নিচের ৪টি বোতাম থেকে সঠিক উত্তরটি বেছে নাও!`;
+      setTeacherState('idle', msg);
+      speakBengali(msg);
+    }
+
+    /**************************************************************
+     * 6. DRAWING STAGE & 10-PART LAYER CONTROLLER
+     **************************************************************/
+    function loadDrawingStage() {
+      const drawingObj = drawingsCatalog[state.currentDrawingIndex];
+      const container = document.getElementById('svg-drawing-container');
+      container.innerHTML = drawingObj.renderSVG();
+
+      document.getElementById('drawing-badge').textContent =
+        `${drawingObj.icon} ছবি ${toBengaliNumber(state.currentDrawingIndex + 1)}/১০: ${drawingObj.nameBn} (${drawingObj.nameEn})`;
+
+      updateDrawingPartsVisual(null);
+    }
+
+    function updateDrawingPartsVisual(changeType) {
+      const drawingObj = drawingsCatalog[state.currentDrawingIndex];
+
+      for (let i = 1; i <= 10; i++) {
+        const partEl = document.getElementById(`part-${i}`);
+        if (!partEl) continue;
+
+        partEl.classList.remove('part-unbuilt', 'part-built', 'part-just-added', 'part-just-lost');
+
+        if (i <= state.drawingStep) {
+          partEl.classList.add('part-built');
+          if (changeType === 'added' && i === state.drawingStep) {
+            partEl.classList.add('part-just-added');
+          }
+        } else {
+          partEl.classList.add('part-unbuilt');
+          if (changeType === 'lost' && i === state.drawingStep + 1) {
+            partEl.classList.add('part-just-lost');
+          }
+        }
+      }
+
+      // Update Top Right Counter Badge
+      document.getElementById('parts-counter-badge').textContent =
+        `অংশ: ${toBengaliNumber(state.drawingStep)} / ১০`;
+
+      // Update Next Part Hint
+      const hintEl = document.getElementById('current-part-hint');
+      if (state.drawingStep < 10) {
+        hintEl.textContent = `পরবর্তী অংশ: ${drawingObj.partsBn[state.drawingStep]}`;
+      } else {
+        hintEl.textContent = `🎉 সবগুলো অংশ সম্পূর্ণ হয়েছে!`;
+      }
+
+      // Render 10 Segmented Blocks
+      const segBar = document.getElementById('step-segments-bar');
+      segBar.innerHTML = '';
+      for (let s = 1; s <= 10; s++) {
+        const seg = document.createElement('div');
+        const built = s <= state.drawingStep;
+        seg.className = `h-3 rounded-full transition-all duration-300 ${
+          built
+            ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-sm shadow-emerald-500/50 scale-y-110'
+            : 'bg-slate-700/70'
+        }`;
+        segBar.appendChild(seg);
+      }
+    }
+
+    function showCanvasToast(text, isGood) {
+      const toast = document.getElementById('part-popup-toast');
+      toast.textContent = text;
+      toast.className = `pointer-events-none transition-all duration-300 transform absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm shadow-lg ${
+        isGood ? 'bg-emerald-500 text-slate-950 opacity-100 translate-y-0' : 'bg-rose-600 text-white opacity-100 translate-y-0'
+      }`;
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-4');
+      }, 1300);
+    }
+
+    /**************************************************************
+     * 7. SEQUENTIAL MATH QUESTION & MCQ GENERATOR
+     **************************************************************/
+    function generateProblem(speakOut = true) {
+      const a = state.currentTable;
+      const b = state.currentMultiplier;
+      state.correctAnswer = a * b;
+
+      // Update Pill & Progress Labels
+      document.getElementById('active-table-pill').textContent =
+        `নামতা: ${toBengaliNumber(a)}-এর ঘর (Table of ${a})`;
+      document.getElementById('table-progress-label').textContent =
+        `${toBengaliNumber(a)}-এর ঘরের নামতা (${toBengaliNumber(b)}/১০)`;
+
+      // Phonetic Bengali text
+      const aWord = getBnWord(a);
+      const bWord = getBnWord(b);
+      document.getElementById('question-Bengali-phonetic').textContent =
+        `${aWord} গুণ ${bWord} সমান কত?`;
+
+      // Main Equation Display
+      const eqEl = document.getElementById('equation-text');
+      const subEl = document.getElementById('equation-subtext');
+
+      if (state.digitMode === 'en') {
+        eqEl.innerHTML = `${a} × ${b} = <span class="text-cyan-400 animate-pulse">?</span>`;
+        subEl.textContent = `(${toBengaliNumber(a)} × ${toBengaliNumber(b)} = ?)`;
+      } else if (state.digitMode === 'bn') {
+        eqEl.innerHTML = `${toBengaliNumber(a)} × ${toBengaliNumber(b)} = <span class="text-cyan-400 animate-pulse">?</span>`;
+        subEl.textContent = '';
+      } else {
+        eqEl.innerHTML = `${toBengaliNumber(a)} × ${toBengaliNumber(b)} = <span class="text-cyan-400 animate-pulse">?</span>`;
+        subEl.textContent = `(${a} × ${b} = ?)`;
+      }
+
+      // Generate 3 realistic distractors from the same multiplication table or nearby
+      const opts = new Set([state.correctAnswer]);
+      const candidates = [
+        a * Math.max(1, b - 1),
+        a * Math.min(10, b + 1),
+        a * Math.max(1, b - 2),
+        a * Math.min(10, b + 2),
+        state.correctAnswer + a,
+        Math.max(2, state.correctAnswer - a),
+        state.correctAnswer + 2,
+        Math.max(2, state.correctAnswer - 2)
+      ];
+
+      for (const c of candidates) {
+        if (opts.size >= 4) break;
+        if (c > 0 && c !== state.correctAnswer) opts.add(c);
+      }
+      while (opts.size < 4) {
+        const rand = state.correctAnswer + Math.floor(Math.random() * 11) - 5;
+        if (rand > 0 && rand !== state.correctAnswer) opts.add(rand);
+      }
+
+      // Shuffle options
+      state.options = Array.from(opts).sort(() => Math.random() - 0.5);
+
+      renderMcqButtons();
+      renderQuickTablePills();
+
+      const drawingObj = drawingsCatalog[state.currentDrawingIndex];
+      const nextPartName = drawingObj.partsBn[state.drawingStep] || 'সম্পূর্ণ ছবি';
+      setTeacherState(
+        'idle',
+        `বলো তো সোনামণি, ${toBengaliNumber(a)} × ${toBengaliNumber(b)} সমান কত? সঠিক উত্তর দিলে "${nextPartName}" তৈরি হবে!`
+      );
+
+      if (speakOut) {
+        setTimeout(() => speakCurrentProblem(), 250);
+      }
+    }
+
+    function renderMcqButtons() {
+      const grid = document.getElementById('mcq-buttons-grid');
+      grid.innerHTML = '';
+
+      const btnStyles = [
+        'from-cyan-600 to-blue-600 border-cyan-400/50 hover:from-cyan-500 hover:to-blue-500 shadow-cyan-950/60',
+        'from-purple-600 to-pink-600 border-purple-400/50 hover:from-purple-500 hover:to-pink-500 shadow-purple-950/60',
+        'from-amber-500 to-orange-600 border-amber-300/50 hover:from-amber-400 hover:to-orange-500 shadow-orange-950/60',
+        'from-emerald-600 to-teal-600 border-emerald-400/50 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-950/60'
+      ];
+
+      state.options.forEach((val, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `btn-3d bg-gradient-to-br ${btnStyles[idx]} border-2 text-white rounded-2xl py-3.5 px-4 font-extrabold text-2xl sm:text-3xl shadow-xl flex flex-col items-center justify-center`;
+        btn.innerHTML = `<span>${formatDisplayNumber(val)}</span>`;
+        btn.onclick = () => handleAnswerSelection(val, btn);
+        grid.appendChild(btn);
+      });
+    }
+
+    function handleAnswerSelection(chosenVal, btnElement) {
+      if (state.isAnimatingAnswer) return;
+      state.isAnimatingAnswer = true;
+
+      if (chosenVal === state.correctAnswer) {
+        // CORRECT ANSWER!
+        state.streak++;
+        document.getElementById('streak-counter').textContent = `🔥 স্ট্রিক: ${toBengaliNumber(state.streak)}`;
+
+        btnElement.classList.add('ring-4', 'ring-emerald-300', 'scale-105');
+
+        if (state.drawingStep < 10) {
+          state.drawingStep++;
+        }
+
+        playSoundEffect('correct');
+        updateDrawingPartsVisual('added');
+
+        const drawingObj = drawingsCatalog[state.currentDrawingIndex];
+        const addedPartName = drawingObj.partsBn[state.drawingStep - 1] || 'নতুন অংশ';
+        showCanvasToast(`✅ +১ অংশ: ${addedPartName}`, true);
+
+        const praise = praisePhrasesBn[Math.floor(Math.random() * praisePhrasesBn.length)];
+        const ansWord = getBnWord(state.correctAnswer);
+        const fullPraise = `${ getBnWord(state.currentTable) } গুণ ${ getBnWord(state.currentMultiplier) } সমান ${ansWord}! ${praise}`;
+        setTeacherState('happy', fullPraise);
+        speakBengali(fullPraise);
+
+        // Check if all 10 steps of the table/drawing are completed!
+        if (state.drawingStep >= 10) {
+          setTimeout(() => {
+            state.isAnimatingAnswer = false;
+            triggerVictoryCelebration();
+          }, 1500);
+        } else {
+          // Advance multiplier sequentially (1 -> 2 -> 3 ... -> 10)
+          state.currentMultiplier = state.drawingStep + 1;
+          setTimeout(() => {
+            state.isAnimatingAnswer = false;
+            generateProblem(true);
+          }, 1600);
+        }
+
+      } else {
+        // WRONG ANSWER: Drawing loses 1 step!
+        state.streak = 0;
+        document.getElementById('streak-counter').textContent = `🔥 স্ট্রিক: ০`;
+
+        btnElement.classList.add('ring-4', 'ring-rose-400', 'opacity-60');
+
+        const hadPart = state.drawingStep > 0;
+        if (state.drawingStep > 0) {
+          state.drawingStep--;
+          // Also step back the sequential multiplier so it matches the 10-part progress
+          state.currentMultiplier = state.drawingStep + 1;
+        }
+
+        playSoundEffect('wrong');
+        updateDrawingPartsVisual(hadPart ? 'lost' : null);
+        showCanvasToast(hadPart ? `❌ ভুল উত্তর! ১টি অংশ খুলে গেল!` : `❌ ভুল উত্তর! আবার চেষ্টা করো!`, false);
+
+        const wrongMsg = wrongPhrasesBn[Math.floor(Math.random() * wrongPhrasesBn.length)];
+        setTeacherState('wrong', wrongMsg);
+        speakBengali(wrongMsg);
+
+        setTimeout(() => {
+          state.isAnimatingAnswer = false;
+          generateProblem(false);
+        }, 1600);
+      }
+    }
+
+    /**************************************************************
+     * 8. VICTORY CELEBRATION & TABLE PROGRESSION
+     **************************************************************/
+    function triggerVictoryCelebration() {
+      playSoundEffect('victory');
+      launchConfetti();
+
+      const drawingObj = drawingsCatalog[state.currentDrawingIndex];
+      const msg = `অভিনন্দন! তুমি ${toBengaliNumber(state.currentTable)}-এর ঘরের নামতা সম্পূর্ণ করে "${drawingObj.nameBn}" ছবিটি তৈরি করে ফেলেছ!`;
+
+      setTeacherState('victory', msg);
+      speakBengali(msg);
+
+      document.getElementById('victory-title').textContent =
+        `শাবাশ! ${drawingObj.nameBn} সম্পূর্ণ হয়েছে!`;
+      document.getElementById('victory-subtitle').textContent = msg;
+
+      const previewBox = document.getElementById('victory-svg-preview');
+      previewBox.innerHTML = drawingObj.renderSVG();
+      previewBox.querySelectorAll('.puzzle-part').forEach(el => el.classList.add('part-built'));
+
+      const modal = document.getElementById('victory-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeVictoryModal() {
+      const modal = document.getElementById('victory-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function replaySameTable() {
+      closeVictoryModal();
+      state.drawingStep = 0;
+      state.currentMultiplier = 1;
+      loadDrawingStage();
+      generateProblem(true);
+    }
+
+    function proceedToNextTable() {
+      closeVictoryModal();
+      if (state.currentTable < 10) {
+        state.currentTable++;
+      } else {
+        state.currentTable = 2;
+      }
+      state.currentDrawingIndex = (state.currentDrawingIndex + 1) % drawingsCatalog.length;
+      state.drawingStep = 0;
+      state.currentMultiplier = 1;
+      loadDrawingStage();
+      generateProblem(true);
+    }
+
+    function resetCurrentDrawing() {
+      state.drawingStep = 0;
+      state.currentMultiplier = 1;
+      loadDrawingStage();
+      generateProblem(true);
+    }
+
+    /**************************************************************
+     * 9. UI CONTROLS, QUICK BARS & SETTINGS MODAL
+     **************************************************************/
+    function renderQuickTablePills() {
+      const container = document.getElementById('quick-table-pills');
+      container.innerHTML = '';
+
+      for (let t = 2; t <= 10; t++) {
+        const active = t === state.currentTable;
+        const btn = document.createElement('button');
+        btn.className = `px-2.5 py-1 rounded-xl text-xs sm:text-sm font-bold transition ${
+          active
+            ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
+            : 'bg-night-700 hover:bg-night-600 text-slate-300'
+        }`;
+        btn.textContent = `${toBengaliNumber(t)} (${t})`;
+        btn.onclick = () => selectTableAndDrawing(t, t - 2);
+        container.appendChild(btn);
+      }
+    }
+
+    function selectTableAndDrawing(tableNum, drawingIdx = null) {
+      state.currentTable = tableNum;
+      state.currentMultiplier = 1;
+      state.drawingStep = 0;
+      if (drawingIdx !== null && drawingIdx >= 0 && drawingIdx < drawingsCatalog.length) {
+        state.currentDrawingIndex = drawingIdx;
+      }
+      loadDrawingStage();
+      generateProblem(true);
+      renderSettingsChoices();
+    }
+
+    function toggleDigitMode() {
+      const modes = ['both', 'bn', 'en'];
+      const labels = { 'both': 'বাংলা + 123', 'bn': 'শুধু বাংলা (১২৩)', 'en': 'Only English (123)' };
+      const nextIdx = (modes.indexOf(state.digitMode) + 1) % modes.length;
+      state.digitMode = modes[nextIdx];
+      document.getElementById('digit-mode-label').textContent = labels[state.digitMode];
+      generateProblem(false);
+    }
+
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      document.getElementById('sound-icon').textContent = state.soundEnabled ? '🔊' : '🔇';
+      document.getElementById('sound-label').textContent = state.soundEnabled ? 'কণ্ঠ চালু' : 'বন্ধ';
+      if (!state.soundEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      } else {
+        speakCurrentProblem();
+      }
+    }
+
+    function toggleEyeTheme() {
+      state.darkMode = !state.darkMode;
+      const body = document.body;
+      const icon = document.getElementById('theme-icon');
+      const label = document.getElementById('theme-label');
+
+      if (state.darkMode) {
+        body.className = 'bg-night-900 text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300';
+        icon.textContent = '🌙';
+        label.textContent = 'ডার্ক মোড';
+      } else {
+        body.className = 'bg-slate-900 text-amber-50 min-h-screen flex flex-col justify-between transition-colors duration-300';
+        icon.textContent = '✨';
+        label.textContent = 'নাইট গ্লো';
+      }
+    }
+
+    function toggleAutoAdvanceTable(val) {
+      state.autoAdvanceTable = val;
+    }
+
+    function openSettingsModal() {
+      renderSettingsChoices();
+      const modal = document.getElementById('settings-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSettingsModal() {
+      const modal = document.getElementById('settings-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderSettingsChoices() {
+      // 1. Table Grid (2 to 10)
+      const tGrid = document.getElementById('modal-table-grid');
+      tGrid.innerHTML = '';
+      for (let t = 2; t <= 10; t++) {
+        const active = t === state.currentTable;
+        const btn = document.createElement('button');
+        btn.className = `py-2 px-3 rounded-xl font-bold text-sm border transition ${
+          active
+            ? 'bg-cyan-500 text-slate-950 border-cyan-300 shadow-lg'
+            : 'bg-night-900 text-slate-300 border-slate-700 hover:bg-night-700'
+        }`;
+        btn.textContent = `${toBengaliNumber(t)}-এর ঘর (${t})`;
+        btn.onclick = () => {
+          state.currentTable = t;
+          state.currentMultiplier = 1;
+          state.drawingStep = 0;
+          loadDrawingStage();
+          generateProblem(false);
+          renderSettingsChoices();
+        };
+        tGrid.appendChild(btn);
+      }
+
+      // 2. Drawing Grid (10 Drawings)
+      const dGrid = document.getElementById('modal-drawing-grid');
+      dGrid.innerHTML = '';
+      drawingsCatalog.forEach((d, idx) => {
+        const active = idx === state.currentDrawingIndex;
+        const btn = document.createElement('button');
+        btn.className = `p-2.5 rounded-xl font-bold text-xs text-left border flex items-center gap-2 transition ${
+          active
+            ? 'bg-pink-600 text-white border-pink-300 shadow-lg'
+            : 'bg-night-900 text-slate-300 border-slate-700 hover:bg-night-700'
+        }`;
+        btn.innerHTML = `<span class="text-xl">${d.icon}</span><div><div>${d.nameBn}</div><div class="text-[10px] opacity-75">${d.nameEn}</div></div>`;
+        btn.onclick = () => {
+          state.currentDrawingIndex = idx;
+          state.drawingStep = 0;
+          state.currentMultiplier = 1;
+          loadDrawingStage();
+          generateProblem(false);
+          renderSettingsChoices();
+        };
+        dGrid.appendChild(btn);
+      });
+    }
+
+    /**************************************************************
+     * 10. CONFETTI CANNON ANIMATION
+     **************************************************************/
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = Array.from({ length: 85 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height * 0.5,
+        size: Math.random() * 8 + 5,
+        speedY: Math.random() * 4 + 2.5,
+        speedX: Math.random() * 4 - 2,
+        color: ['#fde047', '#38bdf8', '#f43f5e', '#4ade80', '#a855f7', '#fb923c'][Math.floor(Math.random() * 6)],
+        rot: Math.random() * 360
+      }));
+
+      let frames = 0;
+      function renderFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.rot += 5;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+        frames++;
+        if (frames < 140) {
+          requestAnimationFrame(renderFrame);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      renderFrame();
+    }
+
+    // Initialize App on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDrawingStage();
+      generateProblem(true);
+    });
+  </script>
+</body>
+</html>
