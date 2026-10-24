@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balloon Ninja Number Learner | বেলুন নিনজা সংখ্যা শিক্ষা</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atma:wght@500;600;700&family=Fredoka:wght@400;600;700&family=Hind+Siliguri:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Hind Siliguri', 'Atma', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            touch-action: none; /* Crucial fix for touch devices */
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-3d {
+            transition: all 0.12s ease;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.6)); }
+            50% { filter: drop-shadow(0 0 26px rgba(251, 191, 36, 0.95)); }
+        }
+
+        .glow-target {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+
+        .bubble-arrow::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            bottom: 30px;
+            border-width: 8px 12px 8px 0;
+            border-style: solid;
+            border-color: transparent rgba(255, 255, 255, 0.95) transparent transparent;
+        }
+
+        @keyframes flash-red {
+            0% { background-color: rgba(239, 68, 68, 0.4); }
+            100% { background-color: transparent; }
+        }
+        .damage-flash {
+            animation: flash-red 0.35s ease-out;
+        }
+
+        /* Full Body Monkey Character CSS Animations */
+        @keyframes monkey-idle {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(1deg); }
+        }
+
+        @keyframes monkey-dance {
+            0% { transform: translateY(0) rotate(0deg) scale(1.05); }
+            15% { transform: translateY(-20px) rotate(-12deg) scale(1.15); }
+            30% { transform: translateY(0) rotate(12deg) scale(1.1); }
+            45% { transform: translateY(-25px) rotate(-10deg) scale(1.2); }
+            60% { transform: translateY(0) rotate(10deg) scale(1.15); }
+            75% { transform: translateY(-15px) rotate(-6deg) scale(1.1); }
+            100% { transform: translateY(0) rotate(0deg) scale(1.05); }
+        }
+
+        .monkey-idle-anim {
+            animation: monkey-idle 3s ease-in-out infinite;
+        }
+
+        .monkey-dance-anim {
+            animation: monkey-dance 1.2s ease-in-out infinite !important;
+        }
+
+        /* Tail Wiggle */
+        @keyframes tail-wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+        .monkey-tail {
+            transform-origin: 10px 80px;
+            animation: tail-wiggle 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen relative flex flex-col justify-between overflow-hidden">
+
+    <!-- GAME CANVAS -->
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- Screen Flash Overlay -->
+    <div id="flashOverlay" class="absolute inset-0 z-15 pointer-events-none"></div>
+
+    <!-- TOP HUD OVERLAY -->
+    <header class="relative z-20 p-3 sm:p-4 w-full flex justify-between items-center max-w-5xl mx-auto pointer-events-none">
+        
+        <!-- Score & Knife Health Container -->
+        <div class="pointer-events-auto flex items-center gap-2 sm:gap-4">
+            <!-- Score -->
+            <div class="glass-panel px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-2xl flex items-center gap-2 text-white font-bold text-lg sm:text-2xl">
+                <i class="fa-solid fa-star text-amber-400 text-xl sm:text-3xl drop-shadow"></i>
+                <span id="scoreText">0</span>
+            </div>
+
+            <!-- Knife Durability / Lives HUD -->
+            <div class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-2xl flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+                <i class="fa-solid fa-cutlass text-slate-300 text-lg sm:text-2xl drop-shadow"></i>
+                <div class="flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-indigo-200 uppercase font-bold tracking-wider leading-none">নাইফ ডিউরেবিলিটি / Durability</span>
+                    <div id="knifeDurabilityContainer" class="flex items-center gap-1 mt-1">
+                        <!-- Dynamic knife icons inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combo Badge -->
+            <div id="comboBadge" class="hidden glass-panel px-3 py-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-sm sm:text-lg animate-bounce">
+                <span id="comboText">2x Combo!</span>
+            </div>
+        </div>
+
+        <!-- Target Voice & Text Prompt Banner -->
+        <div class="pointer-events-auto flex-1 max-w-md mx-2 sm:mx-4">
+            <div id="targetContainer" class="glass-panel glow-target bg-gradient-to-r from-purple-900/80 to-indigo-900/80 rounded-2xl p-2 sm:p-3 text-center border-2 border-amber-300/60 shadow-xl flex items-center justify-between px-3 sm:px-6 cursor-pointer transform hover:scale-105 transition" onclick="speakCurrentTarget()">
+                <div class="flex-1">
+                    <span id="targetPromptLabel" class="block text-xs sm:text-sm uppercase tracking-wider text-amber-300 font-semibold">সঠিক বেলুনটি কাটুন / Slice Target Balloon</span>
+                    <h1 id="targetText" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-wide drop-shadow-md">এক দশ এক - এগারো (১১)</h1>
+                </div>
+                <button class="bg-amber-400 hover:bg-amber-300 text-slate-900 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg transition active:scale-95 ml-2 shrink-0">
+                    <i class="fa-solid fa-volume-high text-lg sm:text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Controls Container -->
+        <div class="pointer-events-auto flex items-center gap-2 sm:gap-3">
+            <button id="pauseBtn" onclick="togglePause()" class="glass-panel text-white hover:bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl transition active:scale-90">
+                <i class="fa-solid fa-pause"></i>
+            </button>
+
+            <button onclick="openSettingsModal()" class="glass-panel text-white hover:bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl transition active:scale-90">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- BOTTOM FULL BODY MONKEY MASCOT & FEEDBACK HUD -->
+    <div class="relative z-20 p-3 sm:p-4 w-full max-w-5xl mx-auto flex items-end justify-between pointer-events-none mb-1">
+        <div class="pointer-events-auto flex items-end gap-3 sm:gap-4">
+            
+            <!-- FULL BODY MONKEY CHARACTER (SVG with Continuous Eye Blink & Dance Animations) -->
+            <div id="monkeyContainer" class="w-24 h-32 sm:w-32 sm:h-44 md:w-36 md:h-48 relative monkey-idle-anim filter drop-shadow-2xl transition-all duration-300">
+                <svg viewBox="0 0 160 220" class="w-full h-full">
+                    <!-- Tail -->
+                    <path class="monkey-tail" d="M 50 170 C 20 180, 10 130, 25 110 C 35 95, 45 120, 30 135" fill="none" stroke="#7C3A21" stroke-width="10" stroke-linecap="round"/>
+                    
+                    <!-- Feet / Legs -->
+                    <ellipse cx="50" cy="200" rx="16" ry="10" fill="#7C3A21"/>
+                    <ellipse cx="110" cy="200" rx="16" ry="10" fill="#7C3A21"/>
+                    <ellipse cx="50" cy="198" rx="10" ry="6" fill="#E8A87C"/>
+                    <ellipse cx="110" cy="198" rx="10" ry="6" fill="#E8A87C"/>
+
+                    <!-- Body -->
+                    <ellipse cx="80" cy="155" rx="38" ry="42" fill="#8D4925"/>
+                    <!-- Tummy -->
+                    <ellipse cx="80" cy="158" rx="26" ry="30" fill="#E8A87C"/>
+
+                    <!-- Arms -->
+                    <g id="monkeyArms">
+                        <!-- Left Arm -->
+                        <path id="leftArm" d="M 45 135 Q 25 155 35 175" fill="none" stroke="#8D4925" stroke-width="12" stroke-linecap="round"/>
+                        <circle cx="35" cy="175" r="8" fill="#E8A87C"/>
+                        <!-- Right Arm -->
+                        <path id="rightArm" d="M 115 135 Q 135 155 125 175" fill="none" stroke="#8D4925" stroke-width="12" stroke-linecap="round"/>
+                        <circle cx="125" cy="175" r="8" fill="#E8A87C"/>
+                    </g>
+
+                    <!-- Head Group -->
+                    <g id="monkeyHead">
+                        <!-- Ears -->
+                        <circle cx="32" cy="70" r="18" fill="#8D4925"/>
+                        <circle cx="32" cy="70" r="11" fill="#E8A87C"/>
+                        <circle cx="128" cy="70" r="18" fill="#8D4925"/>
+                        <circle cx="128" cy="70" r="11" fill="#E8A87C"/>
+
+                        <!-- Head Outer -->
+                        <ellipse cx="80" cy="75" rx="42" ry="38" fill="#8D4925"/>
+
+                        <!-- Face Mask -->
+                        <path d="M 50 65 C 50 45, 70 48, 80 58 C 90 48, 110 45, 110 65 C 110 88, 95 100, 80 100 C 65 100, 50 88, 50 65 Z" fill="#E8A87C"/>
+
+                        <!-- EYES (WITH CONTINUOUS BLINKING ANIMATION) -->
+                        <g id="monkeyEyes">
+                            <!-- Left Eye Pupil & Highlights -->
+                            <ellipse id="leftEyeBall" cx="66" cy="68" rx="7" ry="9" fill="#1E1B4B"/>
+                            <circle id="leftEyePupil" cx="68" cy="66" r="3" fill="#FFFFFF"/>
+                            <!-- Right Eye Pupil & Highlights -->
+                            <ellipse id="rightEyeBall" cx="94" cy="68" rx="7" ry="9" fill="#1E1B4B"/>
+                            <circle id="rightEyePupil" cx="96" cy="66" r="3" fill="#FFFFFF"/>
+
+                            <!-- Blink Lids (toggled via JS timer) -->
+                            <ellipse id="leftEyelid" cx="66" cy="68" rx="8" ry="1" fill="#8D4925" opacity="0"/>
+                            <ellipse id="rightEyelid" cx="94" cy="68" rx="8" ry="1" fill="#8D4925" opacity="0"/>
+                        </g>
+
+                        <!-- Snout & Nose -->
+                        <ellipse cx="80" cy="84" rx="8" ry="5" fill="#4A2511"/>
+
+                        <!-- Mouth -->
+                        <path id="monkeyMouth" d="M 68 90 Q 80 100 92 90" fill="none" stroke="#4A2511" stroke-width="3.5" stroke-linecap="round"/>
+
+                        <!-- Cheek Blush -->
+                        <circle cx="56" cy="82" r="5" fill="#FF7B7B" opacity="0.5"/>
+                        <circle cx="104" cy="82" r="5" fill="#FF7B7B" opacity="0.5"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Speech Bubble -->
+            <div id="mascotBubble" class="glass-card relative bubble-arrow p-3 sm:p-4 rounded-2xl max-w-xs sm:max-w-md shadow-2xl transition-all duration-300 bg-white/95 text-slate-900 border-2 border-amber-300">
+                <p id="mascotText" class="text-slate-900 text-sm sm:text-base font-bold leading-snug">
+                    স্বাগতম! সঠিক নম্বরের গ্যাস বেলুনটি কেটে ফেলো! 🎈
+                </p>
+            </div>
+        </div>
+
+        <!-- Mode Indicator -->
+        <div class="pointer-events-auto hidden sm:flex glass-panel px-4 py-2 rounded-xl text-white text-xs sm:text-sm font-semibold items-center gap-2">
+            <i class="fa-solid fa-gamepad text-emerald-400"></i>
+            <span id="modeDisplay">বাংলা | ১ - ২০ | এলোমেলো</span>
+        </div>
+    </div>
+
+
+    <!-- ================= MODALS & OVERLAYS ================= -->
+
+    <!-- START MAIN MENU OVERLAY -->
+    <div id="startMenuModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card bg-gradient-to-b from-indigo-900/95 to-slate-900/95 text-white border-2 border-indigo-400/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="text-5xl sm:text-6xl mb-3 text-amber-400 font-extrabold animate-bounce">
+                    🎈🗡️🐒
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-pink-400 mb-2">
+                    বেলুন নিনজা
+                </h1>
+                <p class="text-base sm:text-lg text-indigo-200 mb-6">
+                    Gas Balloon Ninja Number Learner
+                </p>
+
+                <div class="space-y-3 mb-6 text-left">
+                    <label class="block text-xs uppercase font-bold text-indigo-300 tracking-wider">ভাষা নির্বাচন / Select Language:</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="startLangBnBtn" onclick="quickSelectLang('bn')" class="py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center transition flex items-center justify-center gap-2">
+                            <span>🇧🇩</span> বাংলা (Bengali)
+                        </button>
+                        <button id="startLangEnBtn" onclick="quickSelectLang('en')" class="py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center transition flex items-center justify-center gap-2">
+                            <span>🇬🇧</span> English
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="startGame()" class="btn-3d flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer">
+                        <i class="fa-solid fa-play text-2xl"></i> খেলা শুরু করুন
+                    </button>
+                    <button onclick="openSettingsModal()" class="btn-3d py-4 px-5 rounded-2xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-bold text-lg flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card bg-slate-900/95 text-white border border-white/20 rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
+                <h2 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-gear"></i> সেটিংস / Settings
+                </h2>
+                <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-5">
+                <!-- Custom Number Range Choice (Min & Max) -->
+                <div>
+                    <label class="block text-sm font-semibold text-indigo-300 mb-2">সংখ্যার সীমা / Custom Number Range:</label>
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                        <div>
+                            <span class="text-xs text-slate-400 block mb-1">সর্বনিম্ন (Min):</span>
+                            <input type="number" id="minRangeInput" value="1" min="1" max="999" class="w-full px-3 py-2 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 block mb-1">সর্বোচ্চ (Max):</span>
+                            <input type="number" id="maxRangeInput" value="20" min="2" max="1000" class="w-full px-3 py-2 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+                    <!-- Quick Presets -->
+                    <div class="flex gap-2 text-xs">
+                        <button onclick="applyPresetRange(1, 10)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-১০</button>
+                        <button onclick="applyPresetRange(1, 20)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-২০</button>
+                        <button onclick="applyPresetRange(1, 50)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-৫০</button>
+                        <button onclick="applyPresetRange(1, 100)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-১০০</button>
+                    </div>
+                </div>
+
+                <!-- Number Appearing Pattern Sequence -->
+                <div>
+                    <label class="block text-sm font-semibold text-indigo-300 mb-2">সংখ্যার ক্রমানুসারের প্যাটার্ন / Number Sequence Pattern:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="patternAsc" onclick="setPattern('ascending')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center">ছোট থেকে বড় (1,2,3...)</button>
+                        <button id="patternDesc" onclick="setPattern('descending')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center">বড় থেকে ছোট (10,9,8...)</button>
+                        <button id="patternMix" onclick="setPattern('mixed')" class="p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center">এলোমেলো (Mixed)</button>
+                    </div>
+                </div>
+
+                <!-- Knife Durability / Availing Number Setting -->
+                <div>
+                    <label class="block text-sm font-semibold text-indigo-300 mb-2">ছুরি স্থায়িত্ব / Knife Durability (Attempts):</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="knifeDurabilityInput" min="1" max="10" value="3" oninput="document.getElementById('knifeDurVal').innerText = this.value" class="w-full accent-amber-400 cursor-pointer">
+                        <span id="knifeDurVal" class="text-2xl font-black text-amber-400 w-8 text-center">3</span>
+                    </div>
+                </div>
+
+                <!-- Language Choice -->
+                <div>
+                    <label class="block text-sm font-semibold text-indigo-300 mb-2">ভাষা / Language:</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="setLangBn" onclick="setLanguage('bn')" class="p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2">
+                            🇧🇩 বাংলা (Bengali)
+                        </button>
+                        <button id="setLangEn" onclick="setLanguage('en')" class="p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2">
+                            🇬🇧 English
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Speed / Difficulty Level -->
+                <div>
+                    <label class="block text-sm font-semibold text-indigo-300 mb-2">বেলুনের গতি / Balloon Speed Level:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="diffEasy" onclick="setDifficulty('easy')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">ধীর (Slow)</button>
+                        <button id="diffMedium" onclick="setDifficulty('medium')" class="p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center">মাঝারি (Medium)</button>
+                        <button id="diffHard" onclick="setDifficulty('hard')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">দ্রুত (Fast)</button>
+                    </div>
+                </div>
+
+                <!-- Audio Controls -->
+                <div class="space-y-3 pt-2 border-t border-white/10">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-slate-200">ব্যাকগ্রাউন্ড মিউজিক (BGM)</span>
+                        <input type="checkbox" id="bgmToggle" onchange="toggleBGMSetting(this.checked)" checked class="w-5 h-5 accent-amber-400 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold text-slate-200">শব্দ প্রভাব (Sound Effects)</span>
+                        <input type="checkbox" id="sfxToggle" onchange="toggleSFXSetting(this.checked)" checked class="w-5 h-5 accent-amber-400 rounded cursor-pointer">
+                    </div>
+                </div>
+
+                <button onclick="saveAndCloseSettings()" class="btn-3d w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-lg transition">
+                    সংরক্ষণ করুন ও বন্ধ করুন (Save & Close)
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- GAME OVER / RECAP MODAL -->
+    <div id="gameOverModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+        <div class="glass-card bg-gradient-to-b from-indigo-950 to-slate-900 text-white border-2 border-amber-400/50 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
+            <h2 id="gameOverTitle" class="text-3xl sm:text-4xl font-extrabold text-amber-400 mb-1">ছুরি ভেঙে গেছে! 🗡️💥</h2>
+            <p id="gameOverSub" class="text-indigo-200 text-sm mb-4">Knife Broken - Game Over!</p>
+
+            <div id="starContainer" class="flex justify-center gap-3 text-4xl sm:text-5xl text-amber-400 mb-6">
+                <i class="fa-solid fa-star drop-shadow"></i>
+                <i class="fa-solid fa-star drop-shadow"></i>
+                <i class="fa-solid fa-star text-slate-600"></i>
+            </div>
+
+            <div class="bg-white/5 rounded-2xl p-4 mb-5 border border-white/10 grid grid-cols-2 gap-3 text-left">
+                <div>
+                    <span class="text-xs text-indigo-300 block">মোট স্কোর (Score)</span>
+                    <span id="finalScore" class="text-2xl font-bold text-white">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-indigo-300 block">সর্বোচ্চ কম্বো (Max Combo)</span>
+                    <span id="finalCombo" class="text-2xl font-bold text-amber-300">0x</span>
+                </div>
+            </div>
+
+            <div class="text-left mb-6">
+                <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">শেখা সংখ্যাসমূহ (Learned Numbers):</h3>
+                <div id="learnedNumbersList" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-white/10 text-xs text-slate-200">
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="startGame()" class="btn-3d flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> আবার খেলুন
+                </button>
+                <button onclick="returnToMainMenu()" class="btn-3d py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg flex items-center justify-center">
+                    <i class="fa-solid fa-house"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- BOMB BLAST CELEBRATION & PRIZE MODAL -->
+    <div id="prizeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+        <div class="glass-card bg-gradient-to-b from-purple-950 via-slate-900 to-indigo-950 text-white border-4 border-amber-400/80 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden animate-bounce-gentle">
+            
+            <div class="text-6xl sm:text-7xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-2">
+                অভিনন্দন! বিজয়ী! 🎉
+            </h2>
+            <p id="prizeSubtitle" class="text-indigo-200 text-base sm:text-lg mb-6">
+                তুমি সবকটি সঠিক নম্বরের বেলুন কেটে সম্পন্ন করেছ!
+            </p>
+
+            <div class="flex justify-center items-center gap-4 my-6">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-amber-400/20 border-2 border-amber-400 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-award text-amber-400 text-3xl sm:text-4xl mb-1"></i>
+                    <span class="text-[10px] font-bold uppercase text-amber-300">Prize Trophy</span>
+                </div>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-400/20 border-2 border-emerald-400 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-crown text-emerald-400 text-3xl sm:text-4xl mb-1"></i>
+                    <span class="text-[10px] font-bold uppercase text-emerald-300">Number Master</span>
+                </div>
+            </div>
+
+            <div class="bg-white/10 rounded-2xl p-4 mb-6 text-left border border-white/15">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-indigo-300">অর্জিত নম্বর / Completion Score:</span>
+                    <span id="prizeScore" class="text-2xl font-black text-amber-300">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-indigo-300">সঠিক কাটা বেলুন / Target Balloons Cut:</span>
+                    <span id="prizeBalloonsCut" class="text-lg font-bold text-emerald-300">0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="startGame()" class="btn-3d flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> পরবর্তী রাউন্ড (Play Again)
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- PAUSE MODAL -->
+    <div id="pauseModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+        <div class="glass-card bg-slate-900 text-white border border-white/20 rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl">
+            <h2 class="text-2xl font-bold text-amber-400 mb-4"><i class="fa-solid fa-pause"></i> বিরতি (Paused)</h2>
+            <div class="space-y-3">
+                <button onclick="togglePause()" class="btn-3d w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold">খেলা চালিয়ে যান (Resume)</button>
+                <button onclick="openSettingsModal()" class="btn-3d w-full py-3 rounded-xl bg-indigo-600 text-white font-bold">সেটিংস (Settings)</button>
+                <button onclick="returnToMainMenu()" class="btn-3d w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold">প্রধান মেনু (Main Menu)</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- GAME ENGINE & LOGIC SCRIPT -->
+    <script>
+        /* ====================================================================
+           1. BENGALI & ENGLISH NUMBER DICTIONARY
+           ==================================================================== */
+        const BENGALI_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        
+        function toBengaliDigits(num) {
+            return num.toString().split('').map(d => BENGALI_DIGITS[parseInt(d)] || d).join('');
+        }
+
+        const BENGALI_WORDS = {
+            1: "এক", 2: "দুই", 3: "তিন", 4: "চার", 5: "পাঁচ", 6: "ছয়", 7: "সাত", 8: "আট", 9: "নয়", 10: "দশ",
+            11: "এগারো", 12: "বারো", 13: "তেরো", 14: "চৌদ্দ", 15: "পনেরো", 16: "ষোলো", 17: "সতেরো", 18: "আঠারো", 19: "ঊনত্রিশ", 20: "বিশ",
+            21: "একুশ", 22: "বাইশ", 23: "তেইশ", 24: "চব্বিশ", 25: "পঁচিশ", 26: "ছাব্বিশ", 27: "সাতাশ", 28: "আটাশ", 29: "ঊনত্রিশ", 30: "ত্রিশ",
+            31: "একত্রিশ", 32: "বত্রিশ", 33: "তেত্রিশ", 34: "চৌত্রিশ", 35: "পঁয়ত্রিশ", 36: "ছত্রিশ", 37: "সাইত্রিশ", 38: "আটত্রিশ", 39: "ঊনচল্লিশ", 40: "চল্লিশ",
+            41: "একচল্লিশ", 42: "বিয়াল্লিশ", 43: "তেতাল্লিশ", 44: "চুয়াল্লিশ", 45: "পঁচতাল্লিশ", 46: "ছেচল্লিশ", 47: "সাতচল্লিশ", 48: "আটচল্লিশ", 49: "ঊনপঞ্চাশ", 50: "পঞ্চাশ",
+            51: "একান্ন", 52: "বায়ান্ন", 53: "তিপ্পান্ন", 54: "চুয়ান্ন", 55: "পঞ্চান্ন", 56: "ছাপ্পান্ন", 57: "সাতান্ন", 58: "আটান্ন", 59: "ঊনষাট", 60: "ষাট",
+            61: "একষট্টি", 62: "বাষট্টি", 63: "তেষট্টি", 64: "চৌষট্টি", 65: "পঁয়ষট্টি", 66: "ছেষট্টি", 67: "সাতষট্টি", 68: "আটষট্টি", 69: "ঊনসপ্ততি", 70: "সপ্ততি",
+            71: "একাত্তর", 72: "বাহাত্তর", 73: "তেহাত্তর", 74: "চুয়াত্তর", 75: "পঁচাত্তর", 76: "ছিয়াত্তর", 77: "সাতাত্তর", 78: "আটাত্তর", 79: "ঊনআশি", 80: "আশি",
+            81: "একাশি", 82: "বিরাশি", 83: "তিরাশি", 84: "চুরাশি", 85: "পঁচাশি", 86: "ছিয়াশি", 87: "সাতাশি", 88: "আটাশি", 89: "ঊননব্বই", 90: "নব্বই",
+            91: "একানব্বই", 92: "বিরানব্বই", 93: "তীরানব্বই", 94: "চুরানব্বই", 95: "পঁচানব্বই", 96: "ছিয়ানব্বই", 97: "সাতানব্বই", 98: "আটানব্বই", 99: "নিরানব্বই", 100: "একশ"
+        };
+
+        const ENGLISH_WORDS = {
+            1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten",
+            11: "Eleven", 12: "Twelve", 13: "Thirteen", 14: "Fourteen", 15: "Fifteen", 16: "Sixteen", 17: "Seventeen", 18: "Eighteen", 19: "Nineteen", 20: "Twenty",
+            30: "Thirty", 40: "Forty", 50: "Fifty", 60: "Sixty", 70: "Seventy", 80: "Eighty", 90: "Ninety", 100: "One Hundred"
+        };
+
+        function getEnglishWord(num) {
+            if (ENGLISH_WORDS[num]) return ENGLISH_WORDS[num];
+            if (num > 20 && num < 100) {
+                let tens = Math.floor(num / 10) * 10;
+                let units = num % 10;
+                return ENGLISH_WORDS[tens] + "-" + ENGLISH_WORDS[units];
+            }
+            return num.toString();
+        }
+
+        function getNumberDisplayData(num, lang) {
+            if (lang === 'bn') {
+                const bnDigits = toBengaliDigits(num);
+                const word = BENGALI_WORDS[num] || bnDigits;
+                if (num > 10 && num < 20) {
+                    const unitWord = BENGALI_WORDS[num % 10];
+                    return { primary: `এক দশ ${unitWord} - ${word} (${bnDigits})`, speech: `এক দশ ${unitWord}, ${word}`, digits: bnDigits, wordOnly: word };
+                } else if (num > 20 && num < 100 && num % 10 !== 0) {
+                    const tens = Math.floor(num / 10);
+                    const tensWord = BENGALI_WORDS[tens];
+                    const unitWord = BENGALI_WORDS[num % 10];
+                    return { primary: `${tensWord} দশ ${unitWord} - ${word} (${bnDigits})`, speech: `${word}`, digits: bnDigits, wordOnly: word };
+                } else {
+                    return { primary: `${word} (${bnDigits})`, speech: word, digits: bnDigits, wordOnly: word };
+                }
+            } else {
+                const word = getEnglishWord(num);
+                if (num > 10 && num < 20) {
+                    const unit = num - 10;
+                    return { primary: `Ten plus ${getEnglishWord(unit)} - ${word} (${num})`, speech: `Ten plus ${getEnglishWord(unit)}, ${word}`, digits: num.toString(), wordOnly: word };
+                } else {
+                    return { primary: `${word} (${num})`, speech: word, digits: num.toString(), wordOnly: word };
+                }
+            }
+        }
+
+
+        /* ====================================================================
+           2. GAS BALLOON COLOR PALETTES & ARTWORK CONFIG
+           ==================================================================== */
+        const BALLOON_PALETTES = [
+            { main: '#EF4444', shine: '#FCA5A5', shadow: '#991B1B', nameBn: 'লাল বেলুন', nameEn: 'Red Balloon' },
+            { main: '#3B82F6', shine: '#93C5FD', shadow: '#1E40AF', nameBn: 'নীল বেলুন', nameEn: 'Blue Balloon' },
+            { main: '#10B981', shine: '#6EE7B7', shadow: '#065F46', nameBn: 'সবুজ বেলুন', nameEn: 'Green Balloon' },
+            { main: '#F59E0B', shine: '#FDE047', shadow: '#92400E', nameBn: 'হলুদ বেলুন', nameEn: 'Yellow Balloon' },
+            { main: '#EC4899', shine: '#FBCFE8', shadow: '#9D174D', nameBn: 'গোলাপী বেলুন', nameEn: 'Pink Balloon' },
+            { main: '#8B5CF6', shine: '#C4B5FD', shadow: '#5B21B6', nameBn: 'বেগুনি বেলুন', nameEn: 'Purple Balloon' }
+        ];
+
+
+        /* ====================================================================
+           3. WEB AUDIO SYNTHESIZER (BGM + SFX + BOMB BLAST)
+           ==================================================================== */
+        let audioCtx = null;
+        let bgmOsc = null;
+        let bgmGain = null;
+        let isBgmPlaying = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function startBGM() {
+            if (!gameState.bgmEnabled || isBgmPlaying) return;
+            try {
+                initAudio();
+                const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23];
+                let noteIdx = 0;
+
+                bgmGain = audioCtx.createGain();
+                bgmGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                bgmGain.connect(audioCtx.destination);
+
+                function playMelodicLoop() {
+                    if (!gameState.bgmEnabled || gameState.isPaused || gameState.isGameOver) return;
+                    bgmOsc = audioCtx.createOscillator();
+                    bgmOsc.type = 'sine';
+                    bgmOsc.frequency.setValueAtTime(notes[noteIdx], audioCtx.currentTime);
+                    
+                    const noteGain = audioCtx.createGain();
+                    noteGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                    noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
+
+                    bgmOsc.connect(noteGain);
+                    noteGain.connect(bgmGain);
+
+                    bgmOsc.start();
+                    bgmOsc.stop(audioCtx.currentTime + 0.9);
+
+                    noteIdx = (noteIdx + 1) % notes.length;
+                    setTimeout(playMelodicLoop, 950);
+                }
+
+                isBgmPlaying = true;
+                playMelodicLoop();
+            } catch(e) { console.log('Audio error', e); }
+        }
+
+        function stopBGM() {
+            isBgmPlaying = false;
+        }
+
+        function playSFX(type) {
+            if (!gameState.sfxEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            if (type === 'pop') {
+                // Balloon Pop Noise Burst
+                const bufferSize = audioCtx.sampleRate * 0.08;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                noise.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+
+            } else if (type === 'slice') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(900, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+
+            } else if (type === 'correct') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.22);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.22);
+                });
+
+            } else if (type === 'knife_damage') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+
+            } else if (type === 'bomb_blast') {
+                // High-energy Bomb Blast Explosive Sound
+                const bufferSize = audioCtx.sampleRate * 0.6;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                noise.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+            }
+        }
+
+
+        /* ====================================================================
+           4. SPEECH SYNTHESIS
+           ==================================================================== */
+        function speakText(text, lang) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.85;
+            utterance.pitch = 1.1;
+            utterance.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
+
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                const targetVoice = voices.find(v => v.lang.startsWith(lang === 'bn' ? 'bn' : 'en'));
+                if (targetVoice) utterance.voice = targetVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+
+        /* ====================================================================
+           5. GAME STATE & CONFIG
+           ==================================================================== */
+        const gameState = {
+            score: 0,
+            maxKnifeDurability: 3,
+            knifeDurability: 3,
+            combo: 0,
+            maxCombo: 0,
+            targetNumber: 1,
+            minRange: 1,
+            maxRange: 20,
+            language: 'bn',
+            difficulty: 'medium',
+            patternSequence: 'mixed', // 'ascending', 'descending', 'mixed'
+            currentSequenceIndex: 0,
+            sequenceList: [],
+            bgmEnabled: true,
+            sfxEnabled: true,
+            isPaused: false,
+            isGameOver: false,
+            isPlaying: false,
+            learnedNumbers: new Set(),
+            spawnTimer: 0,
+            spawnInterval: 110,
+            targetBalloonsCut: 0
+        };
+
+
+        /* ====================================================================
+           6. CANVAS PHYSICS, LAUNCHER MONKEYS & TOUCH / POINTER FIXES
+           ==================================================================== */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.style.touchAction = 'none'; // Prevent browser gestures on touchscreens
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initLauncherMonkeys();
+        });
+
+        let balloons = [];
+        let sliceParticles = [];
+        let sparkEffects = [];
+        let fireworkParticles = [];
+        let bladeTrail = [];
+        let currentKnifePos = { x: width / 2, y: height / 2, angle: 0 };
+        let isTouching = false;
+        let activePointerId = null;
+        let launcherMonkeys = [];
+
+        // Unified Pointer Events (Fully fixes Mobile, Tablet, and Desktop Touch/Mouse issues)
+        canvas.addEventListener('pointerdown', (e) => {
+            isTouching = true;
+            activePointerId = e.pointerId;
+            try {
+                canvas.setPointerCapture(e.pointerId);
+            } catch(err) {}
+
+            bladeTrail = [];
+            currentKnifePos.x = e.clientX;
+            currentKnifePos.y = e.clientY;
+            bladeTrail.push({ x: e.clientX, y: e.clientY, time: Date.now() });
+            initAudio();
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isTouching || (activePointerId !== null && e.pointerId !== activePointerId)) {
+                if (!isTouching) {
+                    currentKnifePos.x = e.clientX;
+                    currentKnifePos.y = e.clientY;
+                }
+                return;
+            }
+
+            const dx = e.clientX - currentKnifePos.x;
+            const dy = e.clientY - currentKnifePos.y;
+            if (Math.hypot(dx, dy) > 2) {
+                currentKnifePos.angle = Math.atan2(dy, dx);
+            }
+            currentKnifePos.x = e.clientX;
+            currentKnifePos.y = e.clientY;
+
+            bladeTrail.push({ x: e.clientX, y: e.clientY, time: Date.now() });
+            if (bladeTrail.length > 14) bladeTrail.shift();
+
+            checkSliceIntersections(e.clientX, e.clientY);
+        });
+
+        function endPointerInteraction(e) {
+            if (activePointerId !== null && e.pointerId === activePointerId) {
+                isTouching = false;
+                activePointerId = null;
+                try {
+                    canvas.releasePointerCapture(e.pointerId);
+                } catch(err) {}
+            }
+        }
+
+        canvas.addEventListener('pointerup', endPointerInteraction);
+        canvas.addEventListener('pointercancel', endPointerInteraction);
+
+
+        /* --------------------------------------------------------------------
+           MONKEY BALLOON LAUNCHERS (Bottom of Screen)
+           -------------------------------------------------------------------- */
+        class LauncherMonkey {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.armAngle = 0;
+                this.state = 'idle'; // 'idle', 'holding', 'releasing'
+                this.animTimer = Math.random() * 100;
+                this.heldBalloonPalette = null;
+                this.heldBalloonNum = null;
+            }
+
+            holdBalloon(number, palette) {
+                this.heldBalloonNum = number;
+                this.heldBalloonPalette = palette;
+                this.state = 'holding';
+            }
+
+            releaseBalloon() {
+                this.state = 'releasing';
+                this.animTimer = 0;
+            }
+
+            update() {
+                this.animTimer += 0.05;
+                if (this.state === 'releasing' && this.animTimer > 1) {
+                    this.state = 'idle';
+                    this.heldBalloonNum = null;
+                    this.heldBalloonPalette = null;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                const bob = Math.sin(this.animTimer * 2) * 3;
+                ctx.translate(0, bob);
+
+                // Body scale
+                const scale = Math.min(width, height) * 0.00085 + 0.35;
+                ctx.scale(scale, scale);
+
+                // Monkey Body Shadow
+                ctx.beginPath();
+                ctx.ellipse(0, 38, 25, 8, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fill();
+
+                // Tail
+                ctx.beginPath();
+                ctx.moveTo(-15, 10);
+                ctx.quadraticCurveTo(-35, 15, -28, -15);
+                ctx.strokeStyle = '#7C3A21';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                // Legs / Feet
+                ctx.fillStyle = '#7C3A21';
+                ctx.beginPath();
+                ctx.ellipse(-14, 32, 10, 6, 0, 0, Math.PI * 2);
+                ctx.ellipse(14, 32, 10, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body Torso
+                ctx.beginPath();
+                ctx.ellipse(0, 10, 22, 25, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#8D4925';
+                ctx.fill();
+
+                // Tummy Patch
+                ctx.beginPath();
+                ctx.ellipse(0, 12, 15, 17, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#E8A87C';
+                ctx.fill();
+
+                // Arms & Holding Balloon Logic
+                ctx.strokeStyle = '#8D4925';
+                ctx.lineWidth = 7;
+                ctx.lineCap = 'round';
+
+                if (this.state === 'holding') {
+                    // Left Arm up holding string
+                    ctx.beginPath();
+                    ctx.moveTo(-18, 0);
+                    ctx.quadraticCurveTo(-28, -25, 0, -40);
+                    ctx.stroke();
+
+                    // Right Arm waving
+                    ctx.beginPath();
+                    ctx.moveTo(18, 0);
+                    ctx.quadraticCurveTo(28, -15, 22, -30 + Math.sin(this.animTimer * 4) * 6);
+                    ctx.stroke();
+
+                    // Render Held Balloon overlay before flying
+                    if (this.heldBalloonPalette) {
+                        const bx = 0;
+                        const by = -95;
+                        const rx = 24;
+                        const ry = 30;
+
+                        // String to monkey hand
+                        ctx.beginPath();
+                        ctx.moveTo(bx, by + ry);
+                        ctx.lineTo(0, -40);
+                        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        // Balloon
+                        ctx.beginPath();
+                        ctx.ellipse(bx, by, rx, ry, 0, 0, Math.PI * 2);
+                        ctx.fillStyle = this.heldBalloonPalette.main;
+                        ctx.fill();
+
+                        // Number badge
+                        ctx.beginPath();
+                        ctx.arc(bx, by, rx * 0.65, 0, Math.PI * 2);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fill();
+
+                        const displayNum = gameState.language === 'bn' ? toBengaliDigits(this.heldBalloonNum) : this.heldBalloonNum.toString();
+                        ctx.fillStyle = '#0F172A';
+                        ctx.font = `bold ${rx * 0.75}px 'Atma', sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(displayNum, bx, by);
+                    }
+
+                } else if (this.state === 'releasing') {
+                    // Arms flung upward releasing
+                    ctx.beginPath();
+                    ctx.moveTo(-18, 0);
+                    ctx.quadraticCurveTo(-25, -45, -12, -50);
+                    ctx.moveTo(18, 0);
+                    ctx.quadraticCurveTo(25, -45, 12, -50);
+                    ctx.stroke();
+                } else {
+                    // Idle arms
+                    ctx.beginPath();
+                    ctx.moveTo(-18, 0);
+                    ctx.quadraticCurveTo(-28, 12, -18, 22);
+                    ctx.moveTo(18, 0);
+                    ctx.quadraticCurveTo(28, 12, 18, 22);
+                    ctx.stroke();
+                }
+
+                // Head
+                ctx.beginPath();
+                ctx.ellipse(0, -25, 24, 21, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#8D4925';
+                ctx.fill();
+
+                // Ears
+                ctx.beginPath();
+                ctx.arc(-22, -28, 9, 0, Math.PI * 2);
+                ctx.arc(22, -28, 9, 0, Math.PI * 2);
+                ctx.fillStyle = '#8D4925';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(-22, -28, 5, 0, Math.PI * 2);
+                ctx.arc(22, -28, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#E8A87C';
+                ctx.fill();
+
+                // Face Mask
+                ctx.beginPath();
+                ctx.ellipse(0, -22, 16, 14, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#E8A87C';
+                ctx.fill();
+
+                // Eyes (Cute dots)
+                ctx.fillStyle = '#1E1B4B';
+                ctx.beginPath();
+                ctx.arc(-7, -26, 3, 0, Math.PI * 2);
+                ctx.arc(7, -26, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Snout & Smile
+                ctx.fillStyle = '#4A2511';
+                ctx.beginPath();
+                ctx.arc(0, -20, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(0, -18, 5, 0.1, Math.PI - 0.1);
+                ctx.strokeStyle = '#4A2511';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        function initLauncherMonkeys() {
+            launcherMonkeys = [];
+            const count = 3;
+            const spacing = width / (count + 1);
+            for (let i = 0; i < count; i++) {
+                const x = spacing * (i + 1);
+                const y = height - 32;
+                launcherMonkeys.push(new LauncherMonkey(x, y));
+            }
+        }
+
+
+        /* --------------------------------------------------------------------
+           GAS BALLOON PHYSICS CLASS (Floats Upward with Wave Wobble & String)
+           -------------------------------------------------------------------- */
+        class GasBalloon {
+            constructor(number, startX, startY, isTarget = false) {
+                this.number = number;
+                this.isTarget = isTarget;
+                this.palette = BALLOON_PALETTES[Math.floor(Math.random() * BALLOON_PALETTES.length)];
+                this.radius = Math.min(width, height) * 0.05 + 22;
+
+                this.x = startX;
+                this.y = startY;
+
+                // Gentle Upward Gas Floating Speed
+                let speedMult = gameState.difficulty === 'easy' ? 0.8 : gameState.difficulty === 'hard' ? 1.3 : 1.0;
+                this.vy = -(Math.random() * 2.2 + 2.8) * speedMult;
+                this.vxWaveAmplitude = Math.random() * 2.2 + 1.2;
+                this.vxWaveFrequency = Math.random() * 0.03 + 0.02;
+                this.waveOffset = Math.random() * Math.PI * 2;
+
+                this.isSliced = false;
+            }
+
+            update() {
+                if (!this.isSliced) {
+                    this.y += this.vy;
+                    this.x += Math.sin(this.y * this.vxWaveFrequency + this.waveOffset) * this.vxWaveAmplitude;
+                }
+            }
+
+            draw() {
+                if (this.isSliced) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                const rx = this.radius * 0.85;
+                const ry = this.radius * 1.1;
+
+                // Draw Hanging Balloon String
+                ctx.beginPath();
+                ctx.moveTo(0, ry);
+                ctx.quadraticCurveTo(Math.sin(this.y * 0.05) * 15, ry + 25, Math.sin(this.y * 0.02) * 10, ry + 50);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw Balloon Body (Egg/Oval Shape)
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                ctx.fillStyle = this.palette.main;
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+
+                // Shiny Curved Highlight
+                ctx.beginPath();
+                ctx.ellipse(-rx * 0.35, -ry * 0.35, rx * 0.28, ry * 0.28, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fillStyle = this.palette.shine;
+                ctx.globalAlpha = 0.65;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                // Balloon Bottom Knot
+                ctx.beginPath();
+                ctx.moveTo(-6, ry);
+                ctx.lineTo(6, ry);
+                ctx.lineTo(0, ry + 8);
+                ctx.closePath();
+                ctx.fillStyle = this.palette.shadow;
+                ctx.fill();
+
+                // Number Badge Overlay Circle
+                ctx.beginPath();
+                ctx.arc(0, -4, rx * 0.68, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = this.palette.shadow;
+                ctx.stroke();
+
+                // Display Number Digits
+                const displayNum = gameState.language === 'bn' ? toBengaliDigits(this.number) : this.number.toString();
+                ctx.fillStyle = '#0F172A';
+                ctx.font = `bold ${rx * 0.72}px 'Atma', 'Fredoka', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 0;
+                ctx.fillText(displayNum, 0, -2);
+
+                // Render Bengali Number Word Below
+                const numData = getNumberDisplayData(this.number, gameState.language);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `bold ${rx * 0.42}px 'Hind Siliguri', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                ctx.strokeText(numData.wordOnly, 0, ry + 22);
+                ctx.fillText(numData.wordOnly, 0, ry + 22);
+
+                ctx.restore();
+            }
+        }
+
+
+        /* --------------------------------------------------------------------
+           Air Particles & Bomb Blast Fireworks
+           -------------------------------------------------------------------- */
+        function createBalloonPopParticles(x, y, color) {
+            for (let i = 0; i < 24; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 8 + 3;
+                sliceParticles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 7 + 3,
+                    color: color,
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+
+        function createKnifeSparks(x, y) {
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 12 + 4;
+                sparkEffects.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    length: Math.random() * 10 + 5,
+                    color: Math.random() > 0.5 ? '#FACC15' : '#EF4444',
+                    alpha: 1,
+                    decay: 0.04
+                });
+            }
+        }
+
+        function triggerBombBlastCelebration() {
+            playSFX('bomb_blast');
+            const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#FDE047'];
+
+            for (let burst = 0; burst < 5; burst++) {
+                const bx = Math.random() * (width - 200) + 100;
+                const by = Math.random() * (height * 0.6) + 100;
+
+                for (let i = 0; i < 60; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 16 + 4;
+                    fireworkParticles.push({
+                        x: bx, y: by,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: Math.random() * 8 + 4,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            }
+        }
+
+        function updateParticlesAndSparks() {
+            // Balloon Particles
+            for (let i = sliceParticles.length - 1; i >= 0; i--) {
+                const p = sliceParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.15;
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    sliceParticles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Sparks
+            for (let i = sparkEffects.length - 1; i >= 0; i--) {
+                const s = sparkEffects[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                s.alpha -= s.decay;
+
+                if (s.alpha <= 0) {
+                    sparkEffects.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = s.alpha;
+                ctx.strokeStyle = s.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s.x - s.vx * 1.5, s.y - s.vy * 1.5);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Fireworks / Bomb Blast
+            for (let i = fireworkParticles.length - 1; i >= 0; i--) {
+                const f = fireworkParticles[i];
+                f.x += f.vx;
+                f.y += f.vy;
+                f.vy += 0.12;
+                f.alpha -= f.decay;
+
+                if (f.alpha <= 0) {
+                    fireworkParticles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = f.alpha;
+                ctx.fillStyle = f.color;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+
+        /* --------------------------------------------------------------------
+           Render Animated Knife Graphic
+           -------------------------------------------------------------------- */
+        function drawKnife(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            ctx.beginPath();
+            ctx.moveTo(25, 0);
+            ctx.lineTo(-20, -7);
+            ctx.lineTo(-30, 0);
+            ctx.lineTo(-20, 7);
+            ctx.closePath();
+            ctx.fillStyle = '#E2E8F0';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#94A3B8';
+            ctx.stroke();
+
+            // Handle
+            ctx.fillStyle = '#78350F';
+            ctx.fillRect(-42, -5, 15, 10);
+
+            ctx.restore();
+        }
+
+
+        /* --------------------------------------------------------------------
+           Slice Collision Mechanics & Voice Feedback
+           -------------------------------------------------------------------- */
+        function checkSliceIntersections(x, y) {
+            if (gameState.isPaused || gameState.isGameOver || !gameState.isPlaying) return;
+
+            balloons.forEach(balloon => {
+                if (!balloon.isSliced) {
+                    const dist = Math.hypot(balloon.x - x, balloon.y - y);
+                    if (dist < balloon.radius * 1.25) {
+                        balloon.isSliced = true;
+
+                        if (balloon.number === gameState.targetNumber) {
+                            // CORRECT TARGET SLICED!
+                            playSFX('correct');
+                            playSFX('pop');
+                            createBalloonPopParticles(balloon.x, balloon.y, balloon.palette.main);
+
+                            // VOICE FEEDBACK FOR CORRECT BALLOON POP
+                            const correctVoiceText = gameState.language === 'bn'
+                                ? "একদম ঠিক বেলুনটা ফাটিয়েছো!"
+                                : "Awesome! You popped the right balloon!";
+                            speakText(correctVoiceText, gameState.language);
+
+                            gameState.score += 10 * (gameState.combo + 1);
+                            gameState.combo++;
+                            if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+                            gameState.learnedNumbers.add(balloon.number);
+                            gameState.targetBalloonsCut++;
+
+                            updateHUD();
+                            triggerMonkeyDance(correctVoiceText);
+
+                            setTimeout(() => {
+                                generateNextTargetInSequence();
+                            }, 1200);
+
+                        } else {
+                            // WRONG BALLOON CUT! DAMAGE KNIFE
+                            playSFX('knife_damage');
+                            createKnifeSparks(balloon.x, balloon.y);
+
+                            const flash = document.getElementById('flashOverlay');
+                            flash.classList.add('damage-flash');
+                            setTimeout(() => flash.classList.remove('damage-flash'), 350);
+
+                            gameState.combo = 0;
+                            gameState.knifeDurability--;
+                            updateHUD();
+
+                            const wrongMsg = gameState.language === 'bn' 
+                                ? `ভুল নম্বর! ছুরিতে ফাটল ধরেছে! 🗡️💥` 
+                                : `Wrong Number! Knife damaged! 🗡️💥`;
+                            triggerMonkeyFeedback(false, wrongMsg);
+
+                            if (gameState.knifeDurability <= 0) {
+                                endGame();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        /* --------------------------------------------------------------------
+           Sequence & Target Spawning Engine (via Monkey Launchers)
+           -------------------------------------------------------------------- */
+        function prepareNumberSequence() {
+            const min = gameState.minRange;
+            const max = gameState.maxRange;
+            let list = [];
+
+            for (let i = min; i <= max; i++) {
+                list.push(i);
+            }
+
+            if (gameState.patternSequence === 'descending') {
+                list.reverse();
+            } else if (gameState.patternSequence === 'mixed') {
+                for (let i = list.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [list[i], list[j]] = [list[j], list[i]];
+                }
+            }
+
+            gameState.sequenceList = list;
+            gameState.currentSequenceIndex = 0;
+        }
+
+        function generateNextTargetInSequence() {
+            if (gameState.currentSequenceIndex >= gameState.sequenceList.length) {
+                // SEQUENCE COMPLETE! TRIGGER CELEBRATION BOMB BLAST & PRIZE
+                triggerBombBlastCelebration();
+                showPrizeModal();
+                return;
+            }
+
+            gameState.targetNumber = gameState.sequenceList[gameState.currentSequenceIndex];
+            gameState.currentSequenceIndex++;
+
+            const data = getNumberDisplayData(gameState.targetNumber, gameState.language);
+            document.getElementById('targetText').innerText = data.primary;
+            speakText(data.speech, gameState.language);
+        }
+
+        function spawnBalloonWave() {
+            if (gameState.isPaused || gameState.isGameOver || !gameState.isPlaying) return;
+
+            const min = gameState.minRange;
+            const max = gameState.maxRange;
+            const balloonCount = gameState.difficulty === 'easy' ? 2 : gameState.difficulty === 'hard' ? 3 : 3;
+
+            let includeTarget = Math.random() < 0.85;
+            let targetSpawned = false;
+
+            for (let i = 0; i < balloonCount; i++) {
+                let num;
+                if (includeTarget && !targetSpawned && i === 0) {
+                    num = gameState.targetNumber;
+                    targetSpawned = true;
+                } else {
+                    do {
+                        num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    } while (num === gameState.targetNumber && Math.random() > 0.15);
+                }
+
+                // Pick a monkey launcher to hold & release
+                const monkey = launcherMonkeys[i % launcherMonkeys.length];
+                const palette = BALLOON_PALETTES[Math.floor(Math.random() * BALLOON_PALETTES.length)];
+                
+                monkey.holdBalloon(num, palette);
+
+                setTimeout(() => {
+                    monkey.releaseBalloon();
+                    const balloon = new GasBalloon(num, monkey.x, monkey.y - 100, num === gameState.targetNumber);
+                    balloon.palette = palette;
+                    balloons.push(balloon);
+                }, 400 + i * 250);
+            }
+        }
+
+
+        /* --------------------------------------------------------------------
+           MONKEY MASCOT: BLINKING & VICTORY DANCE ANIMATION ENGINE
+           -------------------------------------------------------------------- */
+        function startMonkeyEyeBlinking() {
+            setInterval(() => {
+                const leftLid = document.getElementById('leftEyelid');
+                const rightLid = document.getElementById('rightEyelid');
+                if (!leftLid || !rightLid) return;
+
+                // Close eyelids
+                leftLid.setAttribute('opacity', '1');
+                rightLid.setAttribute('opacity', '1');
+
+                setTimeout(() => {
+                    // Open eyelids
+                    leftLid.setAttribute('opacity', '0');
+                    rightLid.setAttribute('opacity', '0');
+                }, 180);
+            }, 3200 + Math.random() * 2000);
+        }
+
+        function triggerMonkeyDance(customText) {
+            const monkeyContainer = document.getElementById('monkeyContainer');
+            const monkeyMouth = document.getElementById('monkeyMouth');
+            const mascotText = document.getElementById('mascotText');
+
+            // Switch to Dance CSS animation
+            monkeyContainer.classList.remove('monkey-idle-anim');
+            monkeyContainer.classList.add('monkey-dance-anim');
+
+            monkeyMouth.setAttribute('d', 'M 64 88 Q 80 108 96 88 Z');
+            monkeyMouth.setAttribute('fill', '#4A2511');
+
+            mascotText.innerText = customText || (gameState.language === 'bn' ? "একদম ঠিক বেলুনটা ফাটিয়েছো! 🎉" : "Awesome! You popped the right balloon! 🎉");
+
+            setTimeout(() => {
+                monkeyContainer.classList.remove('monkey-dance-anim');
+                monkeyContainer.classList.add('monkey-idle-anim');
+                monkeyMouth.setAttribute('d', 'M 68 90 Q 80 100 92 90');
+                monkeyMouth.setAttribute('fill', 'none');
+            }, 2200);
+        }
+
+        function triggerMonkeyFeedback(isCorrect, customMsg = null) {
+            const mascotText = document.getElementById('mascotText');
+            if (!isCorrect) {
+                const monkeyMouth = document.getElementById('monkeyMouth');
+                monkeyMouth.setAttribute('d', 'M 68 98 Q 80 88 92 98');
+                monkeyMouth.setAttribute('fill', 'none');
+
+                mascotText.innerText = customMsg || (gameState.language === 'bn' ? "সাবধান! ভুল বেলুন কেটেছ! 🗡️" : "Be careful! Wrong balloon!");
+
+                setTimeout(() => {
+                    monkeyMouth.setAttribute('d', 'M 68 90 Q 80 100 92 90');
+                }, 1600);
+            }
+        }
+
+
+        /* --------------------------------------------------------------------
+           Main Game Loop & Rendering
+           -------------------------------------------------------------------- */
+        function gameLoop() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (gameState.isPlaying && !gameState.isPaused) {
+                // Update & Render Launcher Monkeys at Bottom
+                launcherMonkeys.forEach(m => {
+                    m.update();
+                    m.draw();
+                });
+
+                // Update & Render Gas Balloons
+                for (let i = balloons.length - 1; i >= 0; i--) {
+                    const balloon = balloons[i];
+                    balloon.update();
+                    balloon.draw();
+
+                    if (balloon.y < -120) {
+                        balloons.splice(i, 1);
+                    }
+                }
+
+                // Render Particles, Sparks, Fireworks
+                updateParticlesAndSparks();
+
+                // Render Blade Trail
+                if (bladeTrail.length > 1) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
+                    for (let i = 1; i < bladeTrail.length; i++) {
+                        ctx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
+                    }
+                    ctx.strokeStyle = '#FACC15';
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.shadowColor = '#F59E0B';
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Render Knife Blade
+                drawKnife(currentKnifePos.x, currentKnifePos.y, currentKnifePos.angle);
+
+                // Spawner
+                gameState.spawnTimer++;
+                if (gameState.spawnTimer > gameState.spawnInterval) {
+                    spawnBalloonWave();
+                    gameState.spawnTimer = 0;
+                }
+            } else {
+                // Render launchers even when not playing
+                launcherMonkeys.forEach(m => m.draw());
+                updateParticlesAndSparks();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+
+        /* ====================================================================
+           7. UI CONTROLS, SETTINGS & PRIZE HANDLERS
+           ==================================================================== */
+        function updateHUD() {
+            document.getElementById('scoreText').innerText = gameState.score;
+
+            // Knife Durability Display
+            const knifeContainer = document.getElementById('knifeDurabilityContainer');
+            let knifeHtml = '';
+            for (let i = 0; i < gameState.maxKnifeDurability; i++) {
+                if (i < gameState.knifeDurability) {
+                    knifeHtml += `<i class="fa-solid fa-cutlass text-amber-400 text-base sm:text-xl drop-shadow"></i>`;
+                } else {
+                    knifeHtml += `<i class="fa-solid fa-cutlass text-slate-600/60 text-base sm:text-xl"></i>`;
+                }
+            }
+            knifeContainer.innerHTML = knifeHtml;
+
+            // Combo Badge
+            const comboBadge = document.getElementById('comboBadge');
+            if (gameState.combo > 1) {
+                comboBadge.classList.remove('hidden');
+                document.getElementById('comboText').innerText = `${gameState.combo}x Combo!`;
+            } else {
+                comboBadge.classList.add('hidden');
+            }
+
+            // Mode Label
+            const langLabel = gameState.language === 'bn' ? 'বাংলা' : 'English';
+            const patLabel = gameState.patternSequence === 'ascending' ? (gameState.language === 'bn' ? 'ছোট থেকে বড়' : 'Ascending') :
+                             gameState.patternSequence === 'descending' ? (gameState.language === 'bn' ? 'বড় থেকে ছোট' : 'Descending') : (gameState.language === 'bn' ? 'এলোমেলো' : 'Mixed');
+            const rangeLabel = gameState.language === 'bn' 
+                ? `${toBengaliDigits(gameState.minRange)} - ${toBengaliDigits(gameState.maxRange)}`
+                : `${gameState.minRange} - ${gameState.maxRange}`;
+            document.getElementById('modeDisplay').innerText = `${langLabel} | ${rangeLabel} | ${patLabel}`;
+        }
+
+        function startGame() {
+            gameState.score = 0;
+            gameState.knifeDurability = gameState.maxKnifeDurability;
+            gameState.combo = 0;
+            gameState.maxCombo = 0;
+            gameState.targetBalloonsCut = 0;
+            gameState.isPaused = false;
+            gameState.isGameOver = false;
+            gameState.isPlaying = true;
+            gameState.learnedNumbers.clear();
+            balloons = [];
+
+            gameState.spawnInterval = gameState.difficulty === 'easy' ? 145 : gameState.difficulty === 'hard' ? 90 : 115;
+
+            document.getElementById('startMenuModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('prizeModal').classList.add('hidden');
+            document.getElementById('pauseModal').classList.add('hidden');
+
+            prepareNumberSequence();
+            updateHUD();
+            generateNextTargetInSequence();
+            startBGM();
+        }
+
+        function showPrizeModal() {
+            gameState.isPlaying = false;
+            document.getElementById('prizeScore').innerText = gameState.score;
+            document.getElementById('prizeBalloonsCut').innerText = gameState.targetBalloonsCut;
+            document.getElementById('prizeSubtitle').innerText = gameState.language === 'bn' 
+                ? `তুমি ${gameState.targetBalloonsCut} টি সঠিক নম্বরের গ্যাস বেলুন কেটেছো!`
+                : `You cut ${gameState.targetBalloonsCut} target gas balloons correctly!`;
+            
+            document.getElementById('prizeModal').classList.remove('hidden');
+        }
+
+        function endGame() {
+            gameState.isPlaying = false;
+            gameState.isGameOver = true;
+            stopBGM();
+
+            document.getElementById('finalScore').innerText = gameState.score;
+            document.getElementById('finalCombo').innerText = `${gameState.maxCombo}x`;
+
+            const starContainer = document.getElementById('starContainer');
+            let stars = gameState.score >= 100 ? 3 : gameState.score >= 40 ? 2 : 1;
+            let starHtml = '';
+            for (let i = 1; i <= 3; i++) {
+                if (i <= stars) {
+                    starHtml += `<i class="fa-solid fa-star text-amber-400 drop-shadow animate-bounce"></i>`;
+                } else {
+                    starHtml += `<i class="fa-solid fa-star text-slate-600"></i>`;
+                }
+            }
+            starContainer.innerHTML = starHtml;
+
+            const list = document.getElementById('learnedNumbersList');
+            if (gameState.learnedNumbers.size === 0) {
+                list.innerHTML = `<span class="italic text-slate-400">কোনো সংখ্যা শেখা হয়নি</span>`;
+            } else {
+                list.innerHTML = Array.from(gameState.learnedNumbers).map(num => {
+                    const data = getNumberDisplayData(num, gameState.language);
+                    return `<span class="px-2.5 py-1 bg-amber-500/20 border border-amber-400/40 rounded-lg text-amber-300 font-bold">${data.primary}</span>`;
+                }).join('');
+            }
+
+            document.getElementById('gameOverModal').classList.remove('hidden');
+        }
+
+        function togglePause() {
+            if (!gameState.isPlaying || gameState.isGameOver) return;
+            gameState.isPaused = !gameState.isPaused;
+            document.getElementById('pauseModal').classList.toggle('hidden', !gameState.isPaused);
+        }
+
+        function speakCurrentTarget() {
+            const data = getNumberDisplayData(gameState.targetNumber, gameState.language);
+            speakText(data.speech, gameState.language);
+        }
+
+        function returnToMainMenu() {
+            gameState.isPlaying = false;
+            gameState.isPaused = false;
+            stopBGM();
+            document.getElementById('pauseModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('prizeModal').classList.add('hidden');
+            document.getElementById('startMenuModal').classList.remove('hidden');
+        }
+
+        function openSettingsModal() {
+            document.getElementById('minRangeInput').value = gameState.minRange;
+            document.getElementById('maxRangeInput').value = gameState.maxRange;
+            document.getElementById('knifeDurabilityInput').value = gameState.maxKnifeDurability;
+            document.getElementById('knifeDurVal').innerText = gameState.maxKnifeDurability;
+            setPattern(gameState.patternSequence);
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function applyPresetRange(min, max) {
+            document.getElementById('minRangeInput').value = min;
+            document.getElementById('maxRangeInput').value = max;
+        }
+
+        function setPattern(pat) {
+            gameState.patternSequence = pat;
+            document.getElementById('patternAsc').className = pat === 'ascending' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
+            document.getElementById('patternDesc').className = pat === 'descending' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
+            document.getElementById('patternMix').className = pat === 'mixed' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
+        }
+
+        function saveAndCloseSettings() {
+            const min = parseInt(document.getElementById('minRangeInput').value) || 1;
+            const max = parseInt(document.getElementById('maxRangeInput').value) || 20;
+
+            if (min < max) {
+                gameState.minRange = min;
+                gameState.maxRange = max;
+            }
+
+            const durability = parseInt(document.getElementById('knifeDurabilityInput').value) || 3;
+            gameState.maxKnifeDurability = durability;
+            gameState.knifeDurability = durability;
+
+            closeSettingsModal();
+            updateHUD();
+
+            if (gameState.isPlaying && !gameState.isPaused) {
+                prepareNumberSequence();
+                generateNextTargetInSequence();
+            }
+        }
+
+        function quickSelectLang(lang) {
+            setLanguage(lang);
+        }
+
+        function setLanguage(lang) {
+            gameState.language = lang;
+            document.getElementById('startLangBnBtn').className = lang === 'bn' ? 'py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-2' : 'py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-2';
+            document.getElementById('startLangEnBtn').className = lang === 'en' ? 'py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-2' : 'py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-2';
+
+            document.getElementById('setLangBn').className = lang === 'bn' ? 'p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2' : 'p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2';
+            document.getElementById('setLangEn').className = lang === 'en' ? 'p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2' : 'p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2';
+
+            document.getElementById('targetPromptLabel').innerText = lang === 'bn' ? 'সঠিক বেলুনটি কাটুন / Slice Target Balloon' : 'Slice the Matching Balloon';
+            updateHUD();
+        }
+
+        function setDifficulty(diff) {
+            gameState.difficulty = diff;
+            ['easy', 'medium', 'hard'].forEach(d => {
+                const btnId = 'diff' + d.charAt(0).toUpperCase() + d.slice(1);
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.className = d === diff 
+                        ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center'
+                        : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center';
+                }
+            });
+        }
+
+        function toggleBGMSetting(enabled) {
+            gameState.bgmEnabled = enabled;
+            if (enabled && gameState.isPlaying) startBGM();
+            else stopBGM();
+        }
+
+        function toggleSFXSetting(enabled) {
+            gameState.sfxEnabled = enabled;
+        }
+
+        window.onload = function() {
+            initLauncherMonkeys();
+            startMonkeyEyeBlinking();
+            gameLoop();
+            updateHUD();
+        };
+    </script>
+</body>
+</html>
