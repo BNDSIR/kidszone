@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Balloon Ninja Number Learner | বেলুন নিনজা সংখ্যা শিক্ষা</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,13 +14,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body {
-            font-family: 'Fredoka', 'Hind Siliguri', 'Atma', sans-serif;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
+            position: fixed;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            font-family: 'Fredoka', 'Hind Siliguri', 'Atma', sans-serif;
         }
 
         #gameCanvas {
@@ -30,84 +39,73 @@
             width: 100%;
             height: 100%;
             z-index: 10;
+            display: block;
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.14);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.35);
         }
 
         .glass-card {
-            background: rgba(15, 23, 42, 0.92);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .btn-3d {
-            transition: all 0.12s ease;
-            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
         }
 
         .btn-3d:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
         }
 
         @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.6)); }
-            50% { filter: drop-shadow(0 0 26px rgba(251, 191, 36, 0.95)); }
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
+            50% { filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.95)); }
         }
 
         .glow-target {
             animation: pulse-glow 2s infinite ease-in-out;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 10px;
-        }
-
         .bubble-arrow::after {
             content: '';
             position: absolute;
-            left: -12px;
-            bottom: 30px;
-            border-width: 8px 12px 8px 0;
+            left: -10px;
+            bottom: 24px;
+            border-width: 6px 10px 6px 0;
             border-style: solid;
             border-color: transparent rgba(255, 255, 255, 0.95) transparent transparent;
         }
 
         @keyframes flash-red {
-            0% { background-color: rgba(239, 68, 68, 0.4); }
+            0% { background-color: rgba(239, 68, 68, 0.45); }
             100% { background-color: transparent; }
         }
         .damage-flash {
             animation: flash-red 0.35s ease-out;
         }
 
-        /* Full Body Monkey Character CSS Animations */
         @keyframes monkey-idle {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-6px) rotate(1deg); }
+            50% { transform: translateY(-5px) rotate(1deg); }
         }
 
         @keyframes monkey-dance {
             0% { transform: translateY(0) rotate(0deg) scale(1.05); }
-            15% { transform: translateY(-20px) rotate(-12deg) scale(1.15); }
-            30% { transform: translateY(0) rotate(12deg) scale(1.1); }
-            45% { transform: translateY(-25px) rotate(-10deg) scale(1.2); }
-            60% { transform: translateY(0) rotate(10deg) scale(1.15); }
-            75% { transform: translateY(-15px) rotate(-6deg) scale(1.1); }
+            15% { transform: translateY(-16px) rotate(-10deg) scale(1.12); }
+            30% { transform: translateY(0) rotate(10deg) scale(1.08); }
+            45% { transform: translateY(-20px) rotate(-8deg) scale(1.15); }
+            60% { transform: translateY(0) rotate(8deg) scale(1.1); }
+            75% { transform: translateY(-12px) rotate(-5deg) scale(1.05); }
             100% { transform: translateY(0) rotate(0deg) scale(1.05); }
         }
 
@@ -116,13 +114,12 @@
         }
 
         .monkey-dance-anim {
-            animation: monkey-dance 1.2s ease-in-out infinite !important;
+            animation: monkey-dance 1.1s ease-in-out infinite !important;
         }
 
-        /* Tail Wiggle */
         @keyframes tail-wiggle {
             0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(15deg); }
+            50% { transform: rotate(14deg); }
         }
         .monkey-tail {
             transform-origin: 10px 80px;
@@ -138,65 +135,65 @@
     <!-- Screen Flash Overlay -->
     <div id="flashOverlay" class="absolute inset-0 z-15 pointer-events-none"></div>
 
-    <!-- TOP HUD OVERLAY -->
-    <header class="relative z-20 p-3 sm:p-4 w-full flex justify-between items-center max-w-5xl mx-auto pointer-events-none">
+    <!-- TOP HUD OVERLAY (Fully Touch & Mobile Responsive) -->
+    <header class="relative z-20 p-2 sm:p-4 w-full flex justify-between items-center max-w-5xl mx-auto pointer-events-none gap-1 sm:gap-3">
         
         <!-- Score & Knife Health Container -->
-        <div class="pointer-events-auto flex items-center gap-2 sm:gap-4">
+        <div class="pointer-events-auto flex items-center gap-1.5 sm:gap-3">
             <!-- Score -->
-            <div class="glass-panel px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-2xl flex items-center gap-2 text-white font-bold text-lg sm:text-2xl">
-                <i class="fa-solid fa-star text-amber-400 text-xl sm:text-3xl drop-shadow"></i>
+            <div class="glass-panel px-2.5 py-1 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl flex items-center gap-1.5 text-white font-bold text-sm sm:text-xl">
+                <i class="fa-solid fa-star text-amber-400 text-base sm:text-2xl drop-shadow"></i>
                 <span id="scoreText">0</span>
             </div>
 
             <!-- Knife Durability / Lives HUD -->
-            <div class="glass-panel px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-2xl flex items-center gap-2 text-white font-bold text-sm sm:text-base">
-                <i class="fa-solid fa-cutlass text-slate-300 text-lg sm:text-2xl drop-shadow"></i>
+            <div class="glass-panel px-2 py-1 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl flex items-center gap-1.5 text-white font-bold">
+                <i class="fa-solid fa-cutlass text-slate-200 text-base sm:text-xl drop-shadow"></i>
                 <div class="flex flex-col">
-                    <span class="text-[10px] sm:text-xs text-indigo-200 uppercase font-bold tracking-wider leading-none">নাইফ ডিউরেবিলিটি / Durability</span>
-                    <div id="knifeDurabilityContainer" class="flex items-center gap-1 mt-1">
+                    <span class="text-[8px] sm:text-[10px] text-indigo-200 uppercase font-bold tracking-tight leading-none hidden sm:block">নাইফ / Durability</span>
+                    <div id="knifeDurabilityContainer" class="flex items-center gap-0.5 sm:gap-1 mt-0.5">
                         <!-- Dynamic knife icons inserted here -->
                     </div>
                 </div>
             </div>
 
             <!-- Combo Badge -->
-            <div id="comboBadge" class="hidden glass-panel px-3 py-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-sm sm:text-lg animate-bounce">
+            <div id="comboBadge" class="hidden glass-panel px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-xs sm:text-base animate-bounce">
                 <span id="comboText">2x Combo!</span>
             </div>
         </div>
 
         <!-- Target Voice & Text Prompt Banner -->
-        <div class="pointer-events-auto flex-1 max-w-md mx-2 sm:mx-4">
-            <div id="targetContainer" class="glass-panel glow-target bg-gradient-to-r from-purple-900/80 to-indigo-900/80 rounded-2xl p-2 sm:p-3 text-center border-2 border-amber-300/60 shadow-xl flex items-center justify-between px-3 sm:px-6 cursor-pointer transform hover:scale-105 transition" onclick="speakCurrentTarget()">
-                <div class="flex-1">
-                    <span id="targetPromptLabel" class="block text-xs sm:text-sm uppercase tracking-wider text-amber-300 font-semibold">সঠিক বেলুনটি কাটুন / Slice Target Balloon</span>
-                    <h1 id="targetText" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-wide drop-shadow-md">এক দশ এক - এগারো (১১)</h1>
+        <div class="pointer-events-auto flex-1 max-w-md mx-1 sm:mx-3">
+            <div id="targetContainer" class="glass-panel glow-target bg-gradient-to-r from-purple-900/90 to-indigo-900/90 rounded-xl sm:rounded-2xl p-1.5 sm:p-3 text-center border border-amber-300/60 shadow-lg flex items-center justify-between px-2 sm:px-5 cursor-pointer transform active:scale-95 transition" onclick="speakCurrentTarget()">
+                <div class="flex-1 min-w-0">
+                    <span id="targetPromptLabel" class="block text-[9px] sm:text-xs uppercase tracking-wider text-amber-300 font-semibold truncate">সঠিক বেলুনটি কাটুন</span>
+                    <h1 id="targetText" class="text-xs sm:text-xl md:text-2xl font-extrabold text-white tracking-wide drop-shadow truncate">এক দশ এক - এগারো (১১)</h1>
                 </div>
-                <button class="bg-amber-400 hover:bg-amber-300 text-slate-900 w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg transition active:scale-95 ml-2 shrink-0">
-                    <i class="fa-solid fa-volume-high text-lg sm:text-xl"></i>
+                <button class="bg-amber-400 hover:bg-amber-300 active:scale-90 text-slate-900 w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-md transition ml-1.5 shrink-0">
+                    <i class="fa-solid fa-volume-high text-xs sm:text-lg"></i>
                 </button>
             </div>
         </div>
 
         <!-- Controls Container -->
-        <div class="pointer-events-auto flex items-center gap-2 sm:gap-3">
-            <button id="pauseBtn" onclick="togglePause()" class="glass-panel text-white hover:bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl transition active:scale-90">
+        <div class="pointer-events-auto flex items-center gap-1.5 sm:gap-2">
+            <button id="pauseBtn" onclick="togglePause()" class="glass-panel text-white hover:bg-white/20 active:scale-90 w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center text-sm sm:text-lg transition">
                 <i class="fa-solid fa-pause"></i>
             </button>
 
-            <button onclick="openSettingsModal()" class="glass-panel text-white hover:bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-lg sm:text-xl transition active:scale-90">
+            <button onclick="openSettingsModal()" class="glass-panel text-white hover:bg-white/20 active:scale-90 w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center text-sm sm:text-lg transition">
                 <i class="fa-solid fa-gear"></i>
             </button>
         </div>
     </header>
 
     <!-- BOTTOM FULL BODY MONKEY MASCOT & FEEDBACK HUD -->
-    <div class="relative z-20 p-3 sm:p-4 w-full max-w-5xl mx-auto flex items-end justify-between pointer-events-none mb-1">
-        <div class="pointer-events-auto flex items-end gap-3 sm:gap-4">
+    <div class="relative z-20 p-2 sm:p-4 w-full max-w-5xl mx-auto flex items-end justify-between pointer-events-none mb-1">
+        <div class="pointer-events-auto flex items-end gap-2 sm:gap-4">
             
-            <!-- FULL BODY MONKEY CHARACTER (SVG with Continuous Eye Blink & Dance Animations) -->
-            <div id="monkeyContainer" class="w-24 h-32 sm:w-32 sm:h-44 md:w-36 md:h-48 relative monkey-idle-anim filter drop-shadow-2xl transition-all duration-300">
+            <!-- FULL BODY MONKEY MASCOT (SVG with Blinking & Dance) -->
+            <div id="monkeyContainer" class="w-16 h-24 sm:w-28 sm:h-38 md:w-32 md:h-44 relative monkey-idle-anim filter drop-shadow-2xl transition-all duration-300 shrink-0">
                 <svg viewBox="0 0 160 220" class="w-full h-full">
                     <!-- Tail -->
                     <path class="monkey-tail" d="M 50 170 C 20 180, 10 130, 25 110 C 35 95, 45 120, 30 135" fill="none" stroke="#7C3A21" stroke-width="10" stroke-linecap="round"/>
@@ -209,15 +206,12 @@
 
                     <!-- Body -->
                     <ellipse cx="80" cy="155" rx="38" ry="42" fill="#8D4925"/>
-                    <!-- Tummy -->
                     <ellipse cx="80" cy="158" rx="26" ry="30" fill="#E8A87C"/>
 
                     <!-- Arms -->
                     <g id="monkeyArms">
-                        <!-- Left Arm -->
                         <path id="leftArm" d="M 45 135 Q 25 155 35 175" fill="none" stroke="#8D4925" stroke-width="12" stroke-linecap="round"/>
                         <circle cx="35" cy="175" r="8" fill="#E8A87C"/>
-                        <!-- Right Arm -->
                         <path id="rightArm" d="M 115 135 Q 135 155 125 175" fill="none" stroke="#8D4925" stroke-width="12" stroke-linecap="round"/>
                         <circle cx="125" cy="175" r="8" fill="#E8A87C"/>
                     </g>
@@ -238,42 +232,31 @@
 
                         <!-- EYES (WITH CONTINUOUS BLINKING ANIMATION) -->
                         <g id="monkeyEyes">
-                            <!-- Left Eye Pupil & Highlights -->
                             <ellipse id="leftEyeBall" cx="66" cy="68" rx="7" ry="9" fill="#1E1B4B"/>
                             <circle id="leftEyePupil" cx="68" cy="66" r="3" fill="#FFFFFF"/>
-                            <!-- Right Eye Pupil & Highlights -->
                             <ellipse id="rightEyeBall" cx="94" cy="68" rx="7" ry="9" fill="#1E1B4B"/>
                             <circle id="rightEyePupil" cx="96" cy="66" r="3" fill="#FFFFFF"/>
 
-                            <!-- Blink Lids (toggled via JS timer) -->
                             <ellipse id="leftEyelid" cx="66" cy="68" rx="8" ry="1" fill="#8D4925" opacity="0"/>
                             <ellipse id="rightEyelid" cx="94" cy="68" rx="8" ry="1" fill="#8D4925" opacity="0"/>
                         </g>
 
-                        <!-- Snout & Nose -->
+                        <!-- Snout & Mouth -->
                         <ellipse cx="80" cy="84" rx="8" ry="5" fill="#4A2511"/>
-
-                        <!-- Mouth -->
                         <path id="monkeyMouth" d="M 68 90 Q 80 100 92 90" fill="none" stroke="#4A2511" stroke-width="3.5" stroke-linecap="round"/>
 
                         <!-- Cheek Blush -->
                         <circle cx="56" cy="82" r="5" fill="#FF7B7B" opacity="0.5"/>
                         <circle cx="104" cy="82" r="5" fill="#FF7B7B" opacity="0.5"/>
-
-                        <!-- Party Hat (visible on win) -->
-                        <g id="partyHat" opacity="0">
-                            <polygon points="80,15 62,50 98,50" fill="#F59E0B"/>
-                            <circle cx="80" cy="12" r="5" fill="#EF4444"/>
-                        </g>
                     </g>
                 </svg>
             </div>
 
-            
+          
         </div>
 
         <!-- Mode Indicator -->
-        <div class="pointer-events-auto hidden sm:flex glass-panel px-4 py-2 rounded-xl text-white text-xs sm:text-sm font-semibold items-center gap-2">
+        <div class="pointer-events-auto hidden md:flex glass-panel px-3 py-1.5 rounded-xl text-white text-xs font-semibold items-center gap-2">
             <i class="fa-solid fa-gamepad text-emerald-400"></i>
             <span id="modeDisplay">বাংলা | ১ - ২০ | এলোমেলো</span>
         </div>
@@ -282,37 +265,57 @@
 
     <!-- ================= MODALS & OVERLAYS ================= -->
 
-    <!-- START MAIN MENU OVERLAY -->
-    <div id="startMenuModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="glass-card bg-gradient-to-b from-indigo-900/95 to-slate-900/95 text-white border-2 border-indigo-400/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
+    <!-- AUDIO UNLOCK & TOUCH START OVERLAY (MANDATORY FOR MOBILE SAFARI/CHROME AUDIO) -->
+    <div id="touchStartUnlockModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+        <div class="glass-card bg-gradient-to-b from-indigo-900/95 to-slate-900/95 text-white border-2 border-indigo-400/50 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative">
+            <div class="text-5xl sm:text-6xl mb-4 animate-bounce">
+                👆🎈
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-amber-400 mb-2">
+                ট্যাপ করে শুরু করুন
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-200 mb-6 leading-relaxed">
+                মোবাইল এবং ট্যাবলেটে সাউন্ড এবং ভয়েস সক্রিয় করতে নিচের বোতামটিতে চাপ দিন।<br>
+                (Tap below to unlock audio & speech engine)
+            </p>
+            <button onclick="unlockMobileAudioAndStart()" class="btn-3d w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xl shadow-xl flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-play"></i> শুরু করুন (TAP TO PLAY)
+            </button>
+        </div>
+    </div>
+
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="startMenuModal" class="fixed inset-0 z-40 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card bg-gradient-to-b from-indigo-900/95 to-slate-900/95 text-white border-2 border-indigo-400/40 rounded-3xl p-5 sm:p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden">
             <div class="relative z-10">
-                <div class="text-5xl sm:text-6xl mb-3 text-amber-400 font-extrabold animate-bounce">
+                <div class="text-4xl sm:text-6xl mb-2 text-amber-400 font-extrabold animate-bounce">
                     🎈🗡️🐒
                 </div>
-                <h1 class="text-3xl sm:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-pink-400 mb-2">
+                <h1 class="text-2xl sm:text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-pink-400 mb-1">
                     বেলুন নিনজা
                 </h1>
-                <p class="text-base sm:text-lg text-indigo-200 mb-6">
+                <p class="text-xs sm:text-base text-indigo-200 mb-5">
                     Gas Balloon Ninja Number Learner
                 </p>
 
-                <div class="space-y-3 mb-6 text-left">
-                    <label class="block text-xs uppercase font-bold text-indigo-300 tracking-wider">ভাষা নির্বাচন / Select Language:</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="startLangBnBtn" onclick="quickSelectLang('bn')" class="py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center transition flex items-center justify-center gap-2">
+                <div class="space-y-2 mb-5 text-left">
+                    <label class="block text-[11px] uppercase font-bold text-indigo-300 tracking-wider">ভাষা নির্বাচন / Select Language:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="startLangBnBtn" onclick="quickSelectLang('bn')" class="py-2 px-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center transition flex items-center justify-center gap-1.5 text-xs sm:text-sm">
                             <span>🇧🇩</span> বাংলা (Bengali)
                         </button>
-                        <button id="startLangEnBtn" onclick="quickSelectLang('en')" class="py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center transition flex items-center justify-center gap-2">
+                        <button id="startLangEnBtn" onclick="quickSelectLang('en')" class="py-2 px-3 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center transition flex items-center justify-center gap-1.5 text-xs sm:text-sm">
                             <span>🇬🇧</span> English
                         </button>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="startGame()" class="btn-3d flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer">
-                        <i class="fa-solid fa-play text-2xl"></i> খেলা শুরু করুন
+                <div class="flex flex-col sm:flex-row gap-2.5">
+                    <button onclick="startGame()" class="btn-3d flex-1 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-play"></i> খেলা শুরু করুন
                     </button>
-                    <button onclick="openSettingsModal()" class="btn-3d py-4 px-5 rounded-2xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-bold text-lg flex items-center justify-center gap-2 cursor-pointer">
+                    <button onclick="openSettingsModal()" class="btn-3d py-3.5 px-4 rounded-2xl bg-indigo-600/80 text-white font-bold text-base flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-sliders"></i>
                     </button>
                 </div>
@@ -322,11 +325,11 @@
 
 
     <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="glass-card bg-slate-900/95 text-white border border-white/20 rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="glass-card bg-slate-900/95 text-white border border-white/20 rounded-3xl p-4 sm:p-6 max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl relative">
             
-            <div class="flex justify-between items-center mb-5 pb-3 border-b border-white/10">
-                <h2 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-white/10">
+                <h2 class="text-xl sm:text-2xl font-bold text-amber-400 flex items-center gap-2">
                     <i class="fa-solid fa-gear"></i> সেটিংস / Settings
                 </h2>
                 <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
@@ -334,56 +337,56 @@
                 </button>
             </div>
 
-            <div class="space-y-5">
+            <div class="space-y-4 text-xs sm:text-sm">
                 <!-- Custom Number Range Choice (Min & Max) -->
                 <div>
-                    <label class="block text-sm font-semibold text-indigo-300 mb-2">সংখ্যার সীমা / Custom Number Range:</label>
-                    <div class="grid grid-cols-2 gap-3 mb-2">
+                    <label class="block font-semibold text-indigo-300 mb-1.5">সংখ্যার সীমা / Custom Number Range:</label>
+                    <div class="grid grid-cols-2 gap-2 mb-1.5">
                         <div>
-                            <span class="text-xs text-slate-400 block mb-1">সর্বনিম্ন (Min):</span>
-                            <input type="number" id="minRangeInput" value="1" min="1" max="999" class="w-full px-3 py-2 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">সর্বনিম্ন (Min):</span>
+                            <input type="number" id="minRangeInput" value="1" min="1" max="999" class="w-full px-3 py-1.5 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
                         </div>
                         <div>
-                            <span class="text-xs text-slate-400 block mb-1">সর্বোচ্চ (Max):</span>
-                            <input type="number" id="maxRangeInput" value="20" min="2" max="1000" class="w-full px-3 py-2 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">সর্বোচ্চ (Max):</span>
+                            <input type="number" id="maxRangeInput" value="20" min="2" max="1000" class="w-full px-3 py-1.5 bg-slate-800 border border-indigo-400/40 rounded-xl text-white font-bold text-center focus:outline-none focus:border-amber-400">
                         </div>
                     </div>
                     <!-- Quick Presets -->
-                    <div class="flex gap-2 text-xs">
-                        <button onclick="applyPresetRange(1, 10)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-১০</button>
-                        <button onclick="applyPresetRange(1, 20)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-২০</button>
-                        <button onclick="applyPresetRange(1, 50)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-৫০</button>
-                        <button onclick="applyPresetRange(1, 100)" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-indigo-200">১-১০০</button>
+                    <div class="flex gap-1.5 text-[11px]">
+                        <button onclick="applyPresetRange(1, 10)" class="px-2 py-1 bg-white/10 rounded-lg text-indigo-200">১-১০</button>
+                        <button onclick="applyPresetRange(1, 20)" class="px-2 py-1 bg-white/10 rounded-lg text-indigo-200">১-২০</button>
+                        <button onclick="applyPresetRange(1, 50)" class="px-2 py-1 bg-white/10 rounded-lg text-indigo-200">১-৫০</button>
+                        <button onclick="applyPresetRange(1, 100)" class="px-2 py-1 bg-white/10 rounded-lg text-indigo-200">১-১০০</button>
                     </div>
                 </div>
 
-                <!-- Number Appearing Pattern Sequence -->
+                <!-- Number Sequence Pattern -->
                 <div>
-                    <label class="block text-sm font-semibold text-indigo-300 mb-2">সংখ্যার ক্রমানুসারের প্যাটার্ন / Number Sequence Pattern:</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button id="patternAsc" onclick="setPattern('ascending')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center">ছোট থেকে বড় (1,2,3...)</button>
-                        <button id="patternDesc" onclick="setPattern('descending')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center">বড় থেকে ছোট (10,9,8...)</button>
-                        <button id="patternMix" onclick="setPattern('mixed')" class="p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center">এলোমেলো (Mixed)</button>
+                    <label class="block font-semibold text-indigo-300 mb-1.5">সংখ্যার সিকোয়েন্স প্যাটার্ন / Pattern:</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button id="patternAsc" onclick="setPattern('ascending')" class="p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-[11px] text-center">ছোট-বড় (1,2...)</button>
+                        <button id="patternDesc" onclick="setPattern('descending')" class="p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-[11px] text-center">বড়-ছোট (10,9...)</button>
+                        <button id="patternMix" onclick="setPattern('mixed')" class="p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-[11px] text-center">এলোমেলো (Mixed)</button>
                     </div>
                 </div>
 
                 <!-- Knife Durability / Availing Number Setting -->
                 <div>
-                    <label class="block text-sm font-semibold text-indigo-300 mb-2">ছুরি স্থায়িত্ব / Knife Durability (Attempts):</label>
+                    <label class="block font-semibold text-indigo-300 mb-1">ছুরি স্থায়িত্ব / Knife Durability:</label>
                     <div class="flex items-center gap-3">
                         <input type="range" id="knifeDurabilityInput" min="1" max="10" value="3" oninput="document.getElementById('knifeDurVal').innerText = this.value" class="w-full accent-amber-400 cursor-pointer">
-                        <span id="knifeDurVal" class="text-2xl font-black text-amber-400 w-8 text-center">3</span>
+                        <span id="knifeDurVal" class="text-xl font-black text-amber-400 w-6 text-center">3</span>
                     </div>
                 </div>
 
                 <!-- Language Choice -->
                 <div>
-                    <label class="block text-sm font-semibold text-indigo-300 mb-2">ভাষা / Language:</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="setLangBn" onclick="setLanguage('bn')" class="p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2">
+                    <label class="block font-semibold text-indigo-300 mb-1.5">ভাষা / Language:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="setLangBn" onclick="setLanguage('bn')" class="p-2.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-1.5">
                             🇧🇩 বাংলা (Bengali)
                         </button>
-                        <button id="setLangEn" onclick="setLanguage('en')" class="p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2">
+                        <button id="setLangEn" onclick="setLanguage('en')" class="p-2.5 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-1.5">
                             🇬🇧 English
                         </button>
                     </div>
@@ -391,68 +394,68 @@
 
                 <!-- Speed / Difficulty Level -->
                 <div>
-                    <label class="block text-sm font-semibold text-indigo-300 mb-2">বেলুনের গতি / Balloon Speed Level:</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button id="diffEasy" onclick="setDifficulty('easy')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">ধীর (Slow)</button>
-                        <button id="diffMedium" onclick="setDifficulty('medium')" class="p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center">মাঝারি (Medium)</button>
-                        <button id="diffHard" onclick="setDifficulty('hard')" class="p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">দ্রুত (Fast)</button>
+                    <label class="block font-semibold text-indigo-300 mb-1.5">বেলুনের গতি / Balloon Speed:</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button id="diffEasy" onclick="setDifficulty('easy')" class="p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">ধীর (Slow)</button>
+                        <button id="diffMedium" onclick="setDifficulty('medium')" class="p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center">মাঝারি (Med)</button>
+                        <button id="diffHard" onclick="setDifficulty('hard')" class="p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center">দ্রুত (Fast)</button>
                     </div>
                 </div>
 
                 <!-- Audio Controls -->
-                <div class="space-y-3 pt-2 border-t border-white/10">
+                <div class="space-y-2 pt-2 border-t border-white/10">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-slate-200">ব্যাকগ্রাউন্ড মিউজিক (BGM)</span>
+                        <span class="font-semibold text-slate-200">ব্যাকগ্রাউন্ড মিউজিক (BGM)</span>
                         <input type="checkbox" id="bgmToggle" onchange="toggleBGMSetting(this.checked)" checked class="w-5 h-5 accent-amber-400 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-semibold text-slate-200">শব্দ প্রভাব (Sound Effects)</span>
+                        <span class="font-semibold text-slate-200">শব্দ প্রভাব (Sound Effects)</span>
                         <input type="checkbox" id="sfxToggle" onchange="toggleSFXSetting(this.checked)" checked class="w-5 h-5 accent-amber-400 rounded cursor-pointer">
                     </div>
                 </div>
 
-                <button onclick="saveAndCloseSettings()" class="btn-3d w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-lg transition">
-                    সংরক্ষণ করুন ও বন্ধ করুন (Save & Close)
+                <button onclick="saveAndCloseSettings()" class="btn-3d w-full py-3 rounded-2xl bg-amber-400 text-slate-950 font-black text-base transition">
+                    সংরক্ষণ করুন (Save & Close)
                 </button>
             </div>
         </div>
     </div>
 
 
-    <!-- GAME OVER / RECAP MODAL -->
+    <!-- GAME OVER MODAL -->
     <div id="gameOverModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-        <div class="glass-card bg-gradient-to-b from-indigo-950 to-slate-900 text-white border-2 border-amber-400/50 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative">
-            <h2 id="gameOverTitle" class="text-3xl sm:text-4xl font-extrabold text-amber-400 mb-1">ছুরি ভেঙে গেছে! 🗡️💥</h2>
-            <p id="gameOverSub" class="text-indigo-200 text-sm mb-4">Knife Broken - Game Over!</p>
+        <div class="glass-card bg-gradient-to-b from-indigo-950 to-slate-900 text-white border-2 border-amber-400/50 rounded-3xl p-5 sm:p-7 max-w-sm w-full text-center shadow-2xl relative">
+            <h2 id="gameOverTitle" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mb-1">ছুরি ভেঙে গেছে! 🗡️💥</h2>
+            <p id="gameOverSub" class="text-indigo-200 text-xs sm:text-sm mb-3">Knife Broken - Game Over!</p>
 
-            <div id="starContainer" class="flex justify-center gap-3 text-4xl sm:text-5xl text-amber-400 mb-6">
+            <div id="starContainer" class="flex justify-center gap-2 text-3xl sm:text-4xl text-amber-400 mb-4">
                 <i class="fa-solid fa-star drop-shadow"></i>
                 <i class="fa-solid fa-star drop-shadow"></i>
                 <i class="fa-solid fa-star text-slate-600"></i>
             </div>
 
-            <div class="bg-white/5 rounded-2xl p-4 mb-5 border border-white/10 grid grid-cols-2 gap-3 text-left">
+            <div class="bg-white/5 rounded-2xl p-3 mb-4 border border-white/10 grid grid-cols-2 gap-2 text-left text-xs">
                 <div>
-                    <span class="text-xs text-indigo-300 block">মোট স্কোর (Score)</span>
-                    <span id="finalScore" class="text-2xl font-bold text-white">0</span>
+                    <span class="text-indigo-300 block">মোট স্কোর:</span>
+                    <span id="finalScore" class="text-xl font-bold text-white">0</span>
                 </div>
                 <div>
-                    <span class="text-xs text-indigo-300 block">সর্বোচ্চ কম্বো (Max Combo)</span>
-                    <span id="finalCombo" class="text-2xl font-bold text-amber-300">0x</span>
+                    <span class="text-indigo-300 block">সর্বোচ্চ কম্বো:</span>
+                    <span id="finalCombo" class="text-xl font-bold text-amber-300">0x</span>
                 </div>
             </div>
 
-            <div class="text-left mb-6">
-                <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">শেখা সংখ্যাসমূহ (Learned Numbers):</h3>
-                <div id="learnedNumbersList" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-white/10 text-xs text-slate-200">
+            <div class="text-left mb-4">
+                <h3 class="text-[10px] font-bold text-amber-300 uppercase tracking-wider mb-1.5">শেখা সংখ্যাসমূহ (Learned Numbers):</h3>
+                <div id="learnedNumbersList" class="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-white/10 text-[11px] text-slate-200">
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button onclick="startGame()" class="btn-3d flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-lg flex items-center justify-center gap-2">
+            <div class="flex gap-2">
+                <button onclick="startGame()" class="btn-3d flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-base flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-rotate-right"></i> আবার খেলুন
                 </button>
-                <button onclick="returnToMainMenu()" class="btn-3d py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg flex items-center justify-center">
+                <button onclick="returnToMainMenu()" class="btn-3d py-3 px-4 rounded-2xl bg-white/10 text-white font-bold text-base flex items-center justify-center">
                     <i class="fa-solid fa-house"></i>
                 </button>
             </div>
@@ -462,40 +465,40 @@
 
     <!-- BOMB BLAST CELEBRATION & PRIZE MODAL -->
     <div id="prizeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
-        <div class="glass-card bg-gradient-to-b from-purple-950 via-slate-900 to-indigo-950 text-white border-4 border-amber-400/80 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative overflow-hidden animate-bounce-gentle">
+        <div class="glass-card bg-gradient-to-b from-purple-950 via-slate-900 to-indigo-950 text-white border-4 border-amber-400/80 rounded-3xl p-5 sm:p-7 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
             
-            <div class="text-6xl sm:text-7xl mb-2 animate-bounce">🏆</div>
-            <h2 class="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-2">
+            <div class="text-5xl sm:text-6xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-1">
                 অভিনন্দন! বিজয়ী! 🎉
             </h2>
-            <p id="prizeSubtitle" class="text-indigo-200 text-base sm:text-lg mb-6">
+            <p id="prizeSubtitle" class="text-indigo-200 text-xs sm:text-sm mb-4">
                 তুমি সবকটি সঠিক নম্বরের বেলুন কেটে সম্পন্ন করেছ!
             </p>
 
-            <div class="flex justify-center items-center gap-4 my-6">
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-amber-400/20 border-2 border-amber-400 flex flex-col items-center justify-center">
-                    <i class="fa-solid fa-award text-amber-400 text-3xl sm:text-4xl mb-1"></i>
-                    <span class="text-[10px] font-bold uppercase text-amber-300">Prize Trophy</span>
+            <div class="flex justify-center items-center gap-3 my-4">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-400/20 border-2 border-amber-400 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-award text-amber-400 text-2xl sm:text-3xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase text-amber-300">Prize Trophy</span>
                 </div>
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-400/20 border-2 border-emerald-400 flex flex-col items-center justify-center">
-                    <i class="fa-solid fa-crown text-emerald-400 text-3xl sm:text-4xl mb-1"></i>
-                    <span class="text-[10px] font-bold uppercase text-emerald-300">Number Master</span>
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-400/20 border-2 border-emerald-400 flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-crown text-emerald-400 text-2xl sm:text-3xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase text-emerald-300">Number Master</span>
                 </div>
             </div>
 
-            <div class="bg-white/10 rounded-2xl p-4 mb-6 text-left border border-white/15">
+            <div class="bg-white/10 rounded-2xl p-3 mb-5 text-left border border-white/15 text-xs">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs text-indigo-300">অর্জিত নম্বর / Completion Score:</span>
-                    <span id="prizeScore" class="text-2xl font-black text-amber-300">0</span>
+                    <span class="text-indigo-300">অর্জিত স্কোর:</span>
+                    <span id="prizeScore" class="text-xl font-black text-amber-300">0</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-xs text-indigo-300">সঠিক কাটা বেলুন / Target Balloons Cut:</span>
-                    <span id="prizeBalloonsCut" class="text-lg font-bold text-emerald-300">0</span>
+                    <span class="text-indigo-300">সঠিক কাটা বেলুন:</span>
+                    <span id="prizeBalloonsCut" class="text-base font-bold text-emerald-300">0</span>
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button onclick="startGame()" class="btn-3d flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xl flex items-center justify-center gap-2">
+            <div class="flex gap-2">
+                <button onclick="startGame()" class="btn-3d flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-base flex items-center justify-center gap-2">
                     <i class="fa-solid fa-rotate-right"></i> পরবর্তী রাউন্ড (Play Again)
                 </button>
             </div>
@@ -505,18 +508,18 @@
 
     <!-- PAUSE MODAL -->
     <div id="pauseModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
-        <div class="glass-card bg-slate-900 text-white border border-white/20 rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl">
-            <h2 class="text-2xl font-bold text-amber-400 mb-4"><i class="fa-solid fa-pause"></i> বিরতি (Paused)</h2>
-            <div class="space-y-3">
-                <button onclick="togglePause()" class="btn-3d w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold">খেলা চালিয়ে যান (Resume)</button>
-                <button onclick="openSettingsModal()" class="btn-3d w-full py-3 rounded-xl bg-indigo-600 text-white font-bold">সেটিংস (Settings)</button>
-                <button onclick="returnToMainMenu()" class="btn-3d w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold">প্রধান মেনু (Main Menu)</button>
+        <div class="glass-card bg-slate-900 text-white border border-white/20 rounded-3xl p-5 max-w-xs w-full text-center shadow-2xl">
+            <h2 class="text-xl font-bold text-amber-400 mb-4"><i class="fa-solid fa-pause"></i> বিরতি (Paused)</h2>
+            <div class="space-y-2.5 text-sm">
+                <button onclick="togglePause()" class="btn-3d w-full py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold">চালিয়ে যান (Resume)</button>
+                <button onclick="openSettingsModal()" class="btn-3d w-full py-2.5 rounded-xl bg-indigo-600 text-white font-bold">সেটিংস (Settings)</button>
+                <button onclick="returnToMainMenu()" class="btn-3d w-full py-2.5 rounded-xl bg-white/10 text-white font-bold">প্রধান মেনু (Main Menu)</button>
             </div>
         </div>
     </div>
 
 
-    <!-- GAME ENGINE & LOGIC SCRIPT -->
+    <!-- GAME ENGINE & TOUCH/AUDIO SCRIPT -->
     <script>
         /* ====================================================================
            1. BENGALI & ENGLISH NUMBER DICTIONARY
@@ -584,25 +587,57 @@
 
 
         /* ====================================================================
-           2. GAS BALLOON COLOR PALETTES & ARTWORK CONFIG
+           2. BALLOON PALETTES
            ==================================================================== */
         const BALLOON_PALETTES = [
-            { main: '#EF4444', shine: '#FCA5A5', shadow: '#991B1B', nameBn: 'লাল বেলুন', nameEn: 'Red Balloon' },
-            { main: '#3B82F6', shine: '#93C5FD', shadow: '#1E40AF', nameBn: 'নীল বেলুন', nameEn: 'Blue Balloon' },
-            { main: '#10B981', shine: '#6EE7B7', shadow: '#065F46', nameBn: 'সবুজ বেলুন', nameEn: 'Green Balloon' },
-            { main: '#F59E0B', shine: '#FDE047', shadow: '#92400E', nameBn: 'হলুদ বেলুন', nameEn: 'Yellow Balloon' },
-            { main: '#EC4899', shine: '#FBCFE8', shadow: '#9D174D', nameBn: 'গোলাপী বেলুন', nameEn: 'Pink Balloon' },
-            { main: '#8B5CF6', shine: '#C4B5FD', shadow: '#5B21B6', nameBn: 'বেগুনি বেলুন', nameEn: 'Purple Balloon' }
+            { main: '#EF4444', shine: '#FCA5A5', shadow: '#991B1B' },
+            { main: '#3B82F6', shine: '#93C5FD', shadow: '#1E40AF' },
+            { main: '#10B981', shine: '#6EE7B7', shadow: '#065F46' },
+            { main: '#F59E0B', shine: '#FDE047', shadow: '#92400E' },
+            { main: '#EC4899', shine: '#FBCFE8', shadow: '#9D174D' },
+            { main: '#8B5CF6', shine: '#C4B5FD', shadow: '#5B21B6' }
         ];
 
 
         /* ====================================================================
-           3. WEB AUDIO SYNTHESIZER (BGM + SFX + BOMB BLAST)
+           3. WEB AUDIO SYNTHESIZER (MOBILE UNLOCK SUPPORTED)
            ==================================================================== */
         let audioCtx = null;
         let bgmOsc = null;
         let bgmGain = null;
         let isBgmPlaying = false;
+        let audioUnlocked = false;
+
+        function unlockMobileAudioAndStart() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                // Silent buffer to warm audio context on iOS Safari
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+
+                // Warm up speech engine
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.resume();
+                    const dummyUtterance = new SpeechSynthesisUtterance('');
+                    window.speechSynthesis.speak(dummyUtterance);
+                }
+
+                audioUnlocked = true;
+            } catch (e) {
+                console.log('Mobile audio unlock notice:', e);
+            }
+
+            document.getElementById('touchStartUnlockModal').classList.add('hidden');
+            document.getElementById('startMenuModal').classList.remove('hidden');
+        }
 
         function initAudio() {
             if (!audioCtx) {
@@ -614,14 +649,14 @@
         }
 
         function startBGM() {
-            if (!gameState.bgmEnabled || isBgmPlaying) return;
+            if (!gameState.bgmEnabled || isBgmPlaying || !audioUnlocked) return;
             try {
                 initAudio();
                 const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23];
                 let noteIdx = 0;
 
                 bgmGain = audioCtx.createGain();
-                bgmGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                bgmGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
                 bgmGain.connect(audioCtx.destination);
 
                 function playMelodicLoop() {
@@ -631,7 +666,7 @@
                     bgmOsc.frequency.setValueAtTime(notes[noteIdx], audioCtx.currentTime);
                     
                     const noteGain = audioCtx.createGain();
-                    noteGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                    noteGain.gain.setValueAtTime(0.012, audioCtx.currentTime);
                     noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
 
                     bgmOsc.connect(noteGain);
@@ -646,7 +681,7 @@
 
                 isBgmPlaying = true;
                 playMelodicLoop();
-            } catch(e) { console.log('Audio error', e); }
+            } catch(e) { console.log('Audio loop error', e); }
         }
 
         function stopBGM() {
@@ -654,12 +689,11 @@
         }
 
         function playSFX(type) {
-            if (!gameState.sfxEnabled) return;
+            if (!gameState.sfxEnabled || !audioUnlocked) return;
             initAudio();
             const now = audioCtx.currentTime;
 
             if (type === 'pop') {
-                // Balloon Pop Noise Burst
                 const bufferSize = audioCtx.sampleRate * 0.08;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
@@ -669,7 +703,7 @@
                 const noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 const gain = audioCtx.createGain();
-                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.setValueAtTime(0.35, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
                 noise.connect(gain);
                 gain.connect(audioCtx.destination);
@@ -679,14 +713,14 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(900, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.09);
                 gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.1);
+                osc.stop(now + 0.09);
 
             } else if (type === 'correct') {
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
@@ -694,30 +728,29 @@
                     const gain = audioCtx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now + idx * 0.05);
-                    gain.gain.setValueAtTime(0.18, now + idx * 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.22);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.2);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start(now + idx * 0.05);
-                    osc.stop(now + idx * 0.05 + 0.22);
+                    osc.stop(now + idx * 0.05 + 0.2);
                 });
 
             } else if (type === 'knife_damage') {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(320, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.frequency.setValueAtTime(280, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.22);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.25);
+                osc.stop(now + 0.22);
 
             } else if (type === 'bomb_blast') {
-                // High-energy Bomb Blast Explosive Sound
-                const bufferSize = audioCtx.sampleRate * 0.6;
+                const bufferSize = audioCtx.sampleRate * 0.5;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
@@ -726,8 +759,8 @@
                 const noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 const gain = audioCtx.createGain();
-                gain.gain.setValueAtTime(0.8, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                gain.gain.setValueAtTime(0.7, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
                 noise.connect(gain);
                 gain.connect(audioCtx.destination);
                 noise.start(now);
@@ -736,23 +769,25 @@
 
 
         /* ====================================================================
-           4. SPEECH SYNTHESIS
+           4. SPEECH SYNTHESIS ENGINE
            ==================================================================== */
         function speakText(text, lang) {
             if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.85;
-            utterance.pitch = 1.1;
-            utterance.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
+            try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.85;
+                utterance.pitch = 1.1;
+                utterance.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
 
-            const voices = window.speechSynthesis.getVoices();
-            if (voices.length > 0) {
-                const targetVoice = voices.find(v => v.lang.startsWith(lang === 'bn' ? 'bn' : 'en'));
-                if (targetVoice) utterance.voice = targetVoice;
-            }
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    const targetVoice = voices.find(v => v.lang.startsWith(lang === 'bn' ? 'bn' : 'en'));
+                    if (targetVoice) utterance.voice = targetVoice;
+                }
 
-            window.speechSynthesis.speak(utterance);
+                window.speechSynthesis.speak(utterance);
+            } catch(e) { console.log('Speech error', e); }
         }
 
 
@@ -770,7 +805,7 @@
             maxRange: 20,
             language: 'bn',
             difficulty: 'medium',
-            patternSequence: 'mixed', // 'ascending', 'descending', 'mixed'
+            patternSequence: 'mixed',
             currentSequenceIndex: 0,
             sequenceList: [],
             bgmEnabled: true,
@@ -786,71 +821,128 @@
 
 
         /* ====================================================================
-           6. CANVAS PHYSICS, LAUNCHER MONKEYS & KNIFE ENGINE
+           6. HIGH-DPI CANVAS, TOUCH EVENTS & LAUNCHER MONKEYS
            ==================================================================== */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
+        let dpr = window.devicePixelRatio || 1;
+        let width = 0;
+        let height = 0;
 
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+        function resizeCanvas() {
+            dpr = window.devicePixelRatio || 1;
+            width = window.innerWidth;
+            height = window.innerHeight;
+
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+
+            ctx.scale(dpr, dpr);
             initLauncherMonkeys();
-        });
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 
         let balloons = [];
         let sliceParticles = [];
         let sparkEffects = [];
         let fireworkParticles = [];
         let bladeTrail = [];
-        let currentKnifePos = { x: width / 2, y: height / 2, angle: 0 };
+        let currentKnifePos = { x: 0, y: 0, angle: 0 };
         let isTouching = false;
         let launcherMonkeys = [];
 
-        // Pointer Motion Controls
-        window.addEventListener('pointerdown', (e) => {
-            isTouching = true;
-            bladeTrail = [];
-            currentKnifePos.x = e.clientX;
-            currentKnifePos.y = e.clientY;
-            bladeTrail.push({ x: e.clientX, y: e.clientY, time: Date.now() });
-            initAudio();
-        });
+        /* --------------------------------------------------------------------
+           ACCURATE TOUCH & MOUSE EVENT HANDLING
+           -------------------------------------------------------------------- */
+        function updatePointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
 
-        window.addEventListener('pointermove', (e) => {
-            if (!isTouching) {
-                currentKnifePos.x = e.clientX;
-                currentKnifePos.y = e.clientY;
-                return;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
             }
-            const dx = e.clientX - currentKnifePos.x;
-            const dy = e.clientY - currentKnifePos.y;
+
+            const touchX = clientX - rect.left;
+            const touchY = clientY - rect.top;
+
+            const dx = touchX - currentKnifePos.x;
+            const dy = touchY - currentKnifePos.y;
+
             if (Math.hypot(dx, dy) > 2) {
                 currentKnifePos.angle = Math.atan2(dy, dx);
             }
-            currentKnifePos.x = e.clientX;
-            currentKnifePos.y = e.clientY;
 
-            bladeTrail.push({ x: e.clientX, y: e.clientY, time: Date.now() });
-            if (bladeTrail.length > 14) bladeTrail.shift();
+            currentKnifePos.x = touchX;
+            currentKnifePos.y = touchY;
 
-            checkSliceIntersections(e.clientX, e.clientY);
+            bladeTrail.push({ x: touchX, y: touchY, time: Date.now() });
+            if (bladeTrail.length > 12) bladeTrail.shift();
+
+            checkSliceIntersections(touchX, touchY);
+        }
+
+        // Touch Listeners
+        window.addEventListener('touchstart', (e) => {
+            if (e.target === canvas) e.preventDefault();
+            isTouching = true;
+            bladeTrail = [];
+            initAudio();
+            updatePointerPos(e);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.target === canvas) e.preventDefault();
+            if (isTouching) updatePointerPos(e);
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if (e.target === canvas) e.preventDefault();
+            isTouching = false;
+        }, { passive: false });
+
+        window.addEventListener('touchcancel', () => { isTouching = false; });
+
+        // Mouse Listeners Fallback
+        window.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'touch') return; // Handled by Touch
+            isTouching = true;
+            bladeTrail = [];
+            initAudio();
+            updatePointerPos(e);
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'touch') return;
+            if (isTouching) updatePointerPos(e);
+            else {
+                currentKnifePos.x = e.clientX;
+                currentKnifePos.y = e.clientY;
+            }
         });
 
         window.addEventListener('pointerup', () => { isTouching = false; });
 
 
         /* --------------------------------------------------------------------
-           MONKEY BALLOON LAUNCHERS (Bottom of Screen)
+           MONKEY LAUNCHER CLASS
            -------------------------------------------------------------------- */
         class LauncherMonkey {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.armAngle = 0;
-                this.state = 'idle'; // 'idle', 'holding', 'releasing'
+                this.state = 'idle';
                 this.animTimer = Math.random() * 100;
                 this.heldBalloonPalette = null;
                 this.heldBalloonNum = null;
@@ -880,14 +972,13 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                const bob = Math.sin(this.animTimer * 2) * 3;
+                const bob = Math.sin(this.animTimer * 2) * 2.5;
                 ctx.translate(0, bob);
 
-                // Body scale
-                const scale = Math.min(width, height) * 0.00085 + 0.35;
+                const scale = Math.min(width, height) * 0.00075 + 0.28;
                 ctx.scale(scale, scale);
 
-                // Monkey Body Shadow
+                // Body Shadow
                 ctx.beginPath();
                 ctx.ellipse(0, 38, 25, 8, 0, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(0,0,0,0.25)';
@@ -902,51 +993,47 @@
                 ctx.lineCap = 'round';
                 ctx.stroke();
 
-                // Legs / Feet
+                // Feet
                 ctx.fillStyle = '#7C3A21';
                 ctx.beginPath();
                 ctx.ellipse(-14, 32, 10, 6, 0, 0, Math.PI * 2);
                 ctx.ellipse(14, 32, 10, 6, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Body Torso
+                // Body
                 ctx.beginPath();
                 ctx.ellipse(0, 10, 22, 25, 0, 0, Math.PI * 2);
                 ctx.fillStyle = '#8D4925';
                 ctx.fill();
 
-                // Tummy Patch
+                // Tummy
                 ctx.beginPath();
                 ctx.ellipse(0, 12, 15, 17, 0, 0, Math.PI * 2);
                 ctx.fillStyle = '#E8A87C';
                 ctx.fill();
 
-                // Arms & Holding Balloon Logic
+                // Arms
                 ctx.strokeStyle = '#8D4925';
                 ctx.lineWidth = 7;
                 ctx.lineCap = 'round';
 
                 if (this.state === 'holding') {
-                    // Left Arm up holding string
                     ctx.beginPath();
                     ctx.moveTo(-18, 0);
                     ctx.quadraticCurveTo(-28, -25, 0, -40);
                     ctx.stroke();
 
-                    // Right Arm waving
                     ctx.beginPath();
                     ctx.moveTo(18, 0);
-                    ctx.quadraticCurveTo(28, -15, 22, -30 + Math.sin(this.animTimer * 4) * 6);
+                    ctx.quadraticCurveTo(28, -15, 22, -30 + Math.sin(this.animTimer * 4) * 5);
                     ctx.stroke();
 
-                    // Render Held Balloon overlay before flying
                     if (this.heldBalloonPalette) {
                         const bx = 0;
-                        const by = -95;
-                        const rx = 24;
-                        const ry = 30;
+                        const by = -90;
+                        const rx = 22;
+                        const ry = 28;
 
-                        // String to monkey hand
                         ctx.beginPath();
                         ctx.moveTo(bx, by + ry);
                         ctx.lineTo(0, -40);
@@ -954,13 +1041,11 @@
                         ctx.lineWidth = 2;
                         ctx.stroke();
 
-                        // Balloon
                         ctx.beginPath();
                         ctx.ellipse(bx, by, rx, ry, 0, 0, Math.PI * 2);
                         ctx.fillStyle = this.heldBalloonPalette.main;
                         ctx.fill();
 
-                        // Number badge
                         ctx.beginPath();
                         ctx.arc(bx, by, rx * 0.65, 0, Math.PI * 2);
                         ctx.fillStyle = '#FFFFFF';
@@ -975,7 +1060,6 @@
                     }
 
                 } else if (this.state === 'releasing') {
-                    // Arms flung upward releasing
                     ctx.beginPath();
                     ctx.moveTo(-18, 0);
                     ctx.quadraticCurveTo(-25, -45, -12, -50);
@@ -983,7 +1067,6 @@
                     ctx.quadraticCurveTo(25, -45, 12, -50);
                     ctx.stroke();
                 } else {
-                    // Idle arms
                     ctx.beginPath();
                     ctx.moveTo(-18, 0);
                     ctx.quadraticCurveTo(-28, 12, -18, 22);
@@ -1000,7 +1083,6 @@
 
                 // Ears
                 ctx.beginPath();
-                ctx.circle = function(x,y,r){ this.arc(x,y,r,0,Math.PI*2); };
                 ctx.arc(-22, -28, 9, 0, Math.PI * 2);
                 ctx.arc(22, -28, 9, 0, Math.PI * 2);
                 ctx.fillStyle = '#8D4925';
@@ -1017,19 +1099,14 @@
                 ctx.fillStyle = '#E8A87C';
                 ctx.fill();
 
-                // Eyes (Cute dots)
+                // Eyes
                 ctx.fillStyle = '#1E1B4B';
                 ctx.beginPath();
                 ctx.arc(-7, -26, 3, 0, Math.PI * 2);
                 ctx.arc(7, -26, 3, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Snout & Smile
-                ctx.fillStyle = '#4A2511';
-                ctx.beginPath();
-                ctx.arc(0, -20, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-
+                // Smile
                 ctx.beginPath();
                 ctx.arc(0, -18, 5, 0.1, Math.PI - 0.1);
                 ctx.strokeStyle = '#4A2511';
@@ -1042,38 +1119,38 @@
 
         function initLauncherMonkeys() {
             launcherMonkeys = [];
-            const count = 3;
+            const count = width < 480 ? 2 : 3;
             const spacing = width / (count + 1);
             for (let i = 0; i < count; i++) {
                 const x = spacing * (i + 1);
-                const y = height - 32;
+                const y = height - 25;
                 launcherMonkeys.push(new LauncherMonkey(x, y));
             }
         }
 
 
         /* --------------------------------------------------------------------
-           GAS BALLOON PHYSICS CLASS (Floats Upward with Wave Wobble & String)
+           GAS BALLOON CLASS
            -------------------------------------------------------------------- */
         class GasBalloon {
             constructor(number, startX, startY, isTarget = false) {
                 this.number = number;
                 this.isTarget = isTarget;
                 this.palette = BALLOON_PALETTES[Math.floor(Math.random() * BALLOON_PALETTES.length)];
-                this.radius = Math.min(width, height) * 0.05 + 22;
+                
+                // Responsive Touch Sizing
+                this.radius = Math.min(width, height) * 0.065 + 18;
 
                 this.x = startX;
                 this.y = startY;
 
-                // Gentle Upward Gas Floating Speed
                 let speedMult = gameState.difficulty === 'easy' ? 0.8 : gameState.difficulty === 'hard' ? 1.3 : 1.0;
-                this.vy = -(Math.random() * 2.2 + 2.8) * speedMult;
-                this.vxWaveAmplitude = Math.random() * 2.2 + 1.2;
+                this.vy = -(Math.random() * 2.0 + 2.5) * speedMult;
+                this.vxWaveAmplitude = Math.random() * 2.0 + 1.0;
                 this.vxWaveFrequency = Math.random() * 0.03 + 0.02;
                 this.waveOffset = Math.random() * Math.PI * 2;
 
                 this.isSliced = false;
-                this.popProgress = 0;
             }
 
             update() {
@@ -1092,23 +1169,23 @@
                 const rx = this.radius * 0.85;
                 const ry = this.radius * 1.1;
 
-                // Draw Hanging Balloon String
+                // String
                 ctx.beginPath();
                 ctx.moveTo(0, ry);
-                ctx.quadraticCurveTo(Math.sin(this.y * 0.05) * 15, ry + 25, Math.sin(this.y * 0.02) * 10, ry + 50);
+                ctx.quadraticCurveTo(Math.sin(this.y * 0.05) * 12, ry + 20, Math.sin(this.y * 0.02) * 8, ry + 40);
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Draw Balloon Body (Egg/Oval Shape)
+                // Balloon Oval Body
                 ctx.beginPath();
                 ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
                 ctx.fillStyle = this.palette.main;
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 8;
                 ctx.fill();
 
-                // Shiny Curved Highlight
+                // Highlight
                 ctx.beginPath();
                 ctx.ellipse(-rx * 0.35, -ry * 0.35, rx * 0.28, ry * 0.28, -Math.PI / 4, 0, Math.PI * 2);
                 ctx.fillStyle = this.palette.shine;
@@ -1116,42 +1193,42 @@
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
 
-                // Balloon Bottom Knot
+                // Knot
                 ctx.beginPath();
-                ctx.moveTo(-6, ry);
-                ctx.lineTo(6, ry);
-                ctx.lineTo(0, ry + 8);
+                ctx.moveTo(-5, ry);
+                ctx.lineTo(5, ry);
+                ctx.lineTo(0, ry + 7);
                 ctx.closePath();
                 ctx.fillStyle = this.palette.shadow;
                 ctx.fill();
 
-                // Number Badge Overlay Circle
+                // Number Badge
                 ctx.beginPath();
-                ctx.arc(0, -4, rx * 0.68, 0, Math.PI * 2);
+                ctx.arc(0, -3, rx * 0.68, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                 ctx.fill();
-                ctx.lineWidth = 2.5;
+                ctx.lineWidth = 2;
                 ctx.strokeStyle = this.palette.shadow;
                 ctx.stroke();
 
-                // Display Number Digits
+                // Digits
                 const displayNum = gameState.language === 'bn' ? toBengaliDigits(this.number) : this.number.toString();
                 ctx.fillStyle = '#0F172A';
-                ctx.font = `bold ${rx * 0.72}px 'Atma', 'Fredoka', sans-serif`;
+                ctx.font = `bold ${rx * 0.7}px 'Atma', 'Fredoka', sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.shadowBlur = 0;
                 ctx.fillText(displayNum, 0, -2);
 
-                // Render Bengali Number Word Below
+                // Word Label
                 const numData = getNumberDisplayData(this.number, gameState.language);
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = `bold ${rx * 0.42}px 'Hind Siliguri', sans-serif`;
+                ctx.font = `bold ${rx * 0.38}px 'Hind Siliguri', sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 3;
-                ctx.strokeText(numData.wordOnly, 0, ry + 22);
-                ctx.fillText(numData.wordOnly, 0, ry + 22);
+                ctx.lineWidth = 2.5;
+                ctx.strokeText(numData.wordOnly, 0, ry + 18);
+                ctx.fillText(numData.wordOnly, 0, ry + 18);
 
                 ctx.restore();
             }
@@ -1159,17 +1236,17 @@
 
 
         /* --------------------------------------------------------------------
-           Air Particles & Bomb Blast Fireworks
+           PARTICLE & EXPLOSION EFFECTS
            -------------------------------------------------------------------- */
         function createBalloonPopParticles(x, y, color) {
-            for (let i = 0; i < 24; i++) {
+            for (let i = 0; i < 22; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 8 + 3;
+                const speed = Math.random() * 7 + 3;
                 sliceParticles.push({
                     x, y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    radius: Math.random() * 7 + 3,
+                    radius: Math.random() * 6 + 2.5,
                     color: color,
                     alpha: 1,
                     decay: Math.random() * 0.03 + 0.02
@@ -1178,14 +1255,14 @@
         }
 
         function createKnifeSparks(x, y) {
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 22; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 12 + 4;
+                const speed = Math.random() * 11 + 3;
                 sparkEffects.push({
                     x, y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    length: Math.random() * 10 + 5,
+                    length: Math.random() * 9 + 4,
                     color: Math.random() > 0.5 ? '#FACC15' : '#EF4444',
                     alpha: 1,
                     decay: 0.04
@@ -1197,19 +1274,19 @@
             playSFX('bomb_blast');
             const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#FDE047'];
 
-            for (let burst = 0; burst < 5; burst++) {
-                const bx = Math.random() * (width - 200) + 100;
-                const by = Math.random() * (height * 0.6) + 100;
+            for (let burst = 0; burst < 4; burst++) {
+                const bx = Math.random() * (width - 160) + 80;
+                const by = Math.random() * (height * 0.5) + 80;
 
-                for (let i = 0; i < 60; i++) {
+                for (let i = 0; i < 50; i++) {
                     const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 16 + 4;
+                    const speed = Math.random() * 14 + 3;
                     fireworkParticles.push({
                         x: bx, y: by,
                         vx: Math.cos(angle) * speed,
                         vy: Math.sin(angle) * speed,
                         color: colors[Math.floor(Math.random() * colors.length)],
-                        size: Math.random() * 8 + 4,
+                        size: Math.random() * 7 + 3,
                         alpha: 1,
                         decay: Math.random() * 0.02 + 0.015
                     });
@@ -1218,7 +1295,6 @@
         }
 
         function updateParticlesAndSparks() {
-            // Balloon Particles
             for (let i = sliceParticles.length - 1; i >= 0; i--) {
                 const p = sliceParticles[i];
                 p.x += p.vx;
@@ -1240,7 +1316,6 @@
                 ctx.restore();
             }
 
-            // Sparks
             for (let i = sparkEffects.length - 1; i >= 0; i--) {
                 const s = sparkEffects[i];
                 s.x += s.vx;
@@ -1255,7 +1330,7 @@
                 ctx.save();
                 ctx.globalAlpha = s.alpha;
                 ctx.strokeStyle = s.color;
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2.5;
                 ctx.beginPath();
                 ctx.moveTo(s.x, s.y);
                 ctx.lineTo(s.x - s.vx * 1.5, s.y - s.vy * 1.5);
@@ -1263,7 +1338,6 @@
                 ctx.restore();
             }
 
-            // Fireworks / Bomb Blast
             for (let i = fireworkParticles.length - 1; i >= 0; i--) {
                 const f = fireworkParticles[i];
                 f.x += f.vx;
@@ -1288,7 +1362,7 @@
 
 
         /* --------------------------------------------------------------------
-           Render Animated Knife Graphic
+           RENDER CUTTER / KNIFE
            -------------------------------------------------------------------- */
         function drawKnife(x, y, angle) {
             ctx.save();
@@ -1296,27 +1370,26 @@
             ctx.rotate(angle);
 
             ctx.beginPath();
-            ctx.moveTo(25, 0);
-            ctx.lineTo(-20, -7);
-            ctx.lineTo(-30, 0);
-            ctx.lineTo(-20, 7);
+            ctx.moveTo(22, 0);
+            ctx.lineTo(-18, -6);
+            ctx.lineTo(-26, 0);
+            ctx.lineTo(-18, 6);
             ctx.closePath();
             ctx.fillStyle = '#E2E8F0';
             ctx.fill();
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.5;
             ctx.strokeStyle = '#94A3B8';
             ctx.stroke();
 
-            // Handle
             ctx.fillStyle = '#78350F';
-            ctx.fillRect(-42, -5, 15, 10);
+            ctx.fillRect(-38, -4, 13, 8);
 
             ctx.restore();
         }
 
 
         /* --------------------------------------------------------------------
-           Slice Collision Mechanics & Voice Feedback
+           SLICE INTERSECTION & VOICE FEEDBACK
            -------------------------------------------------------------------- */
         function checkSliceIntersections(x, y) {
             if (gameState.isPaused || gameState.isGameOver || !gameState.isPlaying) return;
@@ -1324,16 +1397,15 @@
             balloons.forEach(balloon => {
                 if (!balloon.isSliced) {
                     const dist = Math.hypot(balloon.x - x, balloon.y - y);
-                    if (dist < balloon.radius * 1.1) {
+                    if (dist < balloon.radius * 1.15) {
                         balloon.isSliced = true;
 
                         if (balloon.number === gameState.targetNumber) {
-                            // CORRECT TARGET SLICED!
+                            // CORRECT TARGET POP
                             playSFX('correct');
                             playSFX('pop');
                             createBalloonPopParticles(balloon.x, balloon.y, balloon.palette.main);
 
-                            // VOICE FEEDBACK FOR CORRECT BALLOON POP
                             const correctVoiceText = gameState.language === 'bn'
                                 ? "একদম ঠিক বেলুনটা ফাটিয়েছো!"
                                 : "Awesome! You popped the right balloon!";
@@ -1353,7 +1425,7 @@
                             }, 1200);
 
                         } else {
-                            // WRONG BALLOON CUT! DAMAGE KNIFE
+                            // WRONG BALLOON - KNIFE DAMAGED
                             playSFX('knife_damage');
                             createKnifeSparks(balloon.x, balloon.y);
 
@@ -1381,7 +1453,7 @@
 
 
         /* --------------------------------------------------------------------
-           Sequence & Target Spawning Engine (via Monkey Launchers)
+           SEQUENCE & TARGET LAUNCHING
            -------------------------------------------------------------------- */
         function prepareNumberSequence() {
             const min = gameState.minRange;
@@ -1407,7 +1479,6 @@
 
         function generateNextTargetInSequence() {
             if (gameState.currentSequenceIndex >= gameState.sequenceList.length) {
-                // SEQUENCE COMPLETE! TRIGGER CELEBRATION BOMB BLAST & PRIZE
                 triggerBombBlastCelebration();
                 showPrizeModal();
                 return;
@@ -1426,7 +1497,7 @@
 
             const min = gameState.minRange;
             const max = gameState.maxRange;
-            const balloonCount = gameState.difficulty === 'easy' ? 2 : gameState.difficulty === 'hard' ? 3 : 3;
+            const balloonCount = launcherMonkeys.length;
 
             let includeTarget = Math.random() < 0.85;
             let targetSpawned = false;
@@ -1442,7 +1513,6 @@
                     } while (num === gameState.targetNumber && Math.random() > 0.15);
                 }
 
-                // Pick a monkey launcher to hold & release
                 const monkey = launcherMonkeys[i % launcherMonkeys.length];
                 const palette = BALLOON_PALETTES[Math.floor(Math.random() * BALLOON_PALETTES.length)];
                 
@@ -1450,16 +1520,16 @@
 
                 setTimeout(() => {
                     monkey.releaseBalloon();
-                    const balloon = new GasBalloon(num, monkey.x, monkey.y - 100, num === gameState.targetNumber);
+                    const balloon = new GasBalloon(num, monkey.x, monkey.y - 80, num === gameState.targetNumber);
                     balloon.palette = palette;
                     balloons.push(balloon);
-                }, 400 + i * 250);
+                }, 350 + i * 220);
             }
         }
 
 
         /* --------------------------------------------------------------------
-           MONKEY MASCOT: BLINKING & VICTORY DANCE ANIMATION ENGINE
+           MONKEY EYE BLINKING & DANCE ANIMATIONS
            -------------------------------------------------------------------- */
         function startMonkeyEyeBlinking() {
             setInterval(() => {
@@ -1467,16 +1537,14 @@
                 const rightLid = document.getElementById('rightEyelid');
                 if (!leftLid || !rightLid) return;
 
-                // Close eyelids
                 leftLid.setAttribute('opacity', '1');
                 rightLid.setAttribute('opacity', '1');
 
                 setTimeout(() => {
-                    // Open eyelids
                     leftLid.setAttribute('opacity', '0');
                     rightLid.setAttribute('opacity', '0');
                 }, 180);
-            }, 3200 + Math.random() * 2000);
+            }, 3000 + Math.random() * 2000);
         }
 
         function triggerMonkeyDance(customText) {
@@ -1484,7 +1552,6 @@
             const monkeyMouth = document.getElementById('monkeyMouth');
             const mascotText = document.getElementById('mascotText');
 
-            // Switch to Dance CSS animation
             monkeyContainer.classList.remove('monkey-idle-anim');
             monkeyContainer.classList.add('monkey-dance-anim');
 
@@ -1518,33 +1585,29 @@
 
 
         /* --------------------------------------------------------------------
-           Main Game Loop & Rendering
+           MAIN GAME LOOP
            -------------------------------------------------------------------- */
         function gameLoop() {
             ctx.clearRect(0, 0, width, height);
 
             if (gameState.isPlaying && !gameState.isPaused) {
-                // Update & Render Launcher Monkeys at Bottom
                 launcherMonkeys.forEach(m => {
                     m.update();
                     m.draw();
                 });
 
-                // Update & Render Gas Balloons
                 for (let i = balloons.length - 1; i >= 0; i--) {
                     const balloon = balloons[i];
                     balloon.update();
                     balloon.draw();
 
-                    if (balloon.y < -120) {
+                    if (balloon.y < -100) {
                         balloons.splice(i, 1);
                     }
                 }
 
-                // Render Particles, Sparks, Fireworks
                 updateParticlesAndSparks();
 
-                // Render Blade Trail
                 if (bladeTrail.length > 1) {
                     ctx.save();
                     ctx.beginPath();
@@ -1553,25 +1616,22 @@
                         ctx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
                     }
                     ctx.strokeStyle = '#FACC15';
-                    ctx.lineWidth = 6;
+                    ctx.lineWidth = 5;
                     ctx.lineCap = 'round';
                     ctx.shadowColor = '#F59E0B';
-                    ctx.shadowBlur = 15;
+                    ctx.shadowBlur = 10;
                     ctx.stroke();
                     ctx.restore();
                 }
 
-                // Render Knife Blade
                 drawKnife(currentKnifePos.x, currentKnifePos.y, currentKnifePos.angle);
 
-                // Spawner
                 gameState.spawnTimer++;
                 if (gameState.spawnTimer > gameState.spawnInterval) {
                     spawnBalloonWave();
                     gameState.spawnTimer = 0;
                 }
             } else {
-                // Render launchers even when not playing
                 launcherMonkeys.forEach(m => m.draw());
                 updateParticlesAndSparks();
             }
@@ -1581,24 +1641,22 @@
 
 
         /* ====================================================================
-           7. UI CONTROLS, SETTINGS & PRIZE HANDLERS
+           7. UI & SETTINGS CONTROLLERS
            ==================================================================== */
         function updateHUD() {
             document.getElementById('scoreText').innerText = gameState.score;
 
-            // Knife Durability Display
             const knifeContainer = document.getElementById('knifeDurabilityContainer');
             let knifeHtml = '';
             for (let i = 0; i < gameState.maxKnifeDurability; i++) {
                 if (i < gameState.knifeDurability) {
-                    knifeHtml += `<i class="fa-solid fa-cutlass text-amber-400 text-base sm:text-xl drop-shadow"></i>`;
+                    knifeHtml += `<i class="fa-solid fa-cutlass text-amber-400 text-xs sm:text-base drop-shadow"></i>`;
                 } else {
-                    knifeHtml += `<i class="fa-solid fa-cutlass text-slate-600/60 text-base sm:text-xl"></i>`;
+                    knifeHtml += `<i class="fa-solid fa-cutlass text-slate-600/60 text-xs sm:text-base"></i>`;
                 }
             }
             knifeContainer.innerHTML = knifeHtml;
 
-            // Combo Badge
             const comboBadge = document.getElementById('comboBadge');
             if (gameState.combo > 1) {
                 comboBadge.classList.remove('hidden');
@@ -1607,7 +1665,6 @@
                 comboBadge.classList.add('hidden');
             }
 
-            // Mode Label
             const langLabel = gameState.language === 'bn' ? 'বাংলা' : 'English';
             const patLabel = gameState.patternSequence === 'ascending' ? (gameState.language === 'bn' ? 'ছোট থেকে বড়' : 'Ascending') :
                              gameState.patternSequence === 'descending' ? (gameState.language === 'bn' ? 'বড় থেকে ছোট' : 'Descending') : (gameState.language === 'bn' ? 'এলোমেলো' : 'Mixed');
@@ -1629,7 +1686,7 @@
             gameState.learnedNumbers.clear();
             balloons = [];
 
-            gameState.spawnInterval = gameState.difficulty === 'easy' ? 145 : gameState.difficulty === 'hard' ? 90 : 115;
+            gameState.spawnInterval = gameState.difficulty === 'easy' ? 140 : gameState.difficulty === 'hard' ? 85 : 110;
 
             document.getElementById('startMenuModal').classList.add('hidden');
             document.getElementById('gameOverModal').classList.add('hidden');
@@ -1679,7 +1736,7 @@
             } else {
                 list.innerHTML = Array.from(gameState.learnedNumbers).map(num => {
                     const data = getNumberDisplayData(num, gameState.language);
-                    return `<span class="px-2.5 py-1 bg-amber-500/20 border border-amber-400/40 rounded-lg text-amber-300 font-bold">${data.primary}</span>`;
+                    return `<span class="px-2 py-0.5 bg-amber-500/20 border border-amber-400/40 rounded-lg text-amber-300 font-bold">${data.primary}</span>`;
                 }).join('');
             }
 
@@ -1714,7 +1771,7 @@
             document.getElementById('knifeDurVal').innerText = gameState.maxKnifeDurability;
             setPattern(gameState.patternSequence);
             document.getElementById('settingsModal').classList.remove('hidden');
-        }
+        }F
 
         function closeSettingsModal() {
             document.getElementById('settingsModal').classList.add('hidden');
@@ -1727,9 +1784,9 @@
 
         function setPattern(pat) {
             gameState.patternSequence = pat;
-            document.getElementById('patternAsc').className = pat === 'ascending' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
-            document.getElementById('patternDesc').className = pat === 'descending' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
-            document.getElementById('patternMix').className = pat === 'mixed' ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-xs sm:text-sm text-center' : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-xs sm:text-sm text-center';
+            document.getElementById('patternAsc').className = pat === 'ascending' ? 'p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-[11px] text-center' : 'p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-[11px] text-center';
+            document.getElementById('patternDesc').className = pat === 'descending' ? 'p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-[11px] text-center' : 'p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-[11px] text-center';
+            document.getElementById('patternMix').className = pat === 'mixed' ? 'p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-[11px] text-center' : 'p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-[11px] text-center';
         }
 
         function saveAndCloseSettings() {
@@ -1760,13 +1817,13 @@
 
         function setLanguage(lang) {
             gameState.language = lang;
-            document.getElementById('startLangBnBtn').className = lang === 'bn' ? 'py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-2' : 'py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-2';
-            document.getElementById('startLangEnBtn').className = lang === 'en' ? 'py-2.5 px-4 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-2' : 'py-2.5 px-4 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-2';
+            document.getElementById('startLangBnBtn').className = lang === 'bn' ? 'py-2 px-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-1.5 text-xs sm:text-sm' : 'py-2 px-3 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-1.5 text-xs sm:text-sm';
+            document.getElementById('startLangEnBtn').className = lang === 'en' ? 'py-2 px-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold text-center flex items-center justify-center gap-1.5 text-xs sm:text-sm' : 'py-2 px-3 rounded-xl border-2 border-white/20 bg-white/5 text-indigo-200 font-bold text-center flex items-center justify-center gap-1.5 text-xs sm:text-sm';
 
-            document.getElementById('setLangBn').className = lang === 'bn' ? 'p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2' : 'p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2';
-            document.getElementById('setLangEn').className = lang === 'en' ? 'p-3 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-2' : 'p-3 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-2';
+            document.getElementById('setLangBn').className = lang === 'bn' ? 'p-2.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-1.5' : 'p-2.5 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-1.5';
+            document.getElementById('setLangEn').className = lang === 'en' ? 'p-2.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-white font-bold flex items-center justify-center gap-1.5' : 'p-2.5 rounded-xl border-2 border-white/10 bg-white/5 text-slate-300 font-bold flex items-center justify-center gap-1.5';
 
-            document.getElementById('targetPromptLabel').innerText = lang === 'bn' ? 'সঠিক বেলুনটি কাটুন / Slice Target Balloon' : 'Slice the Matching Balloon';
+            document.getElementById('targetPromptLabel').innerText = lang === 'bn' ? 'সঠিক বেলুনটি কাটুন' : 'Slice the Matching Balloon';
             updateHUD();
         }
 
@@ -1777,8 +1834,8 @@
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     btn.className = d === diff 
-                        ? 'p-2.5 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center'
-                        : 'p-2.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center';
+                        ? 'p-2 rounded-xl border border-amber-400 bg-amber-500/20 text-white font-bold text-center'
+                        : 'p-2 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-bold text-center';
                 }
             });
         }
@@ -1794,7 +1851,7 @@
         }
 
         window.onload = function() {
-            initLauncherMonkeys();
+            resizeCanvas();
             startMonkeyEyeBlinking();
             gameLoop();
             updateHUD();
