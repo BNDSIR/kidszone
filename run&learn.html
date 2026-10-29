@@ -143,749 +143,463 @@
       </div>
     </div>
 
-    <!-- Center Quick Switcher Pills (Hidden on ultra-small phones, accessible via Teacher Settings too) -->
-    <div class="pointer-events-auto hud-glass rounded-2xl px-2 py-1 hidden md:flex flex-wrap items-center gap-1.5">
-      <!-- Language Selector -->
-      <div class="flex items-center bg-emerald-950/5 rounded-xl p-0.5 gap-1" role="group" aria-label="Language setting">
-        <button id="lang-bn-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all bg-emerald-600 text-white shadow-sm">
-          বাংলা (১, ২, ৩)
-        </button>
-        <button id="lang-en-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
-          English (1, 2, 3)
-        </button>
-        <button id="lang-both-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
-          Both (উভয়)
-        </button>
-      </div>
-
-      <!-- Game Mode Selector -->
-      <div class="flex items-center bg-amber-950/5 rounded-xl p-0.5 gap-1">
-        <button id="mode-walk-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all bg-amber-500 text-white shadow-sm">
-          🚶 Learn Walk
-        </button>
-        <button id="mode-quiz-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
-          🎯 Find Number
-        </button>
-      </div>
-    </div>
-
-    <!-- Right Action Controls (Teacher Settings Overlay, GLB Loader, Audio, Theme, Reset) -->
-    <div class="pointer-events-auto hud-glass rounded-2xl px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center gap-1 sm:gap-1.5">
-      <!-- Teacher Settings Button -->
-      <button id="open-teacher-modal-btn" type="button" class="btn-3d px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-kids font-bold flex items-center gap-1 shadow-sm" title="Open Teacher Settings Overlay (Language, Math Operations, Range, Mode)">
-        <span>👩‍🏫</span>
-        <span>Settings</span>
-      </button>
-
-      <button id="open-glb-modal-btn" type="button" class="btn-3d px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-kids font-bold flex items-center gap-1" title="Load custom .glb 3D character or configure GitHub path">
-        <span>🕺</span>
-        <span class="hidden lg:inline">3D Character (.GLB)</span>
-      </button>
-
-      <button id="theme-cycle-btn" type="button" class="btn-3d px-2 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 text-xs sm:text-sm font-semibold flex items-center gap-1" title="Switch eye-comfortable background theme">
-        <span id="theme-icon">🌤️</span>
-        <span id="theme-label" class="hidden xl:inline">Soft Meadow</span>
-      </button>
-
-      <button id="sound-toggle-btn" type="button" class="btn-3d w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 flex items-center justify-center text-sm sm:text-base" title="Toggle Sound & Voice">
-        🔊
-      </button>
-
-      <button id="reset-road-btn" type="button" class="btn-3d w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 flex items-center justify-center text-sm sm:text-base" title="Restart Road">
-        🔄
-      </button>
-    </div>
-  </header>
-
-  <!-- Quick Camera Angle Adjuster Popover (Back, Front & Custom Angle Sliders) -->
-  <div id="cam-angle-popover" class="hidden fixed right-3 bottom-32 sm:right-5 sm:bottom-36 z-20 w-72 sm:w-80 hud-glass rounded-3xl p-3.5 border-2 border-teal-400 shadow-2xl pointer-events-auto">
-    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/80">
-      <div class="font-kids font-bold text-xs sm:text-sm text-teal-950 flex items-center gap-1.5">
-        <span>🎥</span>
-        <span>Camera View & Angle Settings</span>
-      </div>
-      <button id="close-cam-popover-btn" type="button" class="w-6 h-6 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">
-        ✕
-      </button>
-    </div>
-    <div class="grid grid-cols-2 gap-1.5 mb-2.5 text-[11px] font-kids font-bold">
-      <button type="button" data-cam-preset="back_character" class="cam-preset-pill btn-3d py-1.5 px-2 rounded-xl bg-teal-600 text-white">
-        🔙 Back of Character
-      </button>
-      <button type="button" data-cam-preset="front_character" class="cam-preset-pill btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-teal-200">
-        🔜 Front of Character
-      </button>
-      <button type="button" data-cam-preset="face_angle" class="cam-preset-pill btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-teal-200">
-        📐 3/4 Face & Road
-      </button>
-      <button type="button" data-cam-preset="front_look" class="cam-preset-pill btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-teal-200">
-        😊 Front Walk View
-      </button>
-    </div>
-    <div class="space-y-2 text-[11px]">
-      <div>
-        <div class="flex justify-between font-semibold text-slate-700">
-          <span>Orbit Angle (Yaw):</span>
-          <span id="quick-cam-yaw-val">0°</span>
-        </div>
-        <input id="quick-cam-yaw" type="range" min="-180" max="180" step="5" value="0" class="w-full accent-teal-600 cursor-pointer" />
-      </div>
-      <div>
-        <div class="flex justify-between font-semibold text-slate-700">
-          <span>Camera Height (Pitch):</span>
-          <span id="quick-cam-height-val">4.4m</span>
-        </div>
-        <input id="quick-cam-height" type="range" min="1.8" max="8.5" step="0.2" value="4.4" class="w-full accent-teal-600 cursor-pointer" />
-      </div>
-      <div>
-        <div class="flex justify-between font-semibold text-slate-700">
-          <span>Zoom Distance:</span>
-          <span id="quick-cam-dist-val">7.5m</span>
-        </div>
-        <input id="quick-cam-dist" type="range" min="3.8" max="13.0" step="0.2" value="7.5" class="w-full accent-teal-600 cursor-pointer" />
-      </div>
-      <div class="flex justify-end pt-1">
-        <button id="reset-cam-angle-btn" type="button" class="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[10px]">
-          Reset Angle
-        </button>
-      </div>
-    </div>
+<!-- Center Quick Switcher Pills -->
+<div class="pointer-events-auto hud-glass rounded-2xl px-2 py-1 hidden md:flex flex-wrap items-center gap-1.5">
+  <!-- Language Selector -->
+  <div class="flex items-center bg-emerald-950/5 rounded-xl p-0.5 gap-1" role="group" aria-label="Language setting">
+    <button id="lang-bn-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all bg-emerald-600 text-white shadow-sm">
+      বাংলা (১, ২, ৩)
+    </button>
+    <button id="lang-en-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
+      English (1, 2, 3)
+    </button>
+    <button id="lang-both-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
+      Both (উভয়)
+    </button>
   </div>
 
-  <!-- Interactive Spoken English Character Conversation Panel (User Feels Speaking Directly to Character) -->
-  <div id="character-conversation-box" class="hidden fixed inset-x-0 bottom-28 sm:bottom-32 z-20 pointer-events-none flex justify-center px-3">
-    <div class="pointer-events-auto hud-glass rounded-3xl p-3.5 sm:p-4 border-3 border-indigo-400 shadow-2xl max-w-xl w-full space-y-2.5">
-      <div class="flex items-center justify-between gap-2 border-b border-indigo-100 pb-2">
-        <div class="flex items-center gap-2">
-          <span id="convo-gesture-badge" class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-kids font-bold text-[11px]">
-            👋 Waving & Speaking
-          </span>
-          <span class="text-xs font-bold text-indigo-950">Live Conversation with Character (চরিত্রের সাথে কথোপকথন)</span>
-        </div>
-        <button id="close-convo-box-btn" type="button" class="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center">
-          ✕
-        </button>
-      </div>
+  <!-- Game Mode Selector -->
+  <div class="flex items-center bg-amber-950/5 rounded-xl p-0.5 gap-1">
+    <button id="mode-walk-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all bg-amber-500 text-white shadow-sm">
+      🚶 Learn Walk
+    </button>
+    <button id="mode-quiz-btn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-kids font-bold transition-all text-slate-700 hover:bg-white/60">
+      🎯 Find Number
+    </button>
+  </div>
+</div>
 
-      <!-- Character Speech Bubble -->
-      <div class="p-3 rounded-2xl bg-indigo-50/90 border border-indigo-200 flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">🗣️ Character Says to You:</div>
-          <div id="convo-char-speech-en" class="font-kids text-base sm:text-xl font-bold text-slate-900 leading-snug">
-            "Hello friend! How are you today?"
-          </div>
-          <div id="convo-char-speech-bn" class="text-xs sm:text-sm font-semibold text-emerald-800 mt-0.5">
-            বাংলা অর্থ: হ্যালো বন্ধু! আজ তুমি কেমন আছো?
-          </div>
-        </div>
-        <button id="convo-replay-char-btn" type="button" class="btn-3d px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-xs shrink-0">
-          🔈 Listen
-        </button>
-      </div>
+<!-- Right Action Controls -->
+<div class="pointer-events-auto hud-glass rounded-2xl px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center gap-1 sm:gap-1.5">
+  <button id="open-teacher-modal-btn" type="button" class="btn-3d px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-kids font-bold flex items-center gap-1 shadow-sm" title="Open Teacher Settings Overlay">
+    <span>👩‍🏫</span>
+    <span>Settings</span>
+  </button>
 
-      <!-- User Reply Area (Speak via Mic OR Tap Reply Option) -->
-      <div class="space-y-1.5">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <span class="text-[11px] font-bold text-slate-700">🎤 Your Turn to Reply (মুখে বলো অথবা সঠিক উত্তরে ট্যাপ করো):</span>
-          <div class="flex items-center gap-1.5">
-            <button id="convo-mic-btn" type="button" class="btn-3d px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-kids font-bold text-xs flex items-center gap-1">
-              <span>🎤</span>
-              <span id="convo-mic-label">Speak Reply</span>
-            </button>
-            <button id="convo-next-dialogue-btn" type="button" class="btn-3d px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-kids font-bold text-xs">
-              Next ⏭️
-            </button>
-          </div>
-        </div>
-        <div id="convo-reply-options" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
-        <div id="convo-feedback-line" class="text-xs font-bold text-emerald-700"></div>
+  <button id="open-glb-modal-btn" type="button" class="btn-3d px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-kids font-bold flex items-center gap-1" title="Select 3D Character Preset">
+    <span>🕺</span>
+    <span class="hidden lg:inline">3D Character Dropdown</span>
+  </button>
+
+  <button id="theme-cycle-btn" type="button" class="btn-3d px-2 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 text-xs sm:text-sm font-semibold flex items-center gap-1" title="Switch Theme">
+    <span id="theme-icon">🌤️</span>
+    <span id="theme-label" class="hidden xl:inline">Soft Meadow</span>
+  </button>
+
+  <button id="sound-toggle-btn" type="button" class="btn-3d w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 flex items-center justify-center text-sm sm:text-base" title="Toggle Sound">
+    🔊
+  </button>
+
+  <button id="reset-road-btn" type="button" class="btn-3d w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 flex items-center justify-center text-sm sm:text-base" title="Restart Road">
+    🔄
+  </button>
+</div>
+
+
+  <div class="p-3 rounded-2xl bg-indigo-50/90 border border-indigo-200 flex items-start justify-between gap-3">
+    <div class="min-w-0">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">🗣️ Character Says to You:</div>
+      <div id="convo-char-speech-en" class="font-kids text-base sm:text-xl font-bold text-slate-900 leading-snug">
+        "Hello friend! How are you today?"
+      </div>
+      <div id="convo-char-speech-bn" class="text-xs sm:text-sm font-semibold text-emerald-800 mt-0.5">
+        বাংলা অর্থ: হ্যালো বন্ধু! আজ তুমি কেমন আছো?
       </div>
     </div>
+    <button id="convo-replay-char-btn" type="button" class="btn-3d px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-xs shrink-0">
+      🔈 Listen
+    </button>
   </div>
 
-  <!-- Quiz Prompt Banner (Visible in Quiz Mode) -->
-  <div id="quiz-banner" class="hidden relative z-10 pointer-events-none w-full flex justify-center mt-1.5 px-3 pl-24 sm:pl-36">
-    <div class="pointer-events-auto hud-glass rounded-2xl px-3.5 py-2 sm:px-5 sm:py-2.5 border-2 border-amber-400 flex items-center gap-2.5 sm:gap-3 shadow-lg animate-pop max-w-lg w-full justify-between">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="text-xl sm:text-2xl shrink-0">🎯</span>
-        <div class="min-w-0">
-          <div class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-700 truncate">Solve & Cross Correct Road Tile / সঠিক উত্তরটি পার করো</div>
-          <div id="quiz-target-text" class="font-kids text-base sm:text-2xl font-bold text-slate-900 truncate">
-            Cross Number: পাঁচ (5)
-          </div>
-        </div>
+  <div class="space-y-1.5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <span class="text-[11px] font-bold text-slate-700">🎤 Your Turn to Reply:</span>
+      <div class="flex items-center gap-1.5">
+        <button id="convo-mic-btn" type="button" class="btn-3d px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-kids font-bold text-xs flex items-center gap-1">
+          <span>🎤</span>
+          <span id="convo-mic-label">Speak Reply</span>
+        </button>
+        <button id="convo-next-dialogue-btn" type="button" class="btn-3d px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-kids font-bold text-xs">
+          Next ⏭️
+        </button>
       </div>
-      <button id="quiz-speak-btn" type="button" class="btn-3d px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-kids text-xs sm:text-sm font-bold flex items-center gap-1 shrink-0">
-        🔈 Hear
-      </button>
+    </div>
+    <div id="convo-reply-options" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
+    <div id="convo-feedback-line" class="text-xs font-bold text-emerald-700"></div>
+  </div>
+</div>
+
+
+<div class="pointer-events-auto hidden lg:flex flex-col items-center gap-1.5 max-w-md w-full">
+  <div class="hud-glass rounded-2xl px-3.5 py-2 w-full">
+    <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
+      <span id="footer-curriculum-label">Topic: Number Identification (1–20)</span>
+      <div class="flex gap-1">
+        <button type="button" data-range="10" class="range-btn px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">1–10</button>
+        <button type="button" data-range="20" class="range-btn px-2 py-0.5 rounded bg-emerald-600 text-white">1–20</button>
+        <button type="button" data-range="50" class="range-btn px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">1–50</button>
+      </div>
+    </div>
+    <div class="w-full bg-emerald-950/10 h-3 rounded-full overflow-hidden">
+      <div id="road-progress-bar" class="bg-gradient-to-r from-emerald-500 to-amber-400 h-full transition-all duration-300" style="width: 5%"></div>
     </div>
   </div>
+</div>
 
-  <!-- Large Floating Number / Math Crossing Feedback Card -->
-  <div id="number-feedback-wrapper" class="pointer-events-none fixed inset-x-0 top-[68px] sm:top-[82px] z-10 flex justify-center px-2 pl-24 sm:pl-36">
-    <div id="number-feedback-card" class="pointer-events-auto hud-glass rounded-3xl px-3.5 py-2 sm:px-6 sm:py-3.5 border-4 border-emerald-400/90 flex items-center gap-3 sm:gap-5 max-w-xl w-full sm:w-auto transition-all duration-300 transform scale-95 opacity-95">
-      <!-- Giant Numeral / Math Badge -->
-      <div id="card-big-digit" class="min-w-[60px] sm:min-w-[88px] h-[60px] sm:h-[88px] rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-kids text-2xl sm:text-4xl font-bold flex items-center justify-center shadow-md px-2.5 text-center leading-none">
-        ১
-      </div>
-      <!-- Word, Equation & Quantity Dots -->
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap items-center gap-1.5">
-          <span id="card-status-badge" class="text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-            Next on Road
-          </span>
-          <span id="card-secondary-digit" class="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
-            (1 • One)
-          </span>
-        </div>
-        <div id="card-word-main" class="font-kids text-lg sm:text-3xl font-bold text-slate-900 leading-tight truncate mt-0.5">
-          এক
-        </div>
-        <div id="card-dots-container" class="flex flex-wrap gap-0.5 sm:gap-1 mt-1 text-[10px] sm:text-xs leading-none" aria-label="Counting stars">
-          ⭐
-        </div>
-      </div>
-      <!-- Speak Button -->
-      <button id="speak-current-btn" type="button" class="btn-3d w-10 h-10 sm:w-13 sm:h-13 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-900 flex flex-col items-center justify-center shrink-0 font-kids font-bold p-1.5" title="Hear pronunciation again">
-        <span class="text-lg sm:text-xl leading-none">🗣️</span>
-        <span class="text-[9px] sm:text-[10px] mt-0.5">Speak</span>
-      </button>
-    </div>
+<div class="pointer-events-auto flex flex-col items-end gap-1.5 sm:gap-2">
+  <div class="flex flex-wrap justify-end items-center gap-1.5">
+    <button id="open-convo-panel-btn" type="button" class="btn-3d px-2.5 py-2 sm:px-3 sm:py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1" title="Open Conversation Panel">
+      <span>💬</span>
+      <span>Talk</span>
+    </button>
+    <button id="ctrl-cam-angle" type="button" class="btn-3d px-2.5 py-2 sm:px-3 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1">
+      <span>🎥</span>
+      <span id="cam-mode-label">Face & Road</span>
+    </button>
+    <button id="open-cam-angle-btn" type="button" class="btn-3d px-2 py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-0.5">
+      <span>📐</span>
+    </button>
+    <button id="ctrl-wave" type="button" class="btn-3d px-2.5 py-2 sm:px-3.5 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1">
+      <span>🙌</span>
+      <span>Cheer</span>
+    </button>
+    <button id="ctrl-sprint" type="button" class="btn-3d px-2.5 py-2 sm:px-3.5 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1">
+      <span>⚡</span>
+      <span id="sprint-label">Walk</span>
+    </button>
   </div>
 
-  <!-- Bottom Controls & Character Movement Bar (All-Device Responsive: Mobile, Tablet, Desktop) -->
-  <footer class="fixed inset-x-0 bottom-0 z-10 pointer-events-none p-2.5 sm:p-5 flex items-end justify-between gap-2">
-    <!-- Left Touch / Mouse D-Pad for Walking & Steering -->
-    <div class="pointer-events-auto flex flex-col items-center gap-1">
-      <div class="hud-glass rounded-3xl p-2 grid grid-cols-3 gap-1 w-36 h-36 sm:w-44 sm:h-44 place-items-center">
-        <div></div>
-        <button id="ctrl-up" type="button" data-dir="forward" class="ctrl-btn btn-3d w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-lg sm:text-xl flex items-center justify-center" aria-label="Walk Forward">
-          ▲
-        </button>
-        <div></div>
-        <button id="ctrl-left" type="button" data-dir="left" class="ctrl-btn btn-3d w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-lg sm:text-xl flex items-center justify-center" aria-label="Move Left">
-          ◀
-        </button>
-        <button id="ctrl-auto" type="button" class="btn-3d w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-kids font-bold text-[10px] sm:text-[11px] leading-tight flex flex-col items-center justify-center" title="Toggle Auto-Walk">
-          <span>AUTO</span>
-          <span id="auto-walk-indicator" class="text-[9px] text-slate-500">OFF</span>
-        </button>
-        <button id="ctrl-right" type="button" data-dir="right" class="ctrl-btn btn-3d w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-lg sm:text-xl flex items-center justify-center" aria-label="Move Right">
-          ▶
-        </button>
-        <div></div>
-        <button id="ctrl-down" type="button" data-dir="backward" class="ctrl-btn btn-3d w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-lg sm:text-xl flex items-center justify-center" aria-label="Walk Backward">
-          ▼
-        </button>
-        <div></div>
-      </div>
-      <div class="hud-glass rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 hidden sm:block">
-        Swipe Road or use <strong>W A S D / Arrows</strong> • <strong>Space</strong> Jump
-      </div>
-    </div>
+  <button id="ctrl-jump" type="button" class="btn-3d w-20 h-20 sm:w-26 sm:h-26 rounded-full bg-gradient-to-b from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-white border-4 border-white font-kids font-bold flex flex-col items-center justify-center shadow-xl">
+    <span class="text-xl sm:text-3xl leading-none">🦘</span>
+    <span class="text-xs sm:text-base mt-0.5 tracking-wide">JUMP</span>
+    <span class="text-[9px] sm:text-[10px] opacity-90 hidden sm:inline">SPACE</span>
+  </button>
+</div>
 
-    <!-- Center Quick Progress & Range Bar -->
-    <div class="pointer-events-auto hidden lg:flex flex-col items-center gap-1.5 max-w-md w-full">
-      <div class="hud-glass rounded-2xl px-3.5 py-2 w-full">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
-          <span id="footer-curriculum-label">Topic: Number Identification (1–20)</span>
-          <div class="flex gap-1">
-            <button type="button" data-range="10" class="range-btn px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">1–10</button>
-            <button type="button" data-range="20" class="range-btn px-2 py-0.5 rounded bg-emerald-600 text-white">1–20</button>
-            <button type="button" data-range="50" class="range-btn px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">1–50</button>
-          </div>
-        </div>
-        <div class="w-full bg-emerald-950/10 h-3 rounded-full overflow-hidden">
-          <div id="road-progress-bar" class="bg-gradient-to-r from-emerald-500 to-amber-400 h-full transition-all duration-300" style="width: 5%"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Right Action Buttons: Camera Face Toggle, Cheer, Sprint, Jump -->
-    <div class="pointer-events-auto flex flex-col items-end gap-1.5 sm:gap-2">
-      <div class="flex flex-wrap justify-end items-center gap-1.5">
-        <button id="open-convo-panel-btn" type="button" class="btn-3d px-2.5 py-2 sm:px-3 sm:py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1" title="Open Interactive Face-to-Face Spoken English Conversation with Character">
-          <span>💬</span>
-          <span>Talk</span>
+  <div class="mt-4 space-y-4 text-xs sm:text-sm">
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-3">
+      <label class="block font-kids font-bold text-emerald-950 text-sm sm:text-base">
+        1. Select Subject / Learning Topic (বিষয় নির্বাচন করুন)
+      </label>
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" id="teacher-topic-grid">
+        <button type="button" data-topic="identification" class="topic-opt-btn btn-3d p-2 rounded-xl bg-emerald-600 text-white font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">🔢</span>
+          <span>Number ID</span>
+          <span class="text-[10px] opacity-90">সংখ্যা চেনা</span>
         </button>
-        <button id="ctrl-cam-angle" type="button" class="btn-3d px-2.5 py-2 sm:px-3 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1" title="Switch Camera View (Back of Character, Front of Character, 3/4 Face)">
-          <span>🎥</span>
-          <span id="cam-mode-label">Face & Road</span>
+        <button type="button" data-topic="addition" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">➕</span>
+          <span>Addition</span>
+          <span class="text-[10px] text-slate-500">যোগ (+)</span>
         </button>
-        <button id="open-cam-angle-btn" type="button" class="btn-3d px-2 py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-0.5" title="Adjust Camera Orbit Angle, Height & Distance">
-          <span>📐</span>
+        <button type="button" data-topic="subtraction" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">➖</span>
+          <span>Subtraction</span>
+          <span class="text-[10px] text-slate-500">বিয়োগ (-)</span>
         </button>
-        <button id="ctrl-wave" type="button" class="btn-3d px-2.5 py-2 sm:px-3.5 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1" title="Cheer / Expression Action (Key: E)">
-          <span>🙌</span>
-          <span>Cheer</span>
+        <button type="button" data-topic="multiplication" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">✖️</span>
+          <span>Multiply</span>
+          <span class="text-[10px] text-slate-500">গুণ (×)</span>
         </button>
-        <button id="ctrl-sprint" type="button" class="btn-3d px-2.5 py-2 sm:px-3.5 sm:py-2 rounded-2xl hud-glass hover:bg-white text-slate-800 font-kids font-bold text-[11px] sm:text-xs flex items-center gap-1" title="Toggle Fast Run (Shift)">
-          <span>⚡</span>
-          <span id="sprint-label">Walk</span>
+        <button type="button" data-topic="division" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">➗</span>
+          <span>Division</span>
+          <span class="text-[10px] text-slate-500">ভাগ (÷)</span>
+        </button>
+        <button type="button" data-topic="gk" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
+          <span class="text-xl">🌏</span>
+          <span>GK (MCQ)</span>
+          <span class="text-[10px] text-slate-500">সাধারণ জ্ঞান</span>
+        </button>
+        <button type="button" data-topic="spoken_english" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center col-span-2 sm:col-span-1">
+          <span class="text-xl">🗣️</span>
+          <span>Spoken Eng</span>
+          <span class="text-[10px] text-slate-500">স্পোকেন ইংলিশ</span>
         </button>
       </div>
 
-      <button id="ctrl-jump" type="button" class="btn-3d w-20 h-20 sm:w-26 sm:h-26 rounded-full bg-gradient-to-b from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-white border-4 border-white font-kids font-bold flex flex-col items-center justify-center shadow-xl">
-        <span class="text-xl sm:text-3xl leading-none">🦘</span>
-        <span class="text-xs sm:text-base mt-0.5 tracking-wide">JUMP</span>
-        <span class="text-[9px] sm:text-[10px] opacity-90 hidden sm:inline">SPACE</span>
-      </button>
-    </div>
-  </footer>
-
-  <!-- ===================================================================
-       TEACHER SETTINGS OVERLAY MODAL (Language, Number Range, Math Operations, Mode)
-       =================================================================== -->
-  <div id="teacher-modal" class="hidden fixed inset-0 z-30 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border-2 border-rose-100 max-h-[92vh] overflow-y-auto custom-scroll">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl">
-            👩‍🏫
-          </div>
-          <div>
-            <h2 class="font-kids text-lg sm:text-xl font-bold text-slate-900">Teacher & Classroom Settings Overlay</h2>
-            <p class="text-xs text-slate-500">Customize Language, Math Topic, Number Range, Game Mode & Face Camera</p>
-          </div>
+      <div id="gk-subject-panel" class="hidden pt-2 border-t border-emerald-200/80">
+        <label class="block font-kids font-bold text-emerald-900 text-xs sm:text-sm mb-1.5">
+          🌏 Choose GK Subject (সাধারণ জ্ঞানের বিষয়):
+        </label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          <button type="button" data-gk-sub="all" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-teal-600 text-white font-kids font-bold text-xs text-left">
+            🎲 সব বিষয় (All Mixed)
+          </button>
+          <button type="button" data-gk-sub="animals" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
+            🐾 পশুপাখি ও প্রকৃতি (Animals)
+          </button>
+          <button type="button" data-gk-sub="india_wb" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
+            🇮🇳 ভারত ও বাংলা (India & WB)
+          </button>
+          <button type="button" data-gk-sub="science" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
+            🔬 বিজ্ঞান ও দেহ (Science & Body)
+          </button>
+          <button type="button" data-gk-sub="fruits_food" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
+            🍎 ফল, ফুল ও খাবার (Fruits/Food)
+          </button>
+          <button type="button" data-gk-sub="sky_time" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
+            🪐 আকাশ ও দিনক্ষণ (Sky & Time)
+          </button>
         </div>
-        <button id="close-teacher-modal-btn" type="button" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center">
-          ✕
-        </button>
       </div>
 
-      <div class="mt-4 space-y-4 text-xs sm:text-sm">
-        <!-- 1. Learning Topic / Math / GK / Spoken English -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-3">
-          <label class="block font-kids font-bold text-emerald-950 text-sm sm:text-base">
-            1. Select Subject / Learning Topic (বিষয় নির্বাচন করুন)
-          </label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" id="teacher-topic-grid">
-            <button type="button" data-topic="identification" class="topic-opt-btn btn-3d p-2 rounded-xl bg-emerald-600 text-white font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">🔢</span>
-              <span>Number ID</span>
-              <span class="text-[10px] opacity-90">সংখ্যা চেনা</span>
-            </button>
-            <button type="button" data-topic="addition" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">➕</span>
-              <span>Addition</span>
-              <span class="text-[10px] text-slate-500">যোগ (+)</span>
-            </button>
-            <button type="button" data-topic="subtraction" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">➖</span>
-              <span>Subtraction</span>
-              <span class="text-[10px] text-slate-500">বিয়োগ (-)</span>
-            </button>
-            <button type="button" data-topic="multiplication" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">✖️</span>
-              <span>Multiply</span>
-              <span class="text-[10px] text-slate-500">গুণ (×)</span>
-            </button>
-            <button type="button" data-topic="division" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">➗</span>
-              <span>Division</span>
-              <span class="text-[10px] text-slate-500">ভাগ (÷)</span>
-            </button>
-            <button type="button" data-topic="gk" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center">
-              <span class="text-xl">🌏</span>
-              <span>GK (MCQ)</span>
-              <span class="text-[10px] text-slate-500">সাধারণ জ্ঞান</span>
-            </button>
-            <button type="button" data-topic="spoken_english" class="topic-opt-btn btn-3d p-2 rounded-xl bg-white hover:bg-emerald-100 text-slate-700 border border-emerald-200 font-kids font-bold flex flex-col items-center gap-0.5 text-center col-span-2 sm:col-span-1">
-              <span class="text-xl">🗣️</span>
-              <span>Spoken Eng</span>
-              <span class="text-[10px] text-slate-500">স্পোকেন ইংলিশ</span>
-            </button>
-          </div>
-
-          <!-- Dynamic Sub-Panel for GK Subject Selection -->
-          <div id="gk-subject-panel" class="hidden pt-2 border-t border-emerald-200/80">
-            <label class="block font-kids font-bold text-emerald-900 text-xs sm:text-sm mb-1.5">
-              🌏 Choose GK Subject (সাধারণ জ্ঞানের বিষয় — প্রতিবার নতুন MCQ প্রশ্ন):
-            </label>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-              <button type="button" data-gk-sub="all" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-teal-600 text-white font-kids font-bold text-xs text-left">
-                🎲 সব বিষয় (All Mixed)
-              </button>
-              <button type="button" data-gk-sub="animals" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
-                🐾 পশুপাখি ও প্রকৃতি (Animals)
-              </button>
-              <button type="button" data-gk-sub="india_wb" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
-                🇮🇳 ভারত ও বাংলা (India & WB)
-              </button>
-              <button type="button" data-gk-sub="science" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
-                🔬 বিজ্ঞান ও দেহ (Science & Body)
-              </button>
-              <button type="button" data-gk-sub="fruits_food" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
-                🍎 ফল, ফুল ও খাবার (Fruits/Flowers)
-              </button>
-              <button type="button" data-gk-sub="sky_time" class="gk-sub-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-teal-200 font-kids font-bold text-xs text-left">
-                🪐 আকাশ ও দিনক্ষণ (Sky & Time)
-              </button>
-            </div>
-          </div>
-
-          <!-- Dynamic Sub-Panel for Spoken English Level & Conversation Pattern -->
-          <div id="spoken-english-panel" class="hidden pt-2 border-t border-emerald-200/80">
-            <label class="block font-kids font-bold text-indigo-950 text-xs sm:text-sm mb-1.5">
-              🗣️ Spoken English Level & Bengali Meaning Conversation Pattern:
-            </label>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button type="button" data-spoken-lvl="level1" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-indigo-600 text-white font-kids font-bold text-xs text-left">
-                <div>🌱 Level 1: Beginner</div>
-                <div class="text-[10px] opacity-90">সহজ শব্দ ও অভিবাদন (Greetings & Daily Words)</div>
-              </button>
-              <button type="button" data-spoken-lvl="level2" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs text-left">
-                <div>🌿 Level 2: Sentences</div>
-                <div class="text-[10px] opacity-80">ছোট বাক্য ও বাংলা অর্থ (School & Home Sentences)</div>
-              </button>
-              <button type="button" data-spoken-lvl="level3" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs text-left">
-                <div>🌳 Level 3: Conversation</div>
-                <div class="text-[10px] opacity-80">কথোপকথন ও প্রশ্নোত্তর (Q&A Dialogue Pattern)</div>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. Language & Game Mode Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Language Selection -->
-          <div class="p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200/80">
-            <label class="block font-kids font-bold text-sky-950 text-sm mb-2">
-              2. Language (ভাষা)
-            </label>
-            <div class="grid grid-cols-3 gap-1.5">
-              <button type="button" data-tlang="bn" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-sky-600 text-white font-kids font-bold text-xs">
-                বাংলা (১,২,৩)
-              </button>
-              <button type="button" data-tlang="en" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-white text-slate-700 border border-sky-200 font-kids font-bold text-xs">
-                English (1,2,3)
-              </button>
-              <button type="button" data-tlang="both" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-white text-slate-700 border border-sky-200 font-kids font-bold text-xs">
-                Both (উভয়)
-              </button>
-            </div>
-          </div>
-
-          <!-- Learning Mode vs Quiz Mode -->
-          <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80">
-            <label class="block font-kids font-bold text-amber-950 text-sm mb-2">
-              3. Activity Mode (শেখার ধরন)
-            </label>
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" data-tmode="walk" class="tmode-opt-btn btn-3d py-2 px-2.5 rounded-xl bg-amber-500 text-white font-kids font-bold text-xs flex items-center justify-center gap-1">
-                <span>🚶</span>
-                <span>Learning Mode</span>
-              </button>
-              <button type="button" data-tmode="quiz" class="tmode-opt-btn btn-3d py-2 px-2.5 rounded-xl bg-white text-slate-700 border border-amber-200 font-kids font-bold text-xs flex items-center justify-center gap-1">
-                <span>🎯</span>
-                <span>Quiz Mode</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Number Range Setting (Min & Max) -->
-        <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <label class="font-kids font-bold text-purple-950 text-sm">
-              4. Number Range — Min & Max (সংখ্যার সর্বনিম্ন ও সর্বোচ্চ সীমা)
-            </label>
-            <span id="teacher-range-summary" class="text-xs font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
-              Active Range: 1 to 20
-            </span>
-          </div>
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button type="button" data-tmin="1" data-trange="10" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              1 – 10 (১–১০)
-            </button>
-            <button type="button" data-tmin="11" data-trange="20" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              11 – 20 (১১–২০)
-            </button>
-            <button type="button" data-tmin="1" data-trange="20" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-purple-600 text-white font-kids font-bold text-xs">
-              1 – 20 (১–২০)
-            </button>
-            <button type="button" data-tmin="1" data-trange="30" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              1 – 30 (১–৩০)
-            </button>
-            <button type="button" data-tmin="21" data-trange="50" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              21 – 50 (২১–৫০)
-            </button>
-            <button type="button" data-tmin="1" data-trange="50" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              1 – 50 (১–৫০)
-            </button>
-            <button type="button" data-tmin="51" data-trange="100" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
-              51 – 100 (৫১–১০০)
-            </button>
-          </div>
-          <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-purple-200/60">
-            <div class="flex items-center gap-1.5">
-              <label for="custom-min-number-input" class="text-xs font-semibold text-purple-950">Min (সর্বনিম্ন):</label>
-              <input id="custom-min-number-input" type="number" min="1" max="95" value="1" class="w-16 px-2 py-1 rounded-lg border border-purple-300 text-center font-bold text-xs bg-white" />
-            </div>
-            <div class="flex items-center gap-1.5">
-              <label for="custom-max-number-input" class="text-xs font-semibold text-purple-950">Max (সর্বোচ্চ):</label>
-              <input id="custom-max-number-input" type="number" min="2" max="100" value="20" class="w-16 px-2 py-1 rounded-lg border border-purple-300 text-center font-bold text-xs bg-white" />
-            </div>
-            <span class="text-[11px] text-purple-800">Set any custom Min & Max (1 to 100)</span>
-          </div>
-        </div>
-
-        <!-- 4. Camera View (Back of Character / Front of Character) & Angle Settings -->
-        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block font-kids font-bold text-slate-800 text-xs sm:text-sm mb-1.5">
-                5. Camera Position (পিছনে ও সামনে ক্যামেরা ও অ্যাঙ্গেল)
-              </label>
-              <select id="teacher-cam-select" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-xs text-slate-800">
-                <option value="back_character">🔙 Back Side of Character (পিছন থেকে ক্যামেরা — Over Back View)</option>
-                <option value="front_character">🔜 Front of Character (সামনে থেকে ক্যামেরা — Full Face & Body Language)</option>
-                <option value="face_angle" selected>📐 Face & Road 3/4 View (Character Faces You + Road Ahead)</option>
-                <option value="front_look">😊 Front-Walk View (Close-Up Face While Walking)</option>
-                <option value="classic">🎥 Classic Third-Person + Live Face Cam Mirror</option>
-              </select>
-            </div>
-            <div>
-              <label class="block font-kids font-bold text-slate-800 text-xs sm:text-sm mb-1.5">
-                6. Live Face Mirror & Walking Speed
-              </label>
-              <div class="flex items-center gap-2">
-                <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer">
-                  <input id="toggle-face-pip-checkbox" type="checkbox" checked class="rounded text-emerald-600" />
-                  <span>Show Live Face Cam</span>
-                </label>
-                <select id="teacher-speed-select" class="flex-1 px-2.5 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-xs text-slate-800">
-                  <option value="0.75">Slow (Young Kids)</option>
-                  <option value="1" selected>Normal Speed</option>
-                  <option value="1.35">Fast Speed</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Custom Camera Angle Sliders inside Teacher Overlay -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200 text-xs">
-            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-              <div class="flex justify-between font-bold text-slate-700 mb-1">
-                <span>Orbit Angle (Yaw):</span>
-                <span id="teacher-cam-yaw-label">0°</span>
-              </div>
-              <input id="cam-yaw-slider" type="range" min="-180" max="180" step="5" value="0" class="w-full accent-emerald-600 cursor-pointer" />
-            </div>
-            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-              <div class="flex justify-between font-bold text-slate-700 mb-1">
-                <span>Camera Height (Tilt):</span>
-                <span id="teacher-cam-height-label">4.4m</span>
-              </div>
-              <input id="cam-height-slider" type="range" min="1.8" max="8.5" step="0.2" value="4.4" class="w-full accent-emerald-600 cursor-pointer" />
-            </div>
-            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
-              <div class="flex justify-between font-bold text-slate-700 mb-1">
-                <span>Camera Distance:</span>
-                <span id="teacher-cam-dist-label">7.5m</span>
-              </div>
-              <input id="cam-dist-slider" type="range" min="3.8" max="13.0" step="0.2" value="7.5" class="w-full accent-emerald-600 cursor-pointer" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. Google Sheet & Attached Sheet File Loader for GK & Spoken English -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-teal-50/80 border border-teal-200 space-y-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <div class="font-kids font-bold text-teal-950 text-sm sm:text-base">
-                📊 7. Load GK & Spoken English from Google Sheet or Attached Sheet File
-              </div>
-              <p class="text-[11px] text-teal-900/80">
-                Connect a live Google Sheet link or attach a <code>.csv</code> spreadsheet file for dynamic GK MCQs and Spoken English Conversations!
-              </p>
-            </div>
-            <div class="flex gap-1.5">
-              <button id="download-gk-template-btn" type="button" class="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold text-[11px]">
-                📥 GK Sheet Template (.CSV)
-              </button>
-              <button id="download-spoken-template-btn" type="button" class="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 font-bold text-[11px]">
-                📥 Spoken Eng Template (.CSV)
-              </button>
-            </div>
-          </div>
-
-          <!-- Google Sheet URL Input -->
-          <div class="flex flex-wrap sm:flex-nowrap gap-2">
-            <select id="google-sheet-target-select" class="px-2.5 py-2 rounded-xl border border-teal-300 bg-white font-bold text-xs text-teal-950">
-              <option value="gk">🌏 For GK Questions</option>
-              <option value="spoken">🗣️ For Spoken English</option>
-            </select>
-            <input id="google-sheet-url-input" type="text" placeholder="Paste Google Sheet URL (https://docs.google.com/spreadsheets/d/...) or CSV URL" class="flex-1 px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-teal-500" />
-            <button id="fetch-google-sheet-btn" type="button" class="btn-3d px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-kids font-bold text-xs shrink-0">
-              ☁️ Fetch Google Sheet
-            </button>
-          </div>
-
-          <!-- Direct Attached File Inputs (.CSV / .TSV) -->
-          <div class="flex flex-wrap items-center gap-2 pt-1">
-            <label for="gk-sheet-file-input" class="btn-3d cursor-pointer px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-kids font-bold text-xs inline-flex items-center gap-1.5">
-              <span>📎 Attach GK Sheet (.CSV)</span>
-            </label>
-            <input id="gk-sheet-file-input" type="file" accept=".csv,.tsv,.txt" class="hidden" />
-
-            <label for="spoken-sheet-file-input" class="btn-3d cursor-pointer px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-xs inline-flex items-center gap-1.5">
-              <span>📎 Attach Spoken English Sheet (.CSV)</span>
-            </label>
-            <input id="spoken-sheet-file-input" type="file" accept=".csv,.tsv,.txt" class="hidden" />
-
-            <span id="sheet-load-status" class="text-xs font-semibold text-teal-900">
-              Sheet Status: Using Built-In Dynamic GK & Spoken English Banks (Attach or link a sheet anytime!)
-            </span>
-          </div>
-        </div>
-
-        <!-- Apply & Start Road Button -->
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button id="apply-teacher-settings-btn" type="button" class="btn-3d w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-kids font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg">
-            <span>✅ Apply Settings & Rebuild Road</span>
+      <div id="spoken-english-panel" class="hidden pt-2 border-t border-emerald-200/80">
+        <label class="block font-kids font-bold text-indigo-950 text-xs sm:text-sm mb-1.5">
+          🗣️ Spoken English Level & Conversation Pattern:
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button type="button" data-spoken-lvl="level1" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-indigo-600 text-white font-kids font-bold text-xs text-left">
+            <div>🌱 Level 1: Beginner</div>
+            <div class="text-[10px] opacity-90">সহজ শব্দ ও অভিবাদন</div>
+          </button>
+          <button type="button" data-spoken-lvl="level2" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs text-left">
+            <div>🌿 Level 2: Sentences</div>
+            <div class="text-[10px] opacity-80">ছোট বাক্য ও বাংলা অর্থ</div>
+          </button>
+          <button type="button" data-spoken-lvl="level3" class="spoken-lvl-btn btn-3d p-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs text-left">
+            <div>🌳 Level 3: Conversation</div>
+            <div class="text-[10px] opacity-80">কথোপকথন ও প্রশ্নোত্তর</div>
           </button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Multi-Character Roster & Direct .FBX / .GLB Loader Modal -->
-  <div id="glb-modal" class="hidden fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border-2 border-emerald-100 max-h-[92vh] overflow-y-auto custom-scroll">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2.5">
-          <span class="text-2xl">🕺</span>
-          <div>
-            <h2 class="font-kids text-lg sm:text-xl font-bold text-slate-900">Multi-Character Roster & Direct .FBX / .GLB Setup</h2>
-            <p class="text-xs text-slate-500">Choose from 5 built-in 3D characters, enable Companion Squad, or load direct <code>.fbx</code> / <code>.glb</code> models!</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200/80">
+        <label class="block font-kids font-bold text-sky-950 text-sm mb-2">
+          2. Language (ভাষা)
+        </label>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button type="button" data-tlang="bn" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-sky-600 text-white font-kids font-bold text-xs">
+            বাংলা (১,২,৩)
+          </button>
+          <button type="button" data-tlang="en" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-white text-slate-700 border border-sky-200 font-kids font-bold text-xs">
+            English (1,2,3)
+          </button>
+          <button type="button" data-tlang="both" class="tlang-opt-btn btn-3d py-2 px-2 rounded-xl bg-white text-slate-700 border border-sky-200 font-kids font-bold text-xs">
+            Both (উভয়)
+          </button>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80">
+        <label class="block font-kids font-bold text-amber-950 text-sm mb-2">
+          3. Activity Mode (শেখার ধরন)
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" data-tmode="walk" class="tmode-opt-btn btn-3d py-2 px-2.5 rounded-xl bg-amber-500 text-white font-kids font-bold text-xs flex items-center justify-center gap-1">
+            <span>🚶</span>
+            <span>Learning Mode</span>
+          </button>
+          <button type="button" data-tmode="quiz" class="tmode-opt-btn btn-3d py-2 px-2.5 rounded-xl bg-white text-slate-700 border border-amber-200 font-kids font-bold text-xs flex items-center justify-center gap-1">
+            <span>🎯</span>
+            <span>Quiz Mode</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <label class="font-kids font-bold text-purple-950 text-sm">
+          4. Number Range — Min & Max (সংখ্যার সীমা)
+        </label>
+        <span id="teacher-range-summary" class="text-xs font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+          Active Range: 1 to 20
+        </span>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button type="button" data-tmin="1" data-trange="10" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          1 – 10 (১–১০)
+        </button>
+        <button type="button" data-tmin="11" data-trange="20" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          11 – 20 (১১–২০)
+        </button>
+        <button type="button" data-tmin="1" data-trange="20" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-purple-600 text-white font-kids font-bold text-xs">
+          1 – 20 (১–২০)
+        </button>
+        <button type="button" data-tmin="1" data-trange="30" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          1 – 30 (১–৩০)
+        </button>
+        <button type="button" data-tmin="21" data-trange="50" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          21 – 50 (২১–৫০)
+        </button>
+        <button type="button" data-tmin="1" data-trange="50" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          1 – 50 (১–৫০)
+        </button>
+        <button type="button" data-tmin="51" data-trange="100" class="trange-preset-btn btn-3d px-2.5 py-1.5 rounded-xl bg-white text-slate-700 border border-purple-200 font-kids font-bold text-xs">
+          51 – 100 (৫১–১০০)
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 pt-1 border-t border-purple-200/60">
+        <div class="flex items-center gap-1.5">
+          <label for="custom-min-number-input" class="text-xs font-semibold text-purple-950">Min:</label>
+          <input id="custom-min-number-input" type="number" min="1" max="95" value="1" class="w-16 px-2 py-1 rounded-lg border border-purple-300 text-center font-bold text-xs bg-white" />
+        </div>
+        <div class="flex items-center gap-1.5">
+          <label for="custom-max-number-input" class="text-xs font-semibold text-purple-950">Max:</label>
+          <input id="custom-max-number-input" type="number" min="2" max="100" value="20" class="w-16 px-2 py-1 rounded-lg border border-purple-300 text-center font-bold text-xs bg-white" />
+        </div>
+      </div>
+    </div>
+
+    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block font-kids font-bold text-slate-800 text-xs sm:text-sm mb-1.5">
+            5. Camera Position (ক্যামেরা ও অ্যাঙ্গেল)
+          </label>
+          <select id="teacher-cam-select" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-xs text-slate-800">
+            <option value="back_character">🔙 Back Side of Character</option>
+            <option value="front_character">🔜 Front of Character</option>
+            <option value="face_angle" selected>📐 Face & Road 3/4 View</option>
+            <option value="front_look">😊 Front-Walk View</option>
+            <option value="classic">🎥 Classic Third-Person</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-kids font-bold text-slate-800 text-xs sm:text-sm mb-1.5">
+            6. Live Face Mirror & Walking Speed
+          </label>
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer">
+              <input id="toggle-face-pip-checkbox" type="checkbox" checked class="rounded text-emerald-600" />
+              <span>Show Face Cam</span>
+            </label>
+            <select id="teacher-speed-select" class="flex-1 px-2.5 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-xs text-slate-800">
+              <option value="0.75">Slow (Young Kids)</option>
+              <option value="1" selected>Normal Speed</option>
+              <option value="1.35">Fast Speed</option>
+            </select>
           </div>
         </div>
-        <button id="close-glb-modal-btn" type="button" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center">
-          ✕
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-2 pt-2">
+      <button id="apply-teacher-settings-btn" type="button" class="btn-3d w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-kids font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg">
+        <span>✅ Apply Settings & Rebuild Road</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+  <div class="mt-4 space-y-4 text-sm">
+    <!-- Section A: Multi-Character Selection Roster -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+        <div class="font-kids font-bold text-amber-950 text-sm sm:text-base">
+          🎭 1. Choose Character (চরিত্র নির্বাচন)
+        </div>
+        <label class="flex items-center gap-1.5 text-xs font-kids font-bold text-emerald-900 bg-emerald-100 px-3 py-1 rounded-full cursor-pointer border border-emerald-300">
+          <input id="companion-squad-checkbox" type="checkbox" class="rounded text-emerald-600" />
+          <span>👯 Walk with Companion Friends (সাথে বন্ধু)</span>
+        </label>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <button type="button" data-char-preset="raju" class="char-preset-btn btn-3d p-2 rounded-xl bg-amber-500 text-white font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
+          <span class="text-xl">👦</span>
+          <span>Raju</span>
+          <span class="text-[10px] opacity-90">রাজু (Explorer)</span>
+        </button>
+        <button type="button" data-char-preset="mili" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
+          <span class="text-xl">👧</span>
+          <span>Mili</span>
+          <span class="text-[10px] text-slate-500">মিলি (Scholar)</span>
+        </button>
+        <button type="button" data-char-preset="robo" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
+          <span class="text-xl">🤖</span>
+          <span>Robo-Bud</span>
+          <span class="text-[10px] text-slate-500">রোবো (Robot)</span>
+        </button>
+        <button type="button" data-char-preset="panda" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
+          <span class="text-xl">🐼</span>
+          <span>Panda</span>
+          <span class="text-[10px] text-slate-500">পান্ডা বন্ধু</span>
+        </button>
+        <button type="button" data-char-preset="bunny" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs col-span-2 sm:col-span-1">
+          <span class="text-xl">🐰</span>
+          <span>Bunny</span>
+          <span class="text-[10px] text-slate-500">খরগোশ বন্ধু</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Section B: Direct .FBX & .GLB File Loader (Multi-Slot) -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 space-y-2.5">
+      <div class="font-kids font-bold text-indigo-950 text-sm sm:text-base">
+        📂 2. Direct <code>.FBX</code> or <code>.GLB</code> Character Loader (Multi-Slot)
+      </div>
+      <p class="text-xs text-indigo-900/80">
+        Upload custom files into slots 1, 2, or 3:
+      </p>
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" data-custom-slot="0" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-indigo-600 text-white font-kids font-bold text-xs">
+          👤 Custom Slot 1
+        </button>
+        <button type="button" data-custom-slot="1" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs">
+          👤 Custom Slot 2
+        </button>
+        <button type="button" data-custom-slot="2" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs">
+          👤 Custom Slot 3
         </button>
       </div>
 
-      <div class="mt-4 space-y-4 text-sm">
-        <!-- Section A: Multi-Character Selection Roster (Built-In + Companion Squad Toggle) -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-            <div class="font-kids font-bold text-amber-950 text-sm sm:text-base">
-              🎭 1. Choose Character (অনেকগুলো ৩ডি চরিত্র থেকে বেছে নাও)
-            </div>
-            <label class="flex items-center gap-1.5 text-xs font-kids font-bold text-emerald-900 bg-emerald-100 px-3 py-1 rounded-full cursor-pointer border border-emerald-300">
-              <input id="companion-squad-checkbox" type="checkbox" class="rounded text-emerald-600" />
-              <span>👯 Walk with Companion Friends (সাথে বন্ধু চরিত্র)</span>
-            </label>
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <button type="button" data-char-preset="raju" class="char-preset-btn btn-3d p-2 rounded-xl bg-amber-500 text-white font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
-              <span class="text-xl">👦</span>
-              <span>Raju</span>
-              <span class="text-[10px] opacity-90">রাজু (Explorer)</span>
-            </button>
-            <button type="button" data-char-preset="mili" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
-              <span class="text-xl">👧</span>
-              <span>Mili</span>
-              <span class="text-[10px] text-slate-500">মিলি (Scholar)</span>
-            </button>
-            <button type="button" data-char-preset="robo" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
-              <span class="text-xl">🤖</span>
-              <span>Robo-Bud</span>
-              <span class="text-[10px] text-slate-500">রোবো (Robot)</span>
-            </button>
-            <button type="button" data-char-preset="panda" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs">
-              <span class="text-xl">🐼</span>
-              <span>Panda</span>
-              <span class="text-[10px] text-slate-500">পান্ডা বন্ধু</span>
-            </button>
-            <button type="button" data-char-preset="bunny" class="char-preset-btn btn-3d p-2 rounded-xl bg-white hover:bg-amber-100 text-slate-700 border border-amber-200 font-kids font-bold flex flex-col items-center gap-0.5 text-xs col-span-2 sm:col-span-1">
-              <span class="text-xl">🐰</span>
-              <span>Bunny</span>
-              <span class="text-[10px] text-slate-500">খরগোশ বন্ধু</span>
-            </button>
-          </div>
-        </div>
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <label for="glb-file-input" class="btn-3d cursor-pointer px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-xs inline-flex items-center gap-1.5">
+          <span>📂 Choose .GLB/.FBX File</span>
+        </label>
+        <input id="glb-file-input" type="file" accept=".fbx,.glb,.gltf" class="hidden" />
 
-        <!-- Section B: Direct .FBX & .GLB File Loader + Multi-Slot Custom Characters -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 space-y-2.5">
-          <div class="font-kids font-bold text-indigo-950 text-sm sm:text-base">
-            📂 2. Direct <code>.FBX</code>, <code>.GLB</code>, or <code>.GLTF</code> Character Loader (Multi-Slot)
-          </div>
-          <p class="text-xs text-indigo-900/80">
-            Directly upload <strong>Mixamo <code>.fbx</code></strong> or <strong>Blender <code>.glb</code></strong> files into Custom Character Slots 1, 2, or 3, and attach extra <code>.fbx</code> animation clips!
-          </p>
+        <button id="restore-default-char-btn" type="button" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs">
+          Use Built-in 3D Kid
+        </button>
+      </div>
+      <div id="glb-status-msg" class="text-xs font-semibold text-emerald-700">
+        Active Model: Raju — Built-in Expressive 3D Explorer (Ready)
+      </div>
+    </div>
 
-          <!-- Custom Character Slots (Slot 1, Slot 2, Slot 3) -->
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" data-custom-slot="0" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-indigo-600 text-white font-kids font-bold text-xs">
-              👤 Custom Slot 1
-            </button>
-            <button type="button" data-custom-slot="1" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs">
-              👤 Custom Slot 2
-            </button>
-            <button type="button" data-custom-slot="2" class="custom-slot-btn btn-3d py-1.5 px-2 rounded-xl bg-white text-slate-700 border border-indigo-200 font-kids font-bold text-xs">
-              👤 Custom Slot 3
-            </button>
-          </div>
+    <!-- Option 3: FIXED INBUILT CHARACTER DROP-DOWN SELECTION -->
+    <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 border border-emerald-100">
+      <div class="font-kids font-bold text-emerald-950 text-sm sm:text-base mb-1">
+        🌐 3. Select Inbuilt Character File from Dropdown Menu (Fixed Path)
+      </div>
+      <p class="text-xs text-emerald-900/80 mb-2">
+        Choose a predefined character file path fixed in the codebase:
+      </p>
+      <div class="flex gap-2">
+        <select id="glb-url-input" class="flex-1 px-3 py-2 rounded-xl border border-emerald-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-emerald-950">
+          <option value="./character.glb">Raju Default Model (.glb)</option>
+          <option value="./character.fbx">Raju Default Model (.fbx)</option>
+          <option value="./mili.glb">Mili Scholar Girl (.glb)</option>
+          <option value="./robo.glb">Robo-Bud Robot (.glb)</option>
+          <option value="./panda.glb">Bhalu Panda Friend (.glb)</option>
+          <option value="./bunny.glb">Bunny Hop Friend (.glb)</option>
+        </select>
+        <button id="load-glb-url-btn" type="button" class="btn-3d px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-kids font-bold text-xs sm:text-sm">
+          Load Selected
+        </button>
+      </div>
+    </div>
 
-          <div class="flex flex-wrap items-center gap-2 pt-1">
-            <label for="glb-file-input" class="btn-3d cursor-pointer px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-kids font-bold text-xs sm:text-sm inline-flex items-center gap-1.5">
-              <span>📂 Choose .GLB File</span>
-            </label>
-            <input id="glb-file-input" type="file" accept=".fbx,.glb,.gltf" class="hidden" />
+    <!-- Animation Clip Inspector -->
+    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-xs text-slate-700 uppercase tracking-wider">Detected Character Animations & Rig:</span>
+        <span id="current-anim-state" class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">State: IDLE</span>
+      </div>
+      <div id="anim-clips-list" class="mt-1.5 text-xs text-slate-600 font-medium">
+        Procedural Skeletal Rig + Live Facial Expressions: Smile, Laugh, Wow, Think, Blink
+      </div>
+    </div>
+  </div>
+</div>
 
-            <label for="fbx-direct-input" class="btn-3d cursor-pointer px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-kids font-bold text-xs sm:text-sm inline-flex items-center gap-1.5">
-              <span>📦 Load Direct .FBX File</span>
-            </label>
-            <input id="fbx-direct-input" type="file" accept=".fbx,.glb,.gltf" class="hidden" />
-
-            <label for="extra-anim-file-input" class="btn-3d cursor-pointer px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-kids font-bold text-xs inline-flex items-center gap-1" title="Attach a separate Mixamo Walk/Run/Jump .FBX animation to the current character">
-              <span>➕ Add .FBX Anim Clip</span>
-            </label>
-            <input id="extra-anim-file-input" type="file" accept=".fbx,.glb,.gltf" class="hidden" />
-
-            <button id="restore-default-char-btn" type="button" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs">
-              Use Built-in 3D Kid
-            </button>
-          </div>
-          <div id="glb-status-msg" class="text-xs font-semibold text-emerald-700">
-            Active Model: Raju — Built-in Expressive 3D Explorer (Ready)
-          </div>
-        </div>
-
-        <!-- Option 3: Load .FBX or .GLB by URL / Relative Path for GitHub Pages -->
-        <div class="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 border border-emerald-100">
-          <div class="font-kids font-bold text-emerald-950 text-sm sm:text-base mb-1">
-            🌐 3. Load <code>.fbx</code> or <code>.glb</code> from URL / GitHub Repository Path
-          </div>
-          <p class="text-xs text-emerald-900/80 mb-2">
-            Place <code>character.fbx</code> or <code>character.glb</code> in your GitHub folder (or enter multiple paths like <code>./boy.fbx</code>, <code>./girl.fbx</code>):
-          </p>
-          <div class="flex gap-2">
-            <input id="glb-url-input" type="text" value="./character.glb" placeholder="./character.fbx or ./character.glb" class="flex-1 px-3 py-2 rounded-xl border border-emerald-300 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-            <button id="load-glb-url-btn" type="button" class="btn-3d px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-kids font-bold text-xs sm:text-sm">
-              Load URL
-            </button>
-          </div>
-        </div>
-
-        <!-- Animation Clip Inspector & Rig Diagnostic -->
-        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-xs text-slate-700 uppercase tracking-wider">Detected Character Animations & Rig:</span>
-            <span id="current-anim-state" class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">State: IDLE</span>
-          </div>
-          <div id="anim-clips-list" class="mt-1.5 text-xs text-slate-600 font-medium">
-            Procedural Skeletal Rig + Live Facial Expressions: Smile, Laugh, Wow, Think, Blink
-          </div>
-          <div id="glb-rig-diagnostic" class="mt-2 text-[11px] p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 space-y-1">
-            <div class="font-bold">💡 Why Limbs Might Not Move in Your .GLB:</div>
-            <div>• <strong>No baked animations</strong>: Export from Blender with <em>Animation</em> checked, or use Mixamo with <em>"In Place"</em> checked.</div>
-            <div>• <strong>Clip name difference</strong>: The game now auto-maps any clip or enables procedural limb swinging for un-animated bones!</div>
-          </div>
-        </div>
 
         <!-- GitHub Pages Quick Instructions -->
         <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs space-y-1.5 text-slate-700">
